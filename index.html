@@ -401,13 +401,44 @@
       .hero-inner { grid-template-columns: 1fr; }
       .hero-badge { display: none; }
       .about-grid { grid-template-columns: 1fr; gap: 40px; }
+      .about-grid .hero-badge { display: none; }
       .services-grid { grid-template-columns: 1fr 1fr; }
       .info-grid { grid-template-columns: 1fr; gap: 40px; }
       .nav-links { display: none; }
+      .nav-cta { display: none; }
     }
     @media (max-width: 560px) {
+      /* Nav */
+      .nav-inner { height: 56px; }
+      .nav-brand { font-size: .88rem; }
+      .nav-cta { font-size: .72rem; padding: 8px 12px; }
+
+      /* Hero */
+      .hero { padding: 56px 0 48px; }
+      .hero h1 { font-size: 1.75rem; }
+      .hero-sub { font-size: .92rem; }
+      .hero-actions { flex-direction: column; align-items: stretch; }
+      .btn-gold, .btn-outline { justify-content: center; text-align: center; }
+
+      /* Trust bar */
+      .trust-items { gap: 10px 20px; justify-content: flex-start; }
+      .trust-item { font-size: .68rem; }
+
+      /* About */
+      .about { padding: 56px 0; }
+
+      /* Services */
+      .services { padding: 56px 0; }
       .services-grid { grid-template-columns: 1fr; }
-      .stat-list { grid-template-columns: 1fr 1fr; }
+
+      /* Clients */
+      .clients { padding: 48px 0; }
+
+      /* Info */
+      .info { padding: 56px 0; }
+      .btn-wa { width: 100%; justify-content: center; }
+
+      /* Footer */
       .footer-inner { flex-direction: column; align-items: flex-start; }
       .footer-right { text-align: left; }
     }
