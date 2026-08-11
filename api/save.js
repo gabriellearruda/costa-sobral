@@ -30,13 +30,15 @@ function resetRateLimit(ip) {
 
 // ── Handler ──────────────────────────────────────────────────────────────
 export default async function handler(req, res) {
-  // CORS: permite apenas a origem do próprio site
-  const allowedOrigin = process.env.ALLOWED_ORIGIN || 'https://costa-sobral.vercel.app';
+  // CORS: aceita origens configuradas (separadas por vírgula)
+  const allowedOrigins = (process.env.ALLOWED_ORIGIN || 'https://costa-sobral.vercel.app')
+    .split(',').map(o => o.trim());
   const origin = req.headers.origin || '';
-  if (origin && origin !== allowedOrigin) {
+  const originOk = !origin || allowedOrigins.includes(origin);
+  if (!originOk) {
     return res.status(403).json({ error: 'Origem não permitida' });
   }
-  res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
+  res.setHeader('Access-Control-Allow-Origin', origin || allowedOrigins[0]);
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   res.setHeader('Vary', 'Origin');
