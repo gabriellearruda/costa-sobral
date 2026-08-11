@@ -1,0 +1,16 @@
+# Variáveis de ambiente — NUNCA commitar
+.env
+.env.local
+.env.*.local
+
+# Dependências Node (se vier a usar)
+node_modules/
+
+# Arquivos do sistema
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+npm-debug.log*

@@ -1,0 +1,52 @@
+{
+  "hero_eyebrow": "Suzano · São Paulo",
+  "hero_title": "Serviços terceirizados com [qualidade que você confia]",
+  "hero_tagline": "Movendo Confiança, Gerando Valor",
+  "hero_sub": "Portaria, limpeza, recepção corporativa e apoio operacional para empresas, indústrias, escolas, supermercados e condomínios — soluções personalizadas para cada cliente.",
+  "hero_btn1_text": "Falar no WhatsApp",
+  "hero_btn2_text": "Conheça nossos serviços",
+  "trust_items": [
+    "Atendimento personalizado",
+    "Mão de obra qualificada",
+    "Compromisso e qualidade",
+    "Parceria que nos move"
+  ],
+  "about_title": "Especialistas em serviços terceirizados para o seu negócio",
+  "about_p1": "A Costa & Sobral é uma empresa sediada em Suzano, SP, especializada na prestação de serviços terceirizados para empresas, indústrias, escolas, supermercados e condomínios.",
+  "about_p2": "Nosso objetivo é oferecer mão de obra qualificada e soluções personalizadas, sempre com foco na satisfação dos clientes e no bom funcionamento das operações do seu negócio.",
+  "about_p3": "Trabalhamos com compromisso, transparência e profissionalismo — garantindo que cada cliente receba o atendimento e o suporte que merece.",
+  "services_title": "Serviços sob medida para cada tipo de negócio",
+  "services": [
+    { "title": "Portaria e Controle de Acesso", "desc": "Profissionais treinados para garantir a segurança patrimonial e o controle eficiente de entradas e saídas em condomínios, empresas e indústrias.", "icon": "shield" },
+    { "title": "Momentos à Mesa", "desc": "Serviço de café, recepção e acolhimento corporativo — criamos conexões e ambientes que aproximam. Cuidado em cada detalhe para você aproveitar o que importa.", "icon": "coffee" },
+    { "title": "Apoio a Condomínios", "desc": "Portaria, limpeza e manutenção de áreas comuns para condomínios residenciais e comerciais, com gestão operacional completa.", "icon": "home" },
+    { "title": "Empresas e Indústrias", "desc": "Mão de obra qualificada para atividades de apoio operacional, recepção, limpeza e conservação em ambientes industriais e corporativos.", "icon": "building" },
+    { "title": "Escolas e Instituições", "desc": "Portaria, limpeza e atendimento para instituições de ensino, com profissionais preparados para ambientes educacionais.", "icon": "school" },
+    { "title": "Supermercados e Varejo", "desc": "Equipes para atendimento ao cliente, organização de estoque, embalagem e suporte às operações do varejo alimentício e demais segmentos.", "icon": "cart" }
+  ],
+  "contact_addr1": "Av. Rio de Janeiro, 100 — Sl 03",
+  "contact_addr2": "Parque Suzano, Suzano — SP",
+  "contact_cep": "CEP 08673-070",
+  "contact_phone_display": "(11) 92661-2817",
+  "contact_phone_wa": "5511926612817",
+  "contact_instagram": "cs_facilities",
+  "contact_wa_msg": "Olá, gostaria de solicitar um orçamento.",
+  "hours": [
+    { "day": "Segunda", "open": "09:00 – 18:00", "closed": false },
+    { "day": "Terça",   "open": "09:00 – 18:00", "closed": false },
+    { "day": "Quarta",  "open": "09:00 – 18:00", "closed": false },
+    { "day": "Quinta",  "open": "09:00 – 18:00", "closed": false },
+    { "day": "Sexta",   "open": "09:00 – 18:00", "closed": false },
+    { "day": "Sábado",  "open": "", "closed": true },
+    { "day": "Domingo", "open": "", "closed": true }
+  ],
+  "seo_title": "Costa & Sobral — Soluções em Serviços Terceirizados | Suzano, SP",
+  "seo_desc": "Empresa de serviços terceirizados em Suzano, SP. Portaria, limpeza, recepção corporativa e apoio operacional para empresas, indústrias, escolas, supermercados e condomínios. Ligue: (11) 92661-2817.",
+  "seo_keywords": "serviços terceirizados Suzano, portaria Suzano SP, limpeza terceirizada, mão de obra terceirizada, facilities Suzano, Costa e Sobral",
+  "seo_url": "https://costa-sobral.vercel.app/",
+  "og_title": "Costa & Sobral — Soluções em Serviços Terceirizados",
+  "og_desc": "Portaria, limpeza, recepção corporativa e apoio operacional para empresas, indústrias, escolas, supermercados e condomínios em Suzano, SP.",
+  "footer_cnpj": "62.729.475/0001-70",
+  "footer_city": "Suzano, SP",
+  "footer_copy": "© 2025 Costa & Sobral Soluções e Serviços Ltda. Todos os direitos reservados."
+}
