@@ -1,29 +1,46 @@
 {
-  "hero_eyebrow": "Suzano · São Paulo",
+  "brand_name": "C&S",
+  "brand_full": "C&S — Soluções em Serviços Terceirizados",
+
   "hero_title": "Serviços terceirizados com [qualidade que você confia]",
   "hero_tagline": "Movendo Confiança, Gerando Valor",
-  "hero_sub": "Portaria, limpeza, recepção corporativa e apoio operacional para empresas, indústrias, escolas, supermercados e condomínios — soluções personalizadas para cada cliente.",
+  "hero_sub": "Segurança, portaria, limpeza e manutenção predial para condomínios, empresas e indústrias — capital humano treinado e tecnologia integrada para proteger e cuidar do seu patrimônio.",
   "hero_btn1_text": "Falar no WhatsApp",
   "hero_btn2_text": "Conheça nossos serviços",
-  "trust_items": [
-    "Atendimento personalizado",
-    "Mão de obra qualificada",
-    "Compromisso e qualidade",
-    "Parceria que nos move"
+
+  "mvv_missao": "Agregar modernidade, praticidade e segurança, com a prioridade de conectar as pessoas com a tecnologia, para entregar um alto valor aos seus clientes.",
+  "mvv_visao": "Ser uma empresa consolidada no mercado, reconhecida pela excelência técnica e pela geração de soluções viáveis e inteligentes para nossos parceiros.",
+  "mvv_valores": "Ética, transparência, compromisso com a qualidade e desenvolvimento contínuo de nossa equipe, focando na particularidade de cada cliente.",
+
+  "about_title": "C&S",
+  "about_p1": "Somos uma empresa especializada na prestação de serviços terceirizados para condomínios, empresas e indústrias focada no crescimento e gestão eficiente.",
+  "about_p2": "Nosso diferencial está na integração entre capital humano treinado e tecnologias de ponta, garantindo que o seu patrimônio esteja sempre protegido e bem cuidado.",
+  "pilares": [
+    { "icon": "estrategia", "title": "Estratégia", "desc": "Planejamento tático personalizado para as necessidades de cada cliente." },
+    { "icon": "eficiencia", "title": "Eficiência",  "desc": "Processos ágeis que otimizam recursos e garantem resultados superiores." },
+    { "icon": "experiencia","title": "Experiência", "desc": "Equipe com vasto know-how em segurança condominial e facilities." },
+    { "icon": "solucao",    "title": "Solução",     "desc": "Respostas completas para os desafios de gestão e segurança do dia a dia." }
   ],
-  "about_title": "Especialistas em serviços terceirizados para o seu negócio",
-  "about_p1": "A Costa & Sobral é uma empresa sediada em Suzano, SP, especializada na prestação de serviços terceirizados para empresas, indústrias, escolas, supermercados e condomínios.",
-  "about_p2": "Nosso objetivo é oferecer mão de obra qualificada e soluções personalizadas, sempre com foco na satisfação dos clientes e no bom funcionamento das operações do seu negócio.",
-  "about_p3": "Trabalhamos com compromisso, transparência e profissionalismo — garantindo que cada cliente receba o atendimento e o suporte que merece.",
+
   "services_title": "Serviços sob medida para cada tipo de negócio",
   "services": [
-    { "title": "Portaria e Controle de Acesso", "desc": "Profissionais treinados para garantir a segurança patrimonial e o controle eficiente de entradas e saídas em condomínios, empresas e indústrias.", "icon": "shield" },
-    { "title": "Momentos à Mesa", "desc": "Serviço de café, recepção e acolhimento corporativo — criamos conexões e ambientes que aproximam. Cuidado em cada detalhe para você aproveitar o que importa.", "icon": "coffee" },
-    { "title": "Apoio a Condomínios", "desc": "Portaria, limpeza e manutenção de áreas comuns para condomínios residenciais e comerciais, com gestão operacional completa.", "icon": "home" },
-    { "title": "Empresas e Indústrias", "desc": "Mão de obra qualificada para atividades de apoio operacional, recepção, limpeza e conservação em ambientes industriais e corporativos.", "icon": "building" },
-    { "title": "Escolas e Instituições", "desc": "Portaria, limpeza e atendimento para instituições de ensino, com profissionais preparados para ambientes educacionais.", "icon": "school" },
-    { "title": "Supermercados e Varejo", "desc": "Equipes para atendimento ao cliente, organização de estoque, embalagem e suporte às operações do varejo alimentício e demais segmentos.", "icon": "cart" }
+    { "icon": "seguranca", "title": "Segurança e Vigilância",  "desc": "Proteção patrimonial com agentes treinados e rondas ostensivas 24h." },
+    { "icon": "portaria",  "title": "Portaria e Acesso",       "desc": "Controle rigoroso de entrada e saída de moradores, visitantes e prestadores." },
+    { "icon": "limpeza",   "title": "Limpeza e Conservação",   "desc": "Manutenção impecável das áreas comuns com cronograma técnico de higiene." },
+    { "icon": "predial",   "title": "Manutenção Predial",      "desc": "Zeladoria ativa para garantir o funcionamento de toda a infraestrutura." }
   ],
+
+  "sa_title": "Segurança Ativa",
+  "sa_intro": "Acreditamos que a segurança é o nosso compromisso maior com a sua paz. <strong>Investimos pesadamente em:</strong>",
+  "sa_items": [
+    "Treinamento contínuo da equipe.",
+    "Monitoramento em tempo real.",
+    "Protocolos de emergência rígidos.",
+    "Tecnologia de integração de dados."
+  ],
+  "sa_img_src": "img/seguranca.jpg",
+  "sa_img_alt": "Agente de segurança C&S em posição de vigilância",
+
   "contact_addr1": "Av. Rio de Janeiro, 100 — Sl 03",
   "contact_addr2": "Parque Suzano, Suzano — SP",
   "contact_cep": "CEP 08673-070",
@@ -40,13 +57,15 @@
     { "day": "Sábado",  "open": "", "closed": true },
     { "day": "Domingo", "open": "", "closed": true }
   ],
-  "seo_title": "Costa & Sobral — Soluções em Serviços Terceirizados | Suzano, SP",
+
+  "seo_title": "C&S — Soluções em Serviços Terceirizados | Suzano, SP",
   "seo_desc": "Empresa de serviços terceirizados em Suzano, SP. Portaria, limpeza, recepção corporativa e apoio operacional para empresas, indústrias, escolas, supermercados e condomínios. Ligue: (11) 92661-2817.",
-  "seo_keywords": "serviços terceirizados Suzano, portaria Suzano SP, limpeza terceirizada, mão de obra terceirizada, facilities Suzano, Costa e Sobral",
-  "seo_url": "https://costa-sobral.vercel.app/",
-  "og_title": "Costa & Sobral — Soluções em Serviços Terceirizados",
+  "seo_keywords": "serviços terceirizados Suzano, portaria Suzano SP, limpeza terceirizada, mão de obra terceirizada, facilities Suzano, C&S",
+  "seo_url": "https://www.cservicos.com/",
+  "og_title": "C&S — Soluções em Serviços Terceirizados",
   "og_desc": "Portaria, limpeza, recepção corporativa e apoio operacional para empresas, indústrias, escolas, supermercados e condomínios em Suzano, SP.",
-  "footer_cnpj": "62.729.475/0001-70",
+
+  "footer_cnpj": "66.840.249/0001-13",
   "footer_city": "Suzano, SP",
-  "footer_copy": "© 2025 Costa & Sobral Soluções e Serviços Ltda. Todos os direitos reservados."
+  "footer_copy": "© 2025 C&S Soluções e Serviços Ltda. Todos os direitos reservados."
 }

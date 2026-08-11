@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Admin — Costa & Sobral</title>
+  <title>Admin — C&S</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow">
   <style>
@@ -88,6 +88,16 @@
     .hours-row label{display:flex;align-items:center;gap:5px;font-size:.75rem;color:var(--text-sub);cursor:pointer;white-space:nowrap;}
     .hours-row input[type=checkbox]{accent-color:var(--gold);}
 
+    /* Pilares / SA items */
+    .pilar-block{border:1px solid var(--border);border-radius:6px;padding:14px;margin-bottom:10px;}
+    .pilar-block-title{font-size:.65rem;font-weight:700;color:var(--text-sub);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px;}
+    .sa-items-list .sa-item-row{display:flex;gap:8px;margin-bottom:8px;align-items:center;}
+    .sa-items-list .sa-item-row input{flex:1;}
+    .sa-items-list .sa-item-row button{background:none;border:1px solid rgba(224,85,85,.35);color:var(--red);border-radius:4px;padding:4px 8px;font-size:.7rem;cursor:pointer;white-space:nowrap;transition:border-color .2s;}
+    .sa-items-list .sa-item-row button:hover{border-color:var(--red);}
+    .btn-add-item{background:none;border:1px dashed var(--border);color:var(--text-sub);border-radius:5px;padding:7px 14px;font-size:.75rem;cursor:pointer;transition:border-color .2s,color .2s;margin-top:4px;}
+    .btn-add-item:hover{border-color:var(--gold);color:var(--gold);}
+
     /* Toast */
     #toast{position:fixed;bottom:22px;right:22px;z-index:9998;background:var(--surface);border:1px solid var(--green);border-radius:8px;padding:11px 16px;font-size:.83rem;color:var(--green);display:none;align-items:center;gap:8px;box-shadow:0 4px 20px rgba(0,0,0,.4);}
     #toast.show{display:flex;}
@@ -99,7 +109,7 @@
 <!-- ── Login ─────────────────────────────────────────────── -->
 <div id="login-screen">
   <div class="login-box">
-    <div class="logo">Costa &amp; Sobral</div>
+    <div class="logo">C&amp;S</div>
     <div class="sub">Painel Administrativo</div>
     <input type="password" id="pwd-input" placeholder="Senha de acesso" autocomplete="current-password">
     <button onclick="doLogin()">Entrar</button>
@@ -112,7 +122,7 @@
 
   <aside>
     <div class="aside-top">
-      <div class="aside-brand">Costa &amp; Sobral</div>
+      <div class="aside-brand">C&amp;S</div>
       <div class="aside-sub">Gerenciador de Conteúdo</div>
     </div>
 
@@ -122,6 +132,10 @@
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/></svg>
         Hero / Início
       </div>
+      <div class="nav-item" data-panel="mvv">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        Missão, Visão, Valores
+      </div>
       <div class="nav-item" data-panel="about">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
         Quem Somos
@@ -129,6 +143,10 @@
       <div class="nav-item" data-panel="services">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
         Serviços
+      </div>
+      <div class="nav-item" data-panel="seguranca">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Segurança Ativa
       </div>
       <div class="nav-item" data-panel="contact">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><circle cx="12" cy="11" r="3"/></svg>
@@ -145,28 +163,19 @@
     </nav>
 
     <div class="aside-actions">
-      <!-- Status -->
       <div class="publish-status" id="publish-status"></div>
-
-      <!-- Publicar -->
       <button class="btn-publish" id="btn-publish" onclick="publish()">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
         Publicar no Site
       </button>
-
-      <!-- Rascunho -->
       <button class="btn-secondary" onclick="saveDraft()">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
         Salvar Rascunho
       </button>
-
-      <!-- Ver site -->
-      <button class="btn-secondary" onclick="window.open('https://costa-sobral.vercel.app','_blank')">
+      <button class="btn-secondary" onclick="window.open('https://www.cservicos.com','_blank')">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3"/></svg>
         Ver Site
       </button>
-
-      <!-- Sair -->
       <button class="btn-secondary btn-danger" onclick="logout()">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
         Sair
@@ -184,10 +193,6 @@
       </div>
       <div class="card">
         <div class="card-title">Textos principais</div>
-        <div class="field-group">
-          <label>Localização (eyebrow)</label>
-          <input type="text" id="hero_eyebrow">
-        </div>
         <div class="field-group">
           <label>Título principal</label>
           <div class="hint">Use [colchetes] para destacar em dourado. Ex: com [qualidade que você confia]</div>
@@ -215,9 +220,27 @@
           </div>
         </div>
       </div>
+    </div>
+
+    <!-- MVV -->
+    <div class="section-panel" id="panel-mvv">
+      <div class="panel-header">
+        <h1>Missão, Visão e Valores</h1>
+        <p>Barra exibida logo abaixo do hero.</p>
+      </div>
       <div class="card">
-        <div class="card-title">Barra de credibilidade</div>
-        <div id="trust-container"></div>
+        <div class="field-group">
+          <label>Missão</label>
+          <textarea id="mvv_missao"></textarea>
+        </div>
+        <div class="field-group">
+          <label>Visão</label>
+          <textarea id="mvv_visao"></textarea>
+        </div>
+        <div class="field-group">
+          <label>Valores</label>
+          <textarea id="mvv_valores"></textarea>
+        </div>
       </div>
     </div>
 
@@ -225,10 +248,10 @@
     <div class="section-panel" id="panel-about">
       <div class="panel-header">
         <h1>Quem Somos</h1>
-        <p>Seção de apresentação da empresa.</p>
+        <p>Seção de apresentação da empresa com os 4 pilares.</p>
       </div>
       <div class="card">
-        <div class="card-title">Conteúdo</div>
+        <div class="card-title">Texto</div>
         <div class="field-group">
           <label>Título</label>
           <input type="text" id="about_title">
@@ -241,10 +264,10 @@
           <label>Parágrafo 2</label>
           <textarea id="about_p2"></textarea>
         </div>
-        <div class="field-group">
-          <label>Parágrafo 3</label>
-          <textarea id="about_p3"></textarea>
-        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Pilares (4 cards)</div>
+        <div id="pilares-container"></div>
       </div>
     </div>
 
@@ -252,7 +275,7 @@
     <div class="section-panel" id="panel-services">
       <div class="panel-header">
         <h1>Serviços</h1>
-        <p>Edite os 6 cards de serviço.</p>
+        <p>Edite os 4 cards de serviço.</p>
       </div>
       <div class="card">
         <div class="card-title">Título da seção</div>
@@ -261,6 +284,44 @@
         </div>
       </div>
       <div id="services-container"></div>
+    </div>
+
+    <!-- SEGURANÇA ATIVA -->
+    <div class="section-panel" id="panel-seguranca">
+      <div class="panel-header">
+        <h1>Segurança Ativa</h1>
+        <p>Seção com imagem e lista de diferenciais.</p>
+      </div>
+      <div class="card">
+        <div class="card-title">Textos</div>
+        <div class="field-group">
+          <label>Título</label>
+          <input type="text" id="sa_title">
+        </div>
+        <div class="field-group">
+          <label>Introdução</label>
+          <div class="hint">Pode usar &lt;strong&gt;texto&lt;/strong&gt; para negrito.</div>
+          <textarea id="sa_intro"></textarea>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Lista de itens</div>
+        <div class="sa-items-list" id="sa-items-container"></div>
+        <button class="btn-add-item" onclick="addSaItem()">+ Adicionar item</button>
+      </div>
+      <div class="card">
+        <div class="card-title">Imagem</div>
+        <div class="two-col">
+          <div class="field-group">
+            <label>Caminho da imagem</label>
+            <input type="text" id="sa_img_src" placeholder="img/seguranca.jpg">
+          </div>
+          <div class="field-group">
+            <label>Texto alternativo (alt)</label>
+            <input type="text" id="sa_img_alt">
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- CONTACT -->
@@ -382,55 +443,70 @@ let sessionPassword = '';
 let data = {};
 
 const DEFAULTS = {
-  hero_eyebrow:'Suzano · São Paulo',
-  hero_title:'Serviços terceirizados com [qualidade que você confia]',
-  hero_tagline:'Movendo Confiança, Gerando Valor',
-  hero_sub:'Portaria, limpeza, recepção corporativa e apoio operacional para empresas, indústrias, escolas, supermercados e condomínios — soluções personalizadas para cada cliente.',
-  hero_btn1_text:'Falar no WhatsApp',
-  hero_btn2_text:'Conheça nossos serviços',
-  trust_items:['Atendimento personalizado','Mão de obra qualificada','Compromisso e qualidade','Parceria que nos move'],
-  about_title:'Especialistas em serviços terceirizados para o seu negócio',
-  about_p1:'A Costa & Sobral é uma empresa sediada em Suzano, SP, especializada na prestação de serviços terceirizados para empresas, indústrias, escolas, supermercados e condomínios.',
-  about_p2:'Nosso objetivo é oferecer mão de obra qualificada e soluções personalizadas, sempre com foco na satisfação dos clientes e no bom funcionamento das operações do seu negócio.',
-  about_p3:'Trabalhamos com compromisso, transparência e profissionalismo — garantindo que cada cliente receba o atendimento e o suporte que merece.',
-  services_title:'Serviços sob medida para cada tipo de negócio',
-  services:[
-    {title:'Portaria e Controle de Acesso',desc:'Profissionais treinados para garantir a segurança patrimonial e o controle eficiente de entradas e saídas em condomínios, empresas e indústrias.',icon:'shield'},
-    {title:'Momentos à Mesa',desc:'Serviço de café, recepção e acolhimento corporativo — criamos conexões e ambientes que aproximam. Cuidado em cada detalhe para você aproveitar o que importa.',icon:'coffee'},
-    {title:'Apoio a Condomínios',desc:'Portaria, limpeza e manutenção de áreas comuns para condomínios residenciais e comerciais, com gestão operacional completa.',icon:'home'},
-    {title:'Empresas e Indústrias',desc:'Mão de obra qualificada para atividades de apoio operacional, recepção, limpeza e conservação em ambientes industriais e corporativos.',icon:'building'},
-    {title:'Escolas e Instituições',desc:'Portaria, limpeza e atendimento para instituições de ensino, com profissionais preparados para ambientes educacionais.',icon:'school'},
-    {title:'Supermercados e Varejo',desc:'Equipes para atendimento ao cliente, organização de estoque, embalagem e suporte às operações do varejo alimentício e demais segmentos.',icon:'cart'},
+  brand_name: 'C&S',
+  brand_full: 'C&S — Soluções em Serviços Terceirizados',
+  hero_title: 'Serviços terceirizados com [qualidade que você confia]',
+  hero_tagline: 'Movendo Confiança, Gerando Valor',
+  hero_sub: 'Segurança, portaria, limpeza e manutenção predial para condomínios, empresas e indústrias — capital humano treinado e tecnologia integrada para proteger e cuidar do seu patrimônio.',
+  hero_btn1_text: 'Falar no WhatsApp',
+  hero_btn2_text: 'Conheça nossos serviços',
+  mvv_missao: 'Agregar modernidade, praticidade e segurança, com a prioridade de conectar as pessoas com a tecnologia, para entregar um alto valor aos seus clientes.',
+  mvv_visao: 'Ser uma empresa consolidada no mercado, reconhecida pela excelência técnica e pela geração de soluções viáveis e inteligentes para nossos parceiros.',
+  mvv_valores: 'Ética, transparência, compromisso com a qualidade e desenvolvimento contínuo de nossa equipe, focando na particularidade de cada cliente.',
+  about_title: 'C&S',
+  about_p1: 'Somos uma empresa especializada na prestação de serviços terceirizados para condomínios, empresas e indústrias focada no crescimento e gestão eficiente.',
+  about_p2: 'Nosso diferencial está na integração entre capital humano treinado e tecnologias de ponta, garantindo que o seu patrimônio esteja sempre protegido e bem cuidado.',
+  pilares: [
+    { icon: 'estrategia', title: 'Estratégia', desc: 'Planejamento tático personalizado para as necessidades de cada cliente.' },
+    { icon: 'eficiencia',  title: 'Eficiência',  desc: 'Processos ágeis que otimizam recursos e garantem resultados superiores.' },
+    { icon: 'experiencia', title: 'Experiência', desc: 'Equipe com vasto know-how em segurança condominial e facilities.' },
+    { icon: 'solucao',     title: 'Solução',     desc: 'Respostas completas para os desafios de gestão e segurança do dia a dia.' },
   ],
-  contact_addr1:'Av. Rio de Janeiro, 100 — Sl 03',
-  contact_addr2:'Parque Suzano, Suzano — SP',
-  contact_cep:'CEP 08673-070',
-  contact_phone_display:'(11) 92661-2817',
-  contact_phone_wa:'5511926612817',
-  contact_instagram:'cs_facilities',
-  contact_wa_msg:'Olá, gostaria de solicitar um orçamento.',
-  hours:[
-    {day:'Segunda',open:'09:00 – 18:00',closed:false},
-    {day:'Terça',open:'09:00 – 18:00',closed:false},
-    {day:'Quarta',open:'09:00 – 18:00',closed:false},
-    {day:'Quinta',open:'09:00 – 18:00',closed:false},
-    {day:'Sexta',open:'09:00 – 18:00',closed:false},
-    {day:'Sábado',open:'',closed:true},
-    {day:'Domingo',open:'',closed:true},
+  services_title: 'Serviços sob medida para cada tipo de negócio',
+  services: [
+    { icon: 'seguranca', title: 'Segurança e Vigilância',  desc: 'Proteção patrimonial com agentes treinados e rondas ostensivas 24h.' },
+    { icon: 'portaria',  title: 'Portaria e Acesso',       desc: 'Controle rigoroso de entrada e saída de moradores, visitantes e prestadores.' },
+    { icon: 'limpeza',   title: 'Limpeza e Conservação',   desc: 'Manutenção impecável das áreas comuns com cronograma técnico de higiene.' },
+    { icon: 'predial',   title: 'Manutenção Predial',      desc: 'Zeladoria ativa para garantir o funcionamento de toda a infraestrutura.' },
   ],
-  seo_title:'Costa & Sobral — Soluções em Serviços Terceirizados | Suzano, SP',
-  seo_desc:'Empresa de serviços terceirizados em Suzano, SP. Portaria, limpeza, recepção corporativa e apoio operacional para empresas, indústrias, escolas, supermercados e condomínios. Ligue: (11) 92661-2817.',
-  seo_keywords:'serviços terceirizados Suzano, portaria Suzano SP, limpeza terceirizada, mão de obra terceirizada, facilities Suzano, Costa e Sobral',
-  seo_url:'https://costa-sobral.vercel.app/',
-  og_title:'Costa & Sobral — Soluções em Serviços Terceirizados',
-  og_desc:'Portaria, limpeza, recepção corporativa e apoio operacional para empresas, indústrias, escolas, supermercados e condomínios em Suzano, SP.',
-  footer_cnpj:'62.729.475/0001-70',
-  footer_city:'Suzano, SP',
-  footer_copy:'© 2025 Costa & Sobral Soluções e Serviços Ltda. Todos os direitos reservados.',
+  sa_title: 'Segurança Ativa',
+  sa_intro: 'Acreditamos que a segurança é o nosso compromisso maior com a sua paz. <strong>Investimos pesadamente em:</strong>',
+  sa_items: [
+    'Treinamento contínuo da equipe.',
+    'Monitoramento em tempo real.',
+    'Protocolos de emergência rígidos.',
+    'Tecnologia de integração de dados.',
+  ],
+  sa_img_src: 'img/seguranca.jpg',
+  sa_img_alt: 'Agente de segurança C&S em posição de vigilância',
+  contact_addr1: 'Av. Rio de Janeiro, 100 — Sl 03',
+  contact_addr2: 'Parque Suzano, Suzano — SP',
+  contact_cep: 'CEP 08673-070',
+  contact_phone_display: '(11) 92661-2817',
+  contact_phone_wa: '5511926612817',
+  contact_instagram: 'cs_facilities',
+  contact_wa_msg: 'Olá, gostaria de solicitar um orçamento.',
+  hours: [
+    { day: 'Segunda', open: '09:00 – 18:00', closed: false },
+    { day: 'Terça',   open: '09:00 – 18:00', closed: false },
+    { day: 'Quarta',  open: '09:00 – 18:00', closed: false },
+    { day: 'Quinta',  open: '09:00 – 18:00', closed: false },
+    { day: 'Sexta',   open: '09:00 – 18:00', closed: false },
+    { day: 'Sábado',  open: '', closed: true },
+    { day: 'Domingo', open: '', closed: true },
+  ],
+  seo_title: 'C&S — Soluções em Serviços Terceirizados | Suzano, SP',
+  seo_desc: 'Empresa de serviços terceirizados em Suzano, SP. Portaria, limpeza, recepção corporativa e apoio operacional para empresas, indústrias, escolas, supermercados e condomínios. Ligue: (11) 92661-2817.',
+  seo_keywords: 'serviços terceirizados Suzano, portaria Suzano SP, limpeza terceirizada, mão de obra terceirizada, facilities Suzano, C&S',
+  seo_url: 'https://www.cservicos.com/',
+  og_title: 'C&S — Soluções em Serviços Terceirizados',
+  og_desc: 'Portaria, limpeza, recepção corporativa e apoio operacional para empresas, indústrias, escolas, supermercados e condomínios em Suzano, SP.',
+  footer_cnpj: '66.840.249/0001-13',
+  footer_city: 'Suzano, SP',
+  footer_copy: '© 2025 C&S Soluções e Serviços Ltda. Todos os direitos reservados.',
 };
 
 // ── Auth ───────────────────────────────────────────────────────────────────
-// Controle de tentativas no lado do cliente (reforço visual — o bloqueio real é na API)
 let loginAttempts = 0;
 let loginBlockedUntil = 0;
 
@@ -441,42 +517,34 @@ async function doLogin() {
     showLoginError(`Muitas tentativas. Aguarde ${seg}s.`);
     return;
   }
-
   const pwd = document.getElementById('pwd-input').value.trim();
   if (!pwd) return;
-
   const btn = document.querySelector('.login-box button');
   btn.disabled = true;
   btn.textContent = 'Verificando…';
-
   try {
     const res = await fetch('/api/save', {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
       body: JSON.stringify({ password: pwd, content: null, ping: true }),
     });
-    const json = await res.json();
-
     if (res.status === 401) {
       loginAttempts++;
       if (loginAttempts >= 5) {
-        loginBlockedUntil = Date.now() + 15 * 60 * 1000; // bloqueia 15 min
+        loginBlockedUntil = Date.now() + 15 * 60 * 1000;
         loginAttempts = 0;
         showLoginError('Conta bloqueada por 15 minutos.');
       } else {
         showLoginError(`Senha incorreta. (${5 - loginAttempts} tentativa${5 - loginAttempts !== 1 ? 's' : ''} restante${5 - loginAttempts !== 1 ? 's' : ''})`);
       }
     } else if (res.ok || res.status === 400) {
-      // 400 = senha certa mas content inválido (ping) → autenticado
       loginAttempts = 0;
       sessionPassword = pwd;
       openApp();
     } else {
-      // Erro de servidor (500 etc.) — não deixa entrar
       showLoginError('Erro no servidor. Verifique as configurações.');
     }
   } catch {
-    // Sem conexão = não deixa entrar. Nunca bypassa.
     showLoginError('Sem conexão com o servidor. O admin só funciona online.');
   } finally {
     btn.disabled = false;
@@ -535,8 +603,11 @@ function saveDraft() {
 
 function collectFields() {
   const ids = [
-    'hero_eyebrow','hero_title','hero_tagline','hero_sub','hero_btn1_text','hero_btn2_text',
-    'about_title','about_p1','about_p2','about_p3','services_title',
+    'hero_title','hero_tagline','hero_sub','hero_btn1_text','hero_btn2_text',
+    'mvv_missao','mvv_visao','mvv_valores',
+    'about_title','about_p1','about_p2',
+    'services_title',
+    'sa_title','sa_intro','sa_img_src','sa_img_alt',
     'contact_addr1','contact_addr2','contact_cep','contact_phone_display',
     'contact_phone_wa','contact_instagram','contact_wa_msg',
     'seo_title','seo_desc','seo_keywords','seo_url','og_title','og_desc',
@@ -544,15 +615,25 @@ function collectFields() {
   ];
   ids.forEach(id => { const el = document.getElementById(id); if (el) data[id] = el.value; });
 
-  data.trust_items = (data.trust_items || []).map((_, i) => {
-    const el = document.getElementById('trust_' + i);
-    return el ? el.value : _;
-  });
+  // Pilares
+  data.pilares = (data.pilares || []).map((p, i) => ({
+    icon:  document.getElementById('pilar_icon_'  + i)?.value ?? p.icon,
+    title: document.getElementById('pilar_title_' + i)?.value ?? p.title,
+    desc:  document.getElementById('pilar_desc_'  + i)?.value ?? p.desc,
+  }));
+
+  // Services
   data.services = (data.services || []).map((s, i) => ({
+    icon:  document.getElementById('svc_icon_'  + i)?.value ?? s.icon,
     title: document.getElementById('svc_title_' + i)?.value ?? s.title,
     desc:  document.getElementById('svc_desc_'  + i)?.value ?? s.desc,
-    icon:  document.getElementById('svc_icon_'  + i)?.value ?? s.icon,
   }));
+
+  // SA items
+  const saRows = document.querySelectorAll('.sa-item-input');
+  data.sa_items = Array.from(saRows).map(el => el.value).filter(v => v.trim());
+
+  // Hours
   data.hours = (data.hours || []).map((h, i) => {
     const closed = document.getElementById('hour_closed_' + i)?.checked || false;
     return { day: h.day, open: document.getElementById('hour_open_' + i)?.value || '', closed };
@@ -561,8 +642,11 @@ function collectFields() {
 
 function populateFields() {
   const ids = [
-    'hero_eyebrow','hero_title','hero_tagline','hero_sub','hero_btn1_text','hero_btn2_text',
-    'about_title','about_p1','about_p2','about_p3','services_title',
+    'hero_title','hero_tagline','hero_sub','hero_btn1_text','hero_btn2_text',
+    'mvv_missao','mvv_visao','mvv_valores',
+    'about_title','about_p1','about_p2',
+    'services_title',
+    'sa_title','sa_intro','sa_img_src','sa_img_alt',
     'contact_addr1','contact_addr2','contact_cep','contact_phone_display',
     'contact_phone_wa','contact_instagram','contact_wa_msg',
     'seo_title','seo_desc','seo_keywords','seo_url','og_title','og_desc',
@@ -570,12 +654,17 @@ function populateFields() {
   ];
   ids.forEach(id => { const el = document.getElementById(id); if (el && data[id] !== undefined) el.value = data[id]; });
 
-  (data.trust_items || []).forEach((v, i) => { const el = document.getElementById('trust_' + i); if (el) el.value = v; });
+  (data.pilares || []).forEach((p, i) => {
+    const ic = document.getElementById('pilar_icon_'  + i);
+    const ti = document.getElementById('pilar_title_' + i);
+    const de = document.getElementById('pilar_desc_'  + i);
+    if (ic) ic.value = p.icon; if (ti) ti.value = p.title; if (de) de.value = p.desc;
+  });
   (data.services || []).forEach((s, i) => {
-    const t = document.getElementById('svc_title_' + i);
-    const d2 = document.getElementById('svc_desc_'  + i);
     const ic = document.getElementById('svc_icon_'  + i);
-    if (t) t.value = s.title; if (d2) d2.value = s.desc; if (ic) ic.value = s.icon;
+    const ti = document.getElementById('svc_title_' + i);
+    const de = document.getElementById('svc_desc_'  + i);
+    if (ic) ic.value = s.icon; if (ti) ti.value = s.title; if (de) de.value = s.desc;
   });
   (data.hours || []).forEach((h, i) => {
     const o = document.getElementById('hour_open_'   + i);
@@ -587,38 +676,56 @@ function populateFields() {
 
 // ── Dynamic field rendering ────────────────────────────────────────────────
 function renderDynamic() {
-  // Trust items
-  document.getElementById('trust-container').innerHTML =
-    (data.trust_items || []).map((v, i) => `
-      <div class="field-group" style="margin-bottom:10px;">
-        <label>Item ${i+1}</label>
-        <input type="text" id="trust_${i}" value="${esc(v)}">
+  // Pilares
+  const pilarIconOptions = ['estrategia','eficiencia','experiencia','solucao'];
+  document.getElementById('pilares-container').innerHTML =
+    (data.pilares || []).map((p, i) => `
+      <div class="pilar-block">
+        <div class="pilar-block-title">Pilar ${i+1}</div>
+        <div class="two-col" style="margin-bottom:10px;">
+          <div class="field-group" style="margin-bottom:0">
+            <label>Título</label>
+            <input type="text" id="pilar_title_${i}" value="${esc(p.title)}">
+          </div>
+          <div class="field-group" style="margin-bottom:0">
+            <label>Ícone</label>
+            <select id="pilar_icon_${i}">${
+              pilarIconOptions.map(ic => `<option value="${ic}"${p.icon===ic?' selected':''}>${ic}</option>`).join('')
+            }</select>
+          </div>
+        </div>
+        <div class="field-group" style="margin-bottom:0">
+          <label>Descrição</label>
+          <textarea id="pilar_desc_${i}" style="min-height:60px;">${esc(p.desc)}</textarea>
+        </div>
       </div>`).join('');
 
   // Services
-  const iconOptions = ['shield','coffee','home','building','school','cart']
-    .map(ic => `<option value="${ic}">${ic}</option>`).join('');
-
+  const svcIconOptions = ['seguranca','portaria','limpeza','predial'];
   document.getElementById('services-container').innerHTML =
     (data.services || []).map((s, i) => `
       <div class="card">
         <div class="card-title">Serviço ${i + 1}</div>
-        <div class="field-group">
-          <label>Título</label>
-          <input type="text" id="svc_title_${i}" value="${esc(s.title)}">
+        <div class="two-col" style="margin-bottom:10px;">
+          <div class="field-group" style="margin-bottom:0">
+            <label>Título</label>
+            <input type="text" id="svc_title_${i}" value="${esc(s.title)}">
+          </div>
+          <div class="field-group" style="margin-bottom:0">
+            <label>Ícone</label>
+            <select id="svc_icon_${i}">${
+              svcIconOptions.map(ic => `<option value="${ic}"${s.icon===ic?' selected':''}>${ic}</option>`).join('')
+            }</select>
+          </div>
         </div>
-        <div class="field-group">
+        <div class="field-group" style="margin-bottom:0">
           <label>Descrição</label>
           <textarea id="svc_desc_${i}">${esc(s.desc)}</textarea>
         </div>
-        <div class="field-group" style="max-width:180px;">
-          <label>Ícone</label>
-          <select id="svc_icon_${i}">${
-            ['shield','coffee','home','building','school','cart']
-              .map(ic => `<option value="${ic}"${s.icon===ic?' selected':''}>${ic}</option>`).join('')
-          }</select>
-        </div>
       </div>`).join('');
+
+  // SA items
+  renderSaItems();
 
   // Hours
   document.getElementById('hours-container').innerHTML =
@@ -630,6 +737,32 @@ function renderDynamic() {
           <input type="checkbox" id="hour_closed_${i}" onchange="toggleHour(${i})" ${h.closed?'checked':''}> Fechado
         </label>
       </div>`).join('');
+}
+
+function renderSaItems() {
+  const items = data.sa_items || [];
+  document.getElementById('sa-items-container').innerHTML =
+    items.map((item, i) => `
+      <div class="sa-item-row">
+        <input type="text" class="sa-item-input" value="${esc(item)}" placeholder="Item ${i+1}">
+        <button onclick="removeSaItem(${i})">Remover</button>
+      </div>`).join('');
+}
+
+function addSaItem() {
+  collectFields();
+  data.sa_items = data.sa_items || [];
+  data.sa_items.push('');
+  renderSaItems();
+  // focus last
+  const inputs = document.querySelectorAll('.sa-item-input');
+  if (inputs.length) inputs[inputs.length-1].focus();
+}
+
+function removeSaItem(i) {
+  collectFields();
+  data.sa_items.splice(i, 1);
+  renderSaItems();
 }
 
 function toggleHour(i) {
@@ -645,14 +778,11 @@ function esc(str) {
 // ── Publish ────────────────────────────────────────────────────────────────
 async function publish() {
   collectFields();
-
   const btn    = document.getElementById('btn-publish');
   const status = document.getElementById('publish-status');
-
   btn.disabled = true;
   status.className = 'publish-status loading';
   status.innerHTML = '<div class="spinner"></div> Publicando…';
-
   try {
     const res = await fetch('/api/save', {
       method: 'POST',
@@ -660,7 +790,6 @@ async function publish() {
       body: JSON.stringify({ password: sessionPassword, content: data }),
     });
     const json = await res.json();
-
     if (res.ok && json.ok) {
       localStorage.setItem('cs_draft', JSON.stringify(data));
       status.className = 'publish-status success';
@@ -671,7 +800,7 @@ async function publish() {
       status.textContent = '✗ ' + (json.error || 'Erro ao publicar.');
       showToast(json.error || 'Erro ao publicar.', true);
     }
-  } catch (err) {
+  } catch {
     status.className = 'publish-status error';
     status.textContent = '✗ Sem conexão com o servidor.';
     showToast('Erro de conexão. Tente novamente.', true);
