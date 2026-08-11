@@ -1,9 +1,4 @@
 {
-  "functions": {
-    "api/save.js": {
-      "runtime": "nodejs18.x"
-    }
-  },
   "headers": [
     {
       "source": "/admin.html",
