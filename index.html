@@ -7,586 +7,131 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="keywords" content="serviços terceirizados Suzano, portaria Suzano SP, limpeza terceirizada, mão de obra terceirizada, facilities Suzano, C&S">
   <meta name="robots" content="index, follow">
-  <link rel="canonical" href="https://costa-sobral.vercel.app/">
-
-  <!-- Open Graph -->
+  <link rel="canonical" href="https://www.cservicos.com/">
   <meta property="og:type" content="website">
-  <meta property="og:url" content="https://costa-sobral.vercel.app/">
+  <meta property="og:url" content="https://www.cservicos.com/">
   <meta property="og:title" content="C&S — Soluções em Serviços Terceirizados">
   <meta property="og:description" content="Portaria, limpeza, recepção corporativa e apoio operacional para empresas, indústrias, escolas, supermercados e condomínios em Suzano, SP.">
   <meta property="og:locale" content="pt_BR">
-
-  <!-- Schema.org LocalBusiness -->
   <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "LocalBusiness",
-    "name": "C&S Soluções e Serviços",
-    "description": "Empresa especializada em serviços terceirizados: portaria, limpeza, segurança, manutenção predial para condomínios, empresas e indústrias.",
-    "url": "https://costa-sobral.vercel.app/",
-    "telephone": "+55-11-92661-2817",
-    "address": {
-      "@type": "PostalAddress",
-      "streetAddress": "Av. Rio de Janeiro, 100 — Sl 03",
-      "addressLocality": "Suzano",
-      "addressRegion": "SP",
-      "postalCode": "08673-070",
-      "addressCountry": "BR"
-    },
-    "geo": {
-      "@type": "GeoCoordinates",
-      "latitude": -23.5426,
-      "longitude": -46.3108
-    },
-    "openingHoursSpecification": [
-      { "@type": "OpeningHoursSpecification", "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday"], "opens": "09:00", "closes": "18:00" }
-    ],
-    "sameAs": ["https://www.instagram.com/cs_facilities"]
-  }
+  {"@context":"https://schema.org","@type":"LocalBusiness","name":"C&S Soluções e Serviços","description":"Empresa especializada em serviços terceirizados: portaria, limpeza, segurança, manutenção predial.","url":"https://www.cservicos.com/","telephone":"+55-11-926612817","address":{"@type":"PostalAddress","streetAddress":"Av. Rio de Janeiro, 100 — Sl 03","addressLocality":"Suzano","addressRegion":"SP","postalCode":"08673-070","addressCountry":"BR"},"geo":{"@type":"GeoCoordinates","latitude":-23.5426,"longitude":-46.3108},"openingHoursSpecification":[{"@type":"OpeningHoursSpecification","dayOfWeek":["Monday","Tuesday","Wednesday","Thursday","Friday"],"opens":"09:00","closes":"18:00"}],"sameAs":["https://www.instagram.com/cs_facilities"]}
   </script>
-
   <style>
-    /* ── Tokens ─────────────────────────────────────────── */
-    :root {
-      --gold:       #D4A520;
-      --gold-lt:    #E8C050;
-      --gold-dim:   rgba(212,165,32,.15);
-      --silver:     #B8BCCC;
-      --onyx:       #0C0C0E;
-      --slate:      #161719;
-      --ground:     #F3F1EC;
-      --surface:    #FFFFFF;
-      --text:       #1A1B1E;
-      --text-sub:   #4A4E5C;
-      --border-lt:  rgba(212,165,32,.18);
-      --border-dk:  rgba(212,165,32,.22);
-      --wa:         #25D366;
-      --open:       #5EC882;
-    }
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --ground:   #0C0C0E;
-        --surface:  #1A1B1E;
-        --text:     #EDEAE2;
-        --text-sub: #8A8FA0;
-      }
-    }
-    :root[data-theme="light"] {
-      --ground:   #F3F1EC;
-      --surface:  #FFFFFF;
-      --text:     #1A1B1E;
-      --text-sub: #4A4E5C;
-    }
-    :root[data-theme="dark"] {
-      --ground:   #0C0C0E;
-      --surface:  #1A1B1E;
-      --text:     #EDEAE2;
-      --text-sub: #8A8FA0;
-    }
-
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { scroll-behavior: smooth; }
-    body {
-      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
-      background: var(--ground);
-      color: var(--text);
-      line-height: 1.65;
-    }
-    img { max-width: 100%; display: block; }
-    a { color: inherit; text-decoration: none; }
-
-    .label {
-      display: inline-block;
-      font-size: .68rem; font-weight: 700;
-      letter-spacing: .14em; text-transform: uppercase;
-      color: var(--gold);
-    }
-    .gold-rule {
-      display: block; width: 36px; height: 2px;
-      background: linear-gradient(90deg, var(--gold), transparent);
-      margin: 10px 0 22px;
-    }
-    .container { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
-
-    /* Nav */
-    nav {
-      position: sticky; top: 0; z-index: 100;
-      background: var(--onyx);
-      border-bottom: 1px solid var(--border-dk);
-    }
-    .nav-inner {
-      display: flex; align-items: center; justify-content: space-between;
-      height: 62px; gap: 20px;
-    }
-    .nav-brand {
-      display: flex; align-items: center; gap: 10px;
-      font-family: Georgia, serif; font-size: 1rem; font-weight: 700;
-      color: #EDEAE2; letter-spacing: .02em;
-    }
-    .nav-brand em { color: var(--gold); font-style: normal; }
-    .nav-links { display: flex; gap: 28px; list-style: none; }
-    .nav-links a {
-      font-size: .78rem; font-weight: 600;
-      letter-spacing: .07em; text-transform: uppercase;
-      color: var(--silver); transition: color .2s;
-    }
-    .nav-links a:hover { color: var(--gold); }
-    .nav-cta {
-      display: inline-flex; align-items: center; gap: 8px;
-      background: var(--wa); color: #fff;
-      font-size: .78rem; font-weight: 700;
-      letter-spacing: .06em; text-transform: uppercase;
-      padding: 9px 18px; border-radius: 4px;
-      transition: opacity .2s; white-space: nowrap;
-    }
-    .nav-cta:hover { opacity: .88; }
-
-    /* Hero */
-    .hero {
-      background: var(--onyx);
-      position: relative; overflow: hidden;
-      padding: 96px 0 80px;
-    }
-    .hero::before {
-      content: '';
-      position: absolute; inset: 0; pointer-events: none;
-      background: repeating-linear-gradient(
-        -52deg, transparent, transparent 48px,
-        rgba(212,165,32,.03) 48px, rgba(212,165,32,.03) 49px
-      );
-    }
-    .hero::after {
-      content: '';
-      position: absolute; top: -80px; right: -80px;
-      width: 520px; height: 520px;
-      background: radial-gradient(circle, rgba(212,165,32,.1) 0%, transparent 65%);
-      pointer-events: none;
-    }
-    .hero-inner {
-      display: grid; grid-template-columns: 1fr 220px;
-      gap: 56px; align-items: center;
-      position: relative; z-index: 1;
-    }
-    .hero-eyebrow { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
-    .hero-eyebrow .line { width: 24px; height: 1px; background: var(--gold); }
-    .hero h1 {
-      font-family: Georgia, serif;
-      font-size: clamp(2rem, 4.5vw, 3.4rem);
-      font-weight: 700; line-height: 1.15;
-      color: #EDEAE2; text-wrap: balance; margin-bottom: 18px;
-    }
-    .hero h1 em { font-style: normal; color: var(--gold); }
-    .hero-tagline {
-      display: inline-block;
-      font-size: .72rem; font-weight: 700;
-      letter-spacing: .16em; text-transform: uppercase;
-      color: var(--silver); border-left: 2px solid var(--gold);
-      padding-left: 12px; margin-bottom: 20px;
-    }
-    .hero-sub {
-      font-size: 1rem; color: var(--silver);
-      max-width: 500px; margin-bottom: 36px; line-height: 1.75;
-    }
-    .hero-actions { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; }
-
-    .btn-gold {
-      display: inline-flex; align-items: center; gap: 8px;
-      background: var(--gold); color: var(--onyx);
-      font-weight: 700; font-size: .86rem;
-      letter-spacing: .06em; text-transform: uppercase;
-      padding: 13px 26px; border-radius: 4px;
-      transition: background .2s, transform .15s;
-    }
-    .btn-gold:hover { background: var(--gold-lt); transform: translateY(-1px); }
-    .btn-outline {
-      display: inline-flex; align-items: center; gap: 8px;
-      border: 1px solid rgba(212,165,32,.35); color: var(--silver);
-      font-weight: 600; font-size: .86rem;
-      letter-spacing: .05em; text-transform: uppercase;
-      padding: 12px 22px; border-radius: 4px;
-      transition: border-color .2s, color .2s;
-    }
-    .btn-outline:hover { border-color: var(--gold); color: var(--gold); }
-
-    .hero-badge {
-      border: 1px solid var(--border-dk); border-radius: 8px;
-      padding: 28px 22px; text-align: center;
-      background: rgba(26,27,30,.7);
-    }
-    .hero-badge .big {
-      font-family: Georgia, serif; font-size: 2.6rem;
-      color: var(--gold); font-weight: 700; line-height: 1; margin-bottom: 6px;
-    }
-    .hero-badge .sm {
-      font-size: .7rem; letter-spacing: .08em;
-      text-transform: uppercase; color: var(--silver);
-    }
-    .hero-badge .divider {
-      width: 30px; height: 1px; background: var(--gold);
-      margin: 16px auto; opacity: .5;
-    }
-
-    /* MVV */
-    .mvv {
-      background: var(--slate);
-      border-top: 1px solid var(--border-dk);
-      border-bottom: 1px solid var(--border-dk);
-      padding: 52px 0;
-    }
-    .mvv-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 0;
-    }
-    .mvv-item {
-      padding: 0 40px;
-      border-right: 1px solid var(--border-dk);
-    }
-    .mvv-item:first-child { padding-left: 0; }
-    .mvv-item:last-child { border-right: none; }
-    .mvv-item h3 {
-      font-family: Georgia, serif;
-      font-size: .7rem; font-weight: 700;
-      letter-spacing: .14em; text-transform: uppercase;
-      color: var(--gold); margin-bottom: 14px;
-    }
-    .mvv-item p {
-      font-size: .88rem; color: var(--silver);
-      line-height: 1.75;
-    }
-
-    /* About */
-    .about { padding: 88px 0; }
-    .about-grid {
-      display: grid; grid-template-columns: 1fr 1fr;
-      gap: 72px; align-items: start;
-    }
-    .about h2 {
-      font-family: Georgia, serif;
-      font-size: clamp(1.5rem, 2.8vw, 2.2rem);
-      font-weight: 700; line-height: 1.25;
-      text-wrap: balance; margin-bottom: 20px;
-    }
-    .about p { color: var(--text-sub); margin-bottom: 14px; line-height: 1.78; }
-    .stat-list {
-      list-style: none; display: grid;
-      grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 28px;
-    }
-    .stat-item {
-      background: var(--surface); border: 1px solid var(--border-lt);
-      border-radius: 6px; padding: 18px;
-    }
-    .stat-item .n {
-      font-family: Georgia, serif; font-size: 1.7rem;
-      color: var(--gold); font-weight: 700; line-height: 1;
-      margin-bottom: 4px; font-variant-numeric: tabular-nums;
-    }
-    .stat-item .d {
-      font-size: .7rem; font-weight: 600;
-      letter-spacing: .07em; text-transform: uppercase; color: var(--text-sub);
-    }
-
-    /* Pilares */
-    .pilares-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 14px;
-    }
-    .pilar-card {
-      background: var(--onyx);
-      border: 1px solid var(--border-dk);
-      border-radius: 10px;
-      padding: 22px 20px 20px;
-      transition: border-color .2s;
-    }
-    .pilar-card:hover { border-color: var(--gold); }
-    .pilar-icon {
-      font-size: 1.5rem;
-      margin-bottom: 14px;
-      color: var(--gold);
-      display: flex; align-items: center;
-    }
-    .pilar-icon svg { width: 26px; height: 26px; fill: var(--gold); }
-    .pilar-card h4 {
-      font-family: Georgia, serif;
-      font-size: 1rem; font-weight: 700;
-      color: #EDEAE2; margin-bottom: 8px;
-    }
-    .pilar-card p { font-size: .8rem; color: var(--silver); line-height: 1.6; }
-
-    /* Services */
-    .services {
-      padding: 88px 0; background: var(--surface);
-      border-top: 1px solid var(--border-lt);
-      border-bottom: 1px solid var(--border-lt);
-    }
-    .section-head { margin-bottom: 52px; }
-    .section-head h2 {
-      font-family: Georgia, serif;
-      font-size: clamp(1.5rem, 2.8vw, 2.2rem);
-      font-weight: 700; text-wrap: balance; max-width: 520px;
-    }
-    .services-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
-    .svc-card {
-      background: var(--ground); border: 1px solid var(--border-lt);
-      border-radius: 6px; padding: 30px 24px;
-      transition: border-color .2s, transform .2s;
-    }
-    .svc-card:hover { border-color: var(--gold); transform: translateY(-2px); }
-    .svc-icon {
-      width: 42px; height: 42px; background: var(--gold-dim);
-      border-radius: 8px; display: flex; align-items: center;
-      justify-content: center; margin-bottom: 18px; color: var(--gold);
-    }
-    .svc-card h3 {
-      font-family: Georgia, serif; font-size: 1.05rem;
-      font-weight: 700; margin-bottom: 8px;
-    }
-    .svc-card p { font-size: .88rem; color: var(--text-sub); line-height: 1.65; }
-    .svc-card.featured { background: var(--onyx); border-color: var(--gold); }
-    .svc-card.featured h3 { color: #EDEAE2; }
-    .svc-card.featured p { color: var(--silver); }
-
-    /* Clients */
-    .clients { padding: 72px 0; }
-    .clients-row { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 36px; }
-    .client-chip {
-      display: flex; align-items: center; gap: 9px;
-      border: 1px solid var(--border-lt); border-radius: 100px;
-      padding: 9px 18px; font-size: .83rem; font-weight: 600;
-      color: var(--text-sub); background: var(--surface);
-    }
-    .client-chip svg { color: var(--gold); }
-
-    /* Segurança Ativa */
-    .seguranca-ativa {
-      background: #080809;
-      border-top: 1px solid var(--border-dk);
-    }
-    .seguranca-ativa-inner {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      align-items: center;
-    }
-    .seguranca-ativa-content {
-      padding: 80px 60px 80px 0;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-    }
-    .seguranca-ativa-content h2 {
-      font-family: Georgia, serif;
-      font-size: clamp(1.8rem, 3vw, 2.6rem);
-      font-weight: 700;
-      color: var(--gold);
-      letter-spacing: .06em;
-      margin-bottom: 28px;
-      text-transform: uppercase;
-    }
-    .seguranca-ativa-content .intro {
-      font-size: .95rem;
-      color: var(--silver);
-      line-height: 1.75;
-      margin-bottom: 32px;
-      max-width: 460px;
-    }
-    .seguranca-ativa-content .intro strong { color: #EDEAE2; }
-    .sa-list {
-      list-style: none;
-      display: flex;
-      flex-direction: column;
-      gap: 18px;
-    }
-    .sa-list li {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      font-size: .93rem;
-      color: #EDEAE2;
-    }
-    .sa-check {
-      flex-shrink: 0;
-      width: 26px; height: 26px;
-      border-radius: 50%;
-      background: var(--gold);
-      display: flex; align-items: center; justify-content: center;
-    }
-    .sa-check svg { stroke: #080809; }
-    .seguranca-ativa-image {
-      position: relative;
-      overflow: hidden;
-      align-self: center;
-      border-radius: 8px;
-    }
-    .seguranca-ativa-image img {
-      width: 100%;
-      height: auto;
-      max-height: none;
-      object-fit: cover;
-      object-position: center top;
-      display: block;
-      border-radius: 8px;
-    }
-    .seguranca-ativa-image .img-placeholder {
-      width: 100%; height: 100%;
-      background: #1A1B1E;
-      display: flex; align-items: center; justify-content: center;
-      color: #2A2B2E; font-size: 3rem;
-    }
-    @media (max-width: 860px) {
-      .seguranca-ativa-inner { grid-template-columns: 1fr; }
-      .seguranca-ativa-content { padding: 60px 0 48px; }
-      .seguranca-ativa-image { min-height: 320px; }
-    }
-
-    /* Info */
-    .info {
-      padding: 88px 0; background: var(--onyx);
-      border-top: 1px solid var(--border-dk);
-    }
-    .info-grid {
-      display: grid; grid-template-columns: 1.1fr 1fr;
-      gap: 72px; align-items: start;
-    }
-    .info h2 {
-      font-family: Georgia, serif; font-size: 1.9rem;
-      color: #EDEAE2; margin-bottom: 8px;
-    }
-    .info-block { margin-bottom: 28px; }
-    .info-block .lbl {
-      font-size: .68rem; font-weight: 700;
-      letter-spacing: .12em; text-transform: uppercase;
-      color: var(--gold); margin-bottom: 5px;
-    }
-    .info-block .val { color: var(--silver); font-size: .93rem; line-height: 1.65; }
-    .info-block .val a { color: var(--gold-lt); }
-    .info-block .val a:hover { text-decoration: underline; }
-
-    .hours-table { width: 100%; border-collapse: collapse; }
-    .hours-table tr { border-bottom: 1px solid rgba(212,165,32,.1); }
-    .hours-table tr:last-child { border-bottom: none; }
-    .hours-table td {
-      padding: 8px 0; font-size: .87rem;
-      color: var(--silver); font-variant-numeric: tabular-nums;
-    }
-    .hours-table td:first-child {
-      font-weight: 600; padding-right: 20px; color: #9094A4;
-    }
-    .hours-table .closed { color: #4A505E; }
-    .hours-table .open { color: var(--open); font-weight: 600; }
-
-    .btn-wa {
-      display: inline-flex; align-items: center; gap: 10px;
-      background: var(--wa); color: #fff; font-weight: 700;
-      font-size: .88rem; letter-spacing: .05em; text-transform: uppercase;
-      padding: 14px 26px; border-radius: 6px;
-      transition: opacity .2s, transform .15s; margin-top: 28px;
-    }
-    .btn-wa:hover { opacity: .9; transform: translateY(-1px); }
-    .social-link {
-      display: inline-flex; align-items: center; gap: 8px;
-      font-size: .82rem; font-weight: 600;
-      color: var(--silver); margin-top: 16px; transition: color .2s;
-    }
-    .social-link:hover { color: var(--gold); }
-
-    /* Footer */
-    footer {
-      background: #080809;
-      border-top: 1px solid rgba(212,165,32,.12);
-      padding: 32px 0;
-    }
-    .footer-inner {
-      display: flex; align-items: center; justify-content: space-between;
-      flex-wrap: wrap; gap: 14px;
-    }
-    .footer-brand { font-family: Georgia, serif; font-size: .9rem; color: var(--silver); }
-    .footer-brand strong { color: var(--gold); }
-    .footer-right { text-align: right; }
-    .footer-cnpj { font-size: .7rem; color: #4A505E; font-variant-numeric: tabular-nums; }
-    .footer-copy { font-size: .7rem; color: #4A505E; margin-top: 2px; }
-
-    /* FAB */
-    .fab {
-      position: fixed; bottom: 26px; right: 26px; z-index: 200;
-      width: 58px; height: 58px; border-radius: 50%;
-      background: var(--wa); display: flex; align-items: center; justify-content: center;
-      box-shadow: 0 4px 22px rgba(37,211,102,.38);
-      transition: transform .2s, box-shadow .2s;
-    }
-    .fab:hover { transform: scale(1.1); box-shadow: 0 6px 30px rgba(37,211,102,.55); }
-
-    /* Responsive */
-    @media (max-width: 920px) {
-      .hero-inner { grid-template-columns: 1fr; }
-      .hero-badge { display: none; }
-      .about-grid { grid-template-columns: 1fr; gap: 40px; }
-      .services-grid { grid-template-columns: 1fr 1fr; }
-      .info-grid { grid-template-columns: 1fr; gap: 40px; }
-      .nav-links { display: none; }
-      .nav-cta { display: none; }
-    }
-    @media (max-width: 560px) {
-      /* Nav */
-      .nav-inner { height: 56px; }
-      .nav-brand { font-size: .88rem; }
-      .nav-cta { font-size: .72rem; padding: 8px 12px; }
-
-      /* Hero */
-      .hero { padding: 56px 0 48px; }
-      .hero h1 { font-size: 1.75rem; }
-      .hero-sub { font-size: .92rem; }
-      .hero-actions { flex-direction: column; align-items: stretch; }
-      .btn-gold, .btn-outline { justify-content: center; text-align: center; }
-
-      /* MVV */
-      .mvv-grid { grid-template-columns: 1fr; gap: 32px; }
-      .mvv-item { padding: 0; border-right: none; border-bottom: 1px solid var(--border-dk); padding-bottom: 28px; }
-      .mvv-item:last-child { border-bottom: none; padding-bottom: 0; }
-
-      /* About */
-      .about { padding: 56px 0; }
-
-      /* Services */
-      .services { padding: 56px 0; }
-      .services-grid { grid-template-columns: 1fr; }
-
-      /* Clients */
-      .clients { padding: 48px 0; }
-
-      /* Info */
-      .info { padding: 56px 0; }
-      .btn-wa { width: 100%; justify-content: center; }
-
-      /* Footer */
-      .footer-inner { flex-direction: column; align-items: flex-start; }
-      .footer-right { text-align: left; }
-    }
-    @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after { transition: none !important; }
-    }
+    :root{--gold:#D4A520;--gold-lt:#E8C050;--gold-dim:rgba(212,165,32,.15);--silver:#B8BCCC;--onyx:#0C0C0E;--slate:#161719;--ground:#F3F1EC;--surface:#FFFFFF;--text:#1A1B1E;--text-sub:#4A4E5C;--border-lt:rgba(212,165,32,.18);--border-dk:rgba(212,165,32,.22);--wa:#25D366;--open:#5EC882;}
+    @media(prefers-color-scheme:dark){:root{--ground:#0C0C0E;--surface:#1A1B1E;--text:#EDEAE2;--text-sub:#8A8FA0;}}
+    :root[data-theme="light"]{--ground:#F3F1EC;--surface:#FFFFFF;--text:#1A1B1E;--text-sub:#4A4E5C;}
+    :root[data-theme="dark"]{--ground:#0C0C0E;--surface:#1A1B1E;--text:#EDEAE2;--text-sub:#8A8FA0;}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html{scroll-behavior:smooth;}
+    body{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--ground);color:var(--text);line-height:1.65;}
+    img{max-width:100%;display:block;} a{color:inherit;text-decoration:none;}
+    .label{display:inline-block;font-size:.68rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);}
+    .gold-rule{display:block;width:36px;height:2px;background:linear-gradient(90deg,var(--gold),transparent);margin:10px 0 22px;}
+    .container{max-width:1120px;margin:0 auto;padding:0 24px;}
+    nav{position:sticky;top:0;z-index:100;background:var(--onyx);border-bottom:1px solid var(--border-dk);}
+    .nav-inner{display:flex;align-items:center;justify-content:space-between;height:62px;gap:20px;}
+    .nav-brand{display:flex;align-items:center;gap:10px;font-family:Georgia,serif;font-size:1rem;font-weight:700;color:#EDEAE2;letter-spacing:.02em;}
+    .nav-links{display:flex;gap:28px;list-style:none;}
+    .nav-links a{font-size:.78rem;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--silver);transition:color .2s;}
+    .nav-links a:hover{color:var(--gold);}
+    .nav-cta{display:inline-flex;align-items:center;gap:8px;background:var(--wa);color:#fff;font-size:.78rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:9px 18px;border-radius:4px;transition:opacity .2s;white-space:nowrap;}
+    .nav-cta:hover{opacity:.88;}
+    .hero{background:var(--onyx);position:relative;overflow:hidden;padding:96px 0 80px;}
+    .hero::before{content:'';position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(-52deg,transparent,transparent 48px,rgba(212,165,32,.03) 48px,rgba(212,165,32,.03) 49px);}
+    .hero::after{content:'';position:absolute;top:-80px;right:-80px;width:520px;height:520px;background:radial-gradient(circle,rgba(212,165,32,.1) 0%,transparent 65%);pointer-events:none;}
+    .hero-inner{position:relative;z-index:1;}
+    .hero h1{font-family:Georgia,serif;font-size:clamp(2rem,4.5vw,3.4rem);font-weight:700;line-height:1.15;color:#EDEAE2;text-wrap:balance;margin-bottom:18px;}
+    .hero h1 em{font-style:normal;color:var(--gold);}
+    .hero-tagline{display:inline-block;font-size:.72rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--silver);border-left:2px solid var(--gold);padding-left:12px;margin-bottom:20px;}
+    .hero-sub{font-size:1rem;color:var(--silver);max-width:500px;margin-bottom:36px;line-height:1.75;}
+    .hero-actions{display:flex;gap:14px;flex-wrap:wrap;align-items:center;}
+    .btn-gold{display:inline-flex;align-items:center;gap:8px;background:var(--gold);color:var(--onyx);font-weight:700;font-size:.86rem;letter-spacing:.06em;text-transform:uppercase;padding:13px 26px;border-radius:4px;transition:background .2s,transform .15s;}
+    .btn-gold:hover{background:var(--gold-lt);transform:translateY(-1px);}
+    .btn-outline{display:inline-flex;align-items:center;gap:8px;border:1px solid rgba(212,165,32,.35);color:var(--silver);font-weight:600;font-size:.86rem;letter-spacing:.05em;text-transform:uppercase;padding:12px 22px;border-radius:4px;transition:border-color .2s,color .2s;}
+    .btn-outline:hover{border-color:var(--gold);color:var(--gold);}
+    .mvv{background:var(--slate);border-top:1px solid var(--border-dk);border-bottom:1px solid var(--border-dk);padding:52px 0;}
+    .mvv-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0;}
+    .mvv-item{padding:0 40px;border-right:1px solid var(--border-dk);}
+    .mvv-item:first-child{padding-left:0;}
+    .mvv-item:last-child{border-right:none;}
+    .mvv-item h3{font-family:Georgia,serif;font-size:.7rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-bottom:14px;}
+    .mvv-item p{font-size:.88rem;color:var(--silver);line-height:1.75;}
+    .about{padding:88px 0;}
+    .about-grid{display:grid;grid-template-columns:1fr 1fr;gap:72px;align-items:start;}
+    .about h2{font-family:Georgia,serif;font-size:clamp(1.5rem,2.8vw,2.2rem);font-weight:700;line-height:1.25;text-wrap:balance;margin-bottom:20px;}
+    .about p{color:var(--text-sub);margin-bottom:14px;line-height:1.78;}
+    .pilares-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+    .pilar-card{background:var(--onyx);border:1px solid var(--border-dk);border-radius:10px;padding:22px 20px 20px;transition:border-color .2s;}
+    .pilar-card:hover{border-color:var(--gold);}
+    .pilar-icon{font-size:1.5rem;margin-bottom:14px;color:var(--gold);display:flex;align-items:center;}
+    .pilar-icon svg{width:26px;height:26px;fill:var(--gold);}
+    .pilar-card h4{font-family:Georgia,serif;font-size:1rem;font-weight:700;color:#EDEAE2;margin-bottom:8px;}
+    .pilar-card p{font-size:.8rem;color:var(--silver);line-height:1.6;}
+    .services{padding:88px 0;background:var(--surface);border-top:1px solid var(--border-lt);border-bottom:1px solid var(--border-lt);}
+    .section-head{margin-bottom:52px;}
+    .section-head h2{font-family:Georgia,serif;font-size:clamp(1.5rem,2.8vw,2.2rem);font-weight:700;text-wrap:balance;max-width:520px;}
+    .services-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px;}
+    .svc-card{background:var(--ground);border:1px solid var(--border-lt);border-radius:6px;padding:30px 24px;transition:border-color .2s,transform .2s;}
+    .svc-card:hover{border-color:var(--gold);transform:translateY(-2px);}
+    .svc-icon{width:42px;height:42px;background:var(--gold-dim);border-radius:8px;display:flex;align-items:center;justify-content:center;margin-bottom:18px;color:var(--gold);}
+    .svc-card h3{font-family:Georgia,serif;font-size:1.05rem;font-weight:700;margin-bottom:8px;}
+    .svc-card p{font-size:.88rem;color:var(--text-sub);line-height:1.65;}
+    .seguranca-ativa{background:#080809;border-top:1px solid var(--border-dk);}
+    .seguranca-ativa-inner{display:grid;grid-template-columns:1fr 1fr;align-items:center;}
+    .seguranca-ativa-content{padding:80px 60px 80px 0;display:flex;flex-direction:column;justify-content:center;}
+    .seguranca-ativa-content h2{font-family:Georgia,serif;font-size:clamp(1.8rem,3vw,2.6rem);font-weight:700;color:var(--gold);letter-spacing:.06em;margin-bottom:28px;text-transform:uppercase;}
+    .seguranca-ativa-content .intro{font-size:.95rem;color:var(--silver);line-height:1.75;margin-bottom:32px;max-width:460px;}
+    .seguranca-ativa-content .intro strong{color:#EDEAE2;}
+    .sa-list{list-style:none;display:flex;flex-direction:column;gap:18px;}
+    .sa-list li{display:flex;align-items:center;gap:14px;font-size:.93rem;color:#EDEAE2;}
+    .sa-check{flex-shrink:0;width:26px;height:26px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;}
+    .sa-check svg{stroke:#080809;}
+    .seguranca-ativa-image{position:relative;overflow:hidden;align-self:center;border-radius:8px;}
+    .seguranca-ativa-image img{width:100%;height:auto;object-fit:cover;object-position:center top;display:block;border-radius:8px;}
+    .seguranca-ativa-image .img-placeholder{width:100%;height:100%;background:#1A1B1E;display:flex;align-items:center;justify-content:center;color:#2A2B2E;font-size:3rem;}
+    .info{padding:88px 0;background:var(--onyx);border-top:1px solid var(--border-dk);}
+    .info-grid{display:grid;grid-template-columns:1.1fr 1fr;gap:72px;align-items:start;}
+    .info h2{font-family:Georgia,serif;font-size:1.9rem;color:#EDEAE2;margin-bottom:8px;}
+    .info-block{margin-bottom:28px;}
+    .info-block .lbl{font-size:.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin-bottom:5px;}
+    .info-block .val{color:var(--silver);font-size:.93rem;line-height:1.65;}
+    .info-block .val a{color:var(--gold-lt);}
+    .info-block .val a:hover{text-decoration:underline;}
+    .hours-table{width:100%;border-collapse:collapse;}
+    .hours-table tr{border-bottom:1px solid rgba(212,165,32,.1);}
+    .hours-table tr:last-child{border-bottom:none;}
+    .hours-table td{padding:8px 0;font-size:.87rem;color:var(--silver);font-variant-numeric:tabular-nums;}
+    .hours-table td:first-child{font-weight:600;padding-right:20px;color:#9094A4;}
+    .hours-table .closed{color:#4A505E;}
+    .hours-table .open{color:var(--open);font-weight:600;}
+    .btn-wa{display:inline-flex;align-items:center;gap:10px;background:var(--wa);color:#fff;font-weight:700;font-size:.88rem;letter-spacing:.05em;text-transform:uppercase;padding:14px 26px;border-radius:6px;transition:opacity .2s,transform .15s;margin-top:28px;}
+    .btn-wa:hover{opacity:.9;transform:translateY(-1px);}
+    footer{background:#080809;border-top:1px solid rgba(212,165,32,.12);padding:32px 0;}
+    .footer-inner{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;}
+    .footer-brand{font-family:Georgia,serif;font-size:.9rem;color:var(--silver);}
+    .footer-brand strong{color:var(--gold);}
+    .footer-right{text-align:right;}
+    .footer-cnpj{font-size:.7rem;color:#4A505E;font-variant-numeric:tabular-nums;}
+    .footer-copy{font-size:.7rem;color:#4A505E;margin-top:2px;}
+    .fab{position:fixed;bottom:26px;right:26px;z-index:200;width:58px;height:58px;border-radius:50%;background:var(--wa);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 22px rgba(37,211,102,.38);transition:transform .2s,box-shadow .2s;}
+    .fab:hover{transform:scale(1.1);box-shadow:0 6px 30px rgba(37,211,102,.55);}
+    @media(max-width:920px){.about-grid{grid-template-columns:1fr;gap:40px;}.services-grid{grid-template-columns:1fr 1fr;}.info-grid{grid-template-columns:1fr;gap:40px;}.nav-links{display:none;}.nav-cta{display:none;}}
+    @media(max-width:860px){.seguranca-ativa-inner{grid-template-columns:1fr;}.seguranca-ativa-content{padding:60px 0 48px;}.seguranca-ativa-image{min-height:320px;}}
+    @media(max-width:560px){.nav-inner{height:56px;}.hero{padding:56px 0 48px;}.hero h1{font-size:1.75rem;}.hero-actions{flex-direction:column;align-items:stretch;}.btn-gold,.btn-outline{justify-content:center;text-align:center;}.mvv-grid{grid-template-columns:1fr;gap:32px;}.mvv-item{padding:0;border-right:none;border-bottom:1px solid var(--border-dk);padding-bottom:28px;}.mvv-item:last-child{border-bottom:none;padding-bottom:0;}.services-grid{grid-template-columns:1fr;}.btn-wa{width:100%;justify-content:center;}.footer-inner{flex-direction:column;align-items:flex-start;}.footer-right{text-align:left;}}
+    @media(prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;}}
   </style>
 </head>
 <body>
 
-<!-- WhatsApp FAB -->
 <a class="fab" href="https://wa.me/5511926612817?text=Ol%C3%A1%2C%20gostaria%20de%20solicitar%20um%20or%C3%A7amento." target="_blank" rel="noopener" aria-label="Fale conosco no WhatsApp">
-  <svg width="28" height="28" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-    <path d="M16 2C8.268 2 2 8.268 2 16c0 2.477.643 4.8 1.77 6.82L2 30l7.37-1.93A13.93 13.93 0 0016 30c7.732 0 14-6.268 14-14S23.732 2 16 2z" fill="#fff"/>
-    <path d="M22.4 19.6c-.32-.16-1.88-.93-2.17-1.03-.29-.1-.5-.16-.71.16-.21.32-.82 1.03-1.01 1.24-.18.21-.37.24-.69.08-.32-.16-1.34-.49-2.56-1.57-.94-.84-1.58-1.87-1.77-2.19-.18-.32-.02-.49.14-.65.15-.14.32-.37.48-.55.16-.18.21-.32.32-.53.1-.21.05-.4-.03-.55-.08-.16-.71-1.71-.97-2.34-.26-.62-.52-.53-.71-.54h-.6c-.21 0-.55.08-.83.4-.29.32-1.09 1.07-1.09 2.6s1.12 3.01 1.27 3.22c.16.21 2.19 3.35 5.32 4.7.74.32 1.32.51 1.77.65.74.24 1.42.2 1.95.12.6-.09 1.88-.77 2.14-1.51.26-.74.26-1.38.18-1.51-.08-.13-.29-.21-.6-.37z" fill="#25D366"/>
-  </svg>
+  <svg width="28" height="28" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M16 2C8.268 2 2 8.268 2 16c0 2.477.643 4.8 1.77 6.82L2 30l7.37-1.93A13.93 13.93 0 0016 30c7.732 0 14-6.268 14-14S23.732 2 16 2z" fill="#fff"/><path d="M22.4 19.6c-.32-.16-1.88-.93-2.17-1.03-.29-.1-.5-.16-.71.16-.21.32-.82 1.03-1.01 1.24-.18.21-.37.24-.69.08-.32-.16-1.34-.49-2.56-1.57-.94-.84-1.58-1.87-1.77-2.19-.18-.32-.02-.49.14-.65.15-.14.32-.37.48-.55.16-.18.21-.32.32-.53.1-.21.05-.4-.03-.55-.08-.16-.71-1.71-.97-2.34-.26-.62-.52-.53-.71-.54h-.6c-.21 0-.55.08-.83.4-.29.32-1.09 1.07-1.09 2.6s1.12 3.01 1.27 3.22c.16.21 2.19 3.35 5.32 4.7.74.32 1.32.51 1.77.65.74.24 1.42.2 1.95.12.6-.09 1.88-.77 2.14-1.51.26-.74.26-1.38.18-1.51-.08-.13-.29-.21-.6-.37z" fill="#25D366"/></svg>
 </a>
 
-<!-- Nav -->
 <nav>
   <div class="container nav-inner">
     <div class="nav-brand">
-      <svg width="26" height="26" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-        <path d="M13 2L4 6.5V13c0 4.97 3.83 9.63 9 10.93C18.17 22.63 22 17.97 22 13V6.5L13 2z" stroke="#D4A520" stroke-width="1.6" fill="none"/>
-        <path d="M13 2L4 6.5V13c0 4.97 3.83 9.63 9 10.93" stroke="#B8BCCC" stroke-width="1.6" fill="none"/>
-        <text x="13" y="15.5" text-anchor="middle" fill="#D4A520" font-family="Georgia,serif" font-size="7" font-weight="700">C&amp;S</text>
-      </svg>
-      C&amp;S
+      <svg width="26" height="26" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M13 2L4 6.5V13c0 4.97 3.83 9.63 9 10.93C18.17 22.63 22 17.97 22 13V6.5L13 2z" stroke="#D4A520" stroke-width="1.6" fill="none"/><path d="M13 2L4 6.5V13c0 4.97 3.83 9.63 9 10.93" stroke="#B8BCCC" stroke-width="1.6" fill="none"/><text x="13" y="15.5" text-anchor="middle" fill="#D4A520" font-family="Georgia,serif" font-size="7" font-weight="700">C&amp;S</text></svg>
+      C&S
     </div>
     <ul class="nav-links">
       <li><a href="#sobre">Sobre</a></li>
@@ -600,80 +145,58 @@
   </div>
 </nav>
 
-<!-- Hero -->
 <section class="hero">
   <div class="container hero-inner">
-    <div>
-<h1>Serviços terceirizados com <em>qualidade que você confia</em></h1>
-      <div class="hero-tagline">Movendo Confiança, Gerando Valor</div>
-      <p class="hero-sub">Segurança, portaria, limpeza e manutenção predial para condomínios, empresas e indústrias — capital humano treinado e tecnologia integrada para proteger e cuidar do seu patrimônio.</p>
-      <div class="hero-actions">
-        <a class="btn-gold" href="https://wa.me/5511926612817?text=Ol%C3%A1%2C%20gostaria%20de%20solicitar%20um%20or%C3%A7amento." target="_blank" rel="noopener">
-          <svg width="15" height="15" viewBox="0 0 32 32" fill="currentColor" aria-hidden="true"><path d="M16 2C8.268 2 2 8.268 2 16c0 2.477.643 4.8 1.77 6.82L2 30l7.37-1.93A13.93 13.93 0 0016 30c7.732 0 14-6.268 14-14S23.732 2 16 2z"/></svg>
-          Falar no WhatsApp
-        </a>
-        <a class="btn-outline" href="#servicos">Conheça nossos serviços</a>
-      </div>
+    <h1>Serviços terceirizados com <em>qualidade que você confia</em></h1>
+    <div class="hero-tagline">Movendo Confiança, Gerando Valor</div>
+    <p class="hero-sub">Segurança, portaria, limpeza e manutenção predial para condomínios, empresas e indústrias — capital humano treinado e tecnologia integrada para proteger e cuidar do seu patrimônio.</p>
+    <div class="hero-actions">
+      <a class="btn-gold" href="https://wa.me/5511926612817?text=Ol%C3%A1%2C%20gostaria%20de%20solicitar%20um%20or%C3%A7amento." target="_blank" rel="noopener">
+        <svg width="15" height="15" viewBox="0 0 32 32" fill="currentColor" aria-hidden="true"><path d="M16 2C8.268 2 2 8.268 2 16c0 2.477.643 4.8 1.77 6.82L2 30l7.37-1.93A13.93 13.93 0 0016 30c7.732 0 14-6.268 14-14S23.732 2 16 2z"/></svg>
+        Falar no WhatsApp
+      </a>
+      <a class="btn-outline" href="#servicos">Conheça nossos serviços</a>
     </div>
   </div>
 </section>
 
-<!-- MVV -->
 <div class="mvv">
   <div class="container">
     <div class="mvv-grid">
-      <div class="mvv-item">
-        <h3>Missão</h3>
-        <p>Agregar modernidade, praticidade e segurança, com a prioridade de conectar as pessoas com a tecnologia, para entregar um alto valor aos seus clientes.</p>
-      </div>
-      <div class="mvv-item">
-        <h3>Visão</h3>
-        <p>Ser uma empresa consolidada no mercado, reconhecida pela excelência técnica e pela geração de soluções viáveis e inteligentes para nossos parceiros.</p>
-      </div>
-      <div class="mvv-item">
-        <h3>Valores</h3>
-        <p>Ética, transparência, compromisso com a qualidade e desenvolvimento contínuo de nossa equipe, focando na particularidade de cada cliente.</p>
-      </div>
+      <div class="mvv-item"><h3>Missão</h3><p>Agregar modernidade, praticidade e segurança, com a prioridade de conectar as pessoas com a tecnologia, para entregar um alto valor aos seus clientes.</p></div>
+      <div class="mvv-item"><h3>Visão</h3><p>Ser uma empresa consolidada no mercado, reconhecida pela excelência técnica e pela geração de soluções viáveis e inteligentes para nossos parceiros.</p></div>
+      <div class="mvv-item"><h3>Valores</h3><p>Ética, transparência, compromisso com a qualidade e desenvolvimento contínuo de nossa equipe, focando na particularidade de cada cliente.</p></div>
     </div>
   </div>
 </div>
 
-<!-- About -->
 <section class="about" id="sobre">
   <div class="container about-grid">
     <div>
       <span class="label">Quem somos</span>
       <span class="gold-rule"></span>
-      <h2>C&amp;S</h2>
+      <h2>C&S</h2>
       <p>Somos uma empresa especializada na prestação de serviços terceirizados para condomínios, empresas e indústrias focada no crescimento e gestão eficiente.</p>
       <p>Nosso diferencial está na integração entre capital humano treinado e tecnologias de ponta, garantindo que o seu patrimônio esteja sempre protegido e bem cuidado.</p>
     </div>
     <div class="pilares-grid" style="align-self:start;">
       <div class="pilar-card">
-        <div class="pilar-icon">
-          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M19 22H5v-2h14v2zm-3.5-9.5c0 2.485-2.686 4.5-5.5 4.5S4.5 14.985 4.5 12.5c0-1.87 1.4-3.472 3.5-4.215V7c0-1.105.895-2 2-2s2 .895 2 2v1.285c2.1.743 3.5 2.345 3.5 4.215zM12 5c-.828 0-1.5.672-1.5 1.5S11.172 8 12 8s1.5-.672 1.5-1.5S12.828 5 12 5z"/></svg>
-        </div>
+        <div class="pilar-icon"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M19 22H5v-2h14v2zm-3.5-9.5c0 2.485-2.686 4.5-5.5 4.5S4.5 14.985 4.5 12.5c0-1.87 1.4-3.472 3.5-4.215V7c0-1.105.895-2 2-2s2 .895 2 2v1.285c2.1.743 3.5 2.345 3.5 4.215zM12 5c-.828 0-1.5.672-1.5 1.5S11.172 8 12 8s1.5-.672 1.5-1.5S12.828 5 12 5z"/></svg></div>
         <h4>Estratégia</h4>
         <p>Planejamento tático personalizado para as necessidades de cada cliente.</p>
       </div>
       <div class="pilar-card">
-        <div class="pilar-icon">
-          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></svg>
-        </div>
+        <div class="pilar-icon"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></svg></div>
         <h4>Eficiência</h4>
         <p>Processos ágeis que otimizam recursos e garantem resultados superiores.</p>
       </div>
       <div class="pilar-card">
-        <div class="pilar-icon">
-          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-        </div>
+        <div class="pilar-icon"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg></div>
         <h4>Experiência</h4>
         <p>Equipe com vasto know-how em segurança condominial e facilities.</p>
       </div>
       <div class="pilar-card">
-        <div class="pilar-icon">
-          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M12.65 10C11.83 7.67 9.61 6 7 6c-3.31 0-6 2.69-6 6s2.69 6 6 6c2.61 0 4.83-1.67 5.65-4H17v4h4v-4h2v-4H12.65zM7 14c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/></svg>
-        </div>
+        <div class="pilar-icon"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M12.65 10C11.83 7.67 9.61 6 7 6c-3.31 0-6 2.69-6 6s2.69 6 6 6c2.61 0 4.83-1.67 5.65-4H17v4h4v-4h2v-4H12.65zM7 14c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/></svg></div>
         <h4>Solução</h4>
         <p>Respostas completas para os desafios de gestão e segurança do dia a dia.</p>
       </div>
@@ -681,7 +204,6 @@
   </div>
 </section>
 
-<!-- Services -->
 <section class="services" id="servicos">
   <div class="container">
     <div class="section-head">
@@ -714,29 +236,16 @@
   </div>
 </section>
 
-<!-- Segurança Ativa -->
 <section class="seguranca-ativa">
   <div class="container seguranca-ativa-inner">
     <div class="seguranca-ativa-content">
       <h2>Segurança Ativa</h2>
       <p class="intro">Acreditamos que a segurança é o nosso compromisso maior com a sua paz. <strong>Investimos pesadamente em:</strong></p>
       <ul class="sa-list">
-        <li>
-          <span class="sa-check"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></span>
-          Treinamento contínuo da equipe.
-        </li>
-        <li>
-          <span class="sa-check"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></span>
-          Monitoramento em tempo real.
-        </li>
-        <li>
-          <span class="sa-check"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></span>
-          Protocolos de emergência rígidos.
-        </li>
-        <li>
-          <span class="sa-check"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></span>
-          Tecnologia de integração de dados.
-        </li>
+        <li><span class="sa-check"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></span>Treinamento contínuo da equipe.</li>
+        <li><span class="sa-check"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></span>Monitoramento em tempo real.</li>
+        <li><span class="sa-check"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></span>Protocolos de emergência rígidos.</li>
+        <li><span class="sa-check"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></span>Tecnologia de integração de dados.</li>
       </ul>
     </div>
     <div class="seguranca-ativa-image">
@@ -746,7 +255,6 @@
   </div>
 </section>
 
-<!-- Contact -->
 <section class="info" id="contato">
   <div class="container info-grid">
     <div>
@@ -788,15 +296,12 @@
   </div>
 </section>
 
-<!-- Footer -->
 <footer>
   <div class="container footer-inner">
-    <div class="footer-brand">
-      <strong>C&amp;S</strong> — Soluções em Serviços Terceirizados
-    </div>
+    <div class="footer-brand"><strong>C&S</strong> — Soluções em Serviços Terceirizados</div>
     <div class="footer-right">
       <div class="footer-cnpj">CNPJ 66.840.249/0001-13 · Suzano, SP</div>
-      <div class="footer-copy">© 2025 C&amp;S Soluções e Serviços Ltda. Todos os direitos reservados.</div>
+      <div class="footer-copy">© 2026 C&S Soluções e Serviços Ltda. Todos os direitos reservados.</div>
     </div>
   </div>
 </footer>
