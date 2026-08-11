@@ -2,17 +2,17 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Costa & Sobral — Soluções em Serviços Terceirizados | Suzano, SP</title>
+  <title>C&S — Soluções em Serviços Terceirizados | Suzano, SP</title>
   <meta name="description" content="Empresa de serviços terceirizados em Suzano, SP. Portaria, limpeza, recepção corporativa e apoio operacional para empresas, indústrias, escolas, supermercados e condomínios. Ligue: (11) 92661-2817.">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="keywords" content="serviços terceirizados Suzano, portaria Suzano SP, limpeza terceirizada, mão de obra terceirizada, facilities Suzano, Costa e Sobral">
+  <meta name="keywords" content="serviços terceirizados Suzano, portaria Suzano SP, limpeza terceirizada, mão de obra terceirizada, facilities Suzano, C&S">
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://costa-sobral.vercel.app/">
 
   <!-- Open Graph -->
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://costa-sobral.vercel.app/">
-  <meta property="og:title" content="Costa & Sobral — Soluções em Serviços Terceirizados">
+  <meta property="og:title" content="C&S — Soluções em Serviços Terceirizados">
   <meta property="og:description" content="Portaria, limpeza, recepção corporativa e apoio operacional para empresas, indústrias, escolas, supermercados e condomínios em Suzano, SP.">
   <meta property="og:locale" content="pt_BR">
 
@@ -21,8 +21,8 @@
   {
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
-    "name": "Costa & Sobral Soluções e Serviços",
-    "description": "Empresa especializada em serviços terceirizados: portaria, limpeza, recepção corporativa e apoio operacional.",
+    "name": "C&S Soluções e Serviços",
+    "description": "Empresa especializada em serviços terceirizados: portaria, limpeza, segurança, manutenção predial para condomínios, empresas e indústrias.",
     "url": "https://costa-sobral.vercel.app/",
     "telephone": "+55-11-92661-2817",
     "address": {
@@ -275,6 +275,34 @@
       letter-spacing: .07em; text-transform: uppercase; color: var(--text-sub);
     }
 
+    /* Pilares */
+    .pilares-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    .pilar-card {
+      background: var(--onyx);
+      border: 1px solid var(--border-dk);
+      border-radius: 10px;
+      padding: 22px 20px 20px;
+      transition: border-color .2s;
+    }
+    .pilar-card:hover { border-color: var(--gold); }
+    .pilar-icon {
+      font-size: 1.5rem;
+      margin-bottom: 14px;
+      color: var(--gold);
+      display: flex; align-items: center;
+    }
+    .pilar-icon svg { width: 26px; height: 26px; fill: var(--gold); }
+    .pilar-card h4 {
+      font-family: Georgia, serif;
+      font-size: 1rem; font-weight: 700;
+      color: #EDEAE2; margin-bottom: 8px;
+    }
+    .pilar-card p { font-size: .8rem; color: var(--silver); line-height: 1.6; }
+
     /* Services */
     .services {
       padding: 88px 0; background: var(--surface);
@@ -287,7 +315,7 @@
       font-size: clamp(1.5rem, 2.8vw, 2.2rem);
       font-weight: 700; text-wrap: balance; max-width: 520px;
     }
-    .services-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    .services-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
     .svc-card {
       background: var(--ground); border: 1px solid var(--border-lt);
       border-radius: 6px; padding: 30px 24px;
@@ -318,6 +346,82 @@
       color: var(--text-sub); background: var(--surface);
     }
     .client-chip svg { color: var(--gold); }
+
+    /* Segurança Ativa */
+    .seguranca-ativa {
+      background: #080809;
+      border-top: 1px solid var(--border-dk);
+    }
+    .seguranca-ativa-inner {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      min-height: 480px;
+    }
+    .seguranca-ativa-content {
+      padding: 80px 60px 80px 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .seguranca-ativa-content h2 {
+      font-family: Georgia, serif;
+      font-size: clamp(1.8rem, 3vw, 2.6rem);
+      font-weight: 700;
+      color: var(--gold);
+      letter-spacing: .06em;
+      margin-bottom: 28px;
+      text-transform: uppercase;
+    }
+    .seguranca-ativa-content .intro {
+      font-size: .95rem;
+      color: var(--silver);
+      line-height: 1.75;
+      margin-bottom: 32px;
+      max-width: 460px;
+    }
+    .seguranca-ativa-content .intro strong { color: #EDEAE2; }
+    .sa-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+    .sa-list li {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      font-size: .93rem;
+      color: #EDEAE2;
+    }
+    .sa-check {
+      flex-shrink: 0;
+      width: 26px; height: 26px;
+      border-radius: 50%;
+      background: var(--gold);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .sa-check svg { stroke: #080809; }
+    .seguranca-ativa-image {
+      position: relative;
+      overflow: hidden;
+    }
+    .seguranca-ativa-image img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      object-position: center top;
+      display: block;
+    }
+    .seguranca-ativa-image .img-placeholder {
+      width: 100%; height: 100%;
+      background: #1A1B1E;
+      display: flex; align-items: center; justify-content: center;
+      color: #2A2B2E; font-size: 3rem;
+    }
+    @media (max-width: 860px) {
+      .seguranca-ativa-inner { grid-template-columns: 1fr; }
+      .seguranca-ativa-content { padding: 60px 0 48px; }
+      .seguranca-ativa-image { min-height: 320px; }
+    }
 
     /* Info */
     .info {
@@ -401,7 +505,6 @@
       .hero-inner { grid-template-columns: 1fr; }
       .hero-badge { display: none; }
       .about-grid { grid-template-columns: 1fr; gap: 40px; }
-      .about-grid .hero-badge { display: none; }
       .services-grid { grid-template-columns: 1fr 1fr; }
       .info-grid { grid-template-columns: 1fr; gap: 40px; }
       .nav-links { display: none; }
@@ -466,7 +569,7 @@
         <path d="M13 2L4 6.5V13c0 4.97 3.83 9.63 9 10.93" stroke="#B8BCCC" stroke-width="1.6" fill="none"/>
         <text x="13" y="15.5" text-anchor="middle" fill="#D4A520" font-family="Georgia,serif" font-size="7" font-weight="700">C&amp;S</text>
       </svg>
-      Costa <em>&amp;</em> Sobral
+      C&amp;S
     </div>
     <ul class="nav-links">
       <li><a href="#sobre">Sobre</a></li>
@@ -532,14 +635,39 @@
     <div>
       <span class="label">Quem somos</span>
       <span class="gold-rule"></span>
-      <h2>Especialistas em serviços terceirizados para o seu negócio</h2>
-      <p>A Costa &amp; Sobral é uma empresa sediada em Suzano, SP, especializada na prestação de serviços terceirizados para empresas, indústrias, escolas, supermercados e condomínios.</p>
-      <p>Nosso objetivo é oferecer mão de obra qualificada e soluções personalizadas, sempre com foco na satisfação dos clientes e no bom funcionamento das operações do seu negócio.</p>
-      <p>Trabalhamos com compromisso, transparência e profissionalismo — garantindo que cada cliente receba o atendimento e o suporte que merece.</p>
+      <h2>C&amp;S</h2>
+      <p>Somos uma empresa especializada na prestação de serviços terceirizados para condomínios, empresas e indústrias focada no crescimento e gestão eficiente.</p>
+      <p>Nosso diferencial está na integração entre capital humano treinado e tecnologias de ponta, garantindo que o seu patrimônio esteja sempre protegido e bem cuidado.</p>
     </div>
-    <div class="hero-badge" style="align-self:start;max-width:220px;">
-      <div class="big">SP</div>
-      <div class="sm">Região metropolitana<br>de São Paulo</div>
+    <div class="pilares-grid" style="align-self:start;">
+      <div class="pilar-card">
+        <div class="pilar-icon">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M19 22H5v-2h14v2zm-3.5-9.5c0 2.485-2.686 4.5-5.5 4.5S4.5 14.985 4.5 12.5c0-1.87 1.4-3.472 3.5-4.215V7c0-1.105.895-2 2-2s2 .895 2 2v1.285c2.1.743 3.5 2.345 3.5 4.215zM12 5c-.828 0-1.5.672-1.5 1.5S11.172 8 12 8s1.5-.672 1.5-1.5S12.828 5 12 5z"/></svg>
+        </div>
+        <h4>Estratégia</h4>
+        <p>Planejamento tático personalizado para as necessidades de cada cliente.</p>
+      </div>
+      <div class="pilar-card">
+        <div class="pilar-icon">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></svg>
+        </div>
+        <h4>Eficiência</h4>
+        <p>Processos ágeis que otimizam recursos e garantem resultados superiores.</p>
+      </div>
+      <div class="pilar-card">
+        <div class="pilar-icon">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+        </div>
+        <h4>Experiência</h4>
+        <p>Equipe com vasto know-how em segurança condominial e facilities.</p>
+      </div>
+      <div class="pilar-card">
+        <div class="pilar-icon">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M12.65 10C11.83 7.67 9.61 6 7 6c-3.31 0-6 2.69-6 6s2.69 6 6 6c2.61 0 4.83-1.67 5.65-4H17v4h4v-4h2v-4H12.65zM7 14c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/></svg>
+        </div>
+        <h4>Solução</h4>
+        <p>Respostas completas para os desafios de gestão e segurança do dia a dia.</p>
+      </div>
     </div>
   </div>
 </section>
@@ -554,51 +682,57 @@
     </div>
     <div class="services-grid">
       <div class="svc-card">
-        <div class="svc-icon"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
-        <h3>Portaria e Controle de Acesso</h3>
-        <p>Profissionais treinados para garantir a segurança patrimonial e o controle eficiente de entradas e saídas em condomínios, empresas e indústrias.</p>
+        <div class="svc-icon"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/><path d="M12 11l-1 4 1 1 1-1-1-4z"/><path d="M9 16l-2 1m8-1l2 1"/></svg></div>
+        <h3>Segurança e Vigilância</h3>
+        <p>Proteção patrimonial com agentes treinados e rondas ostensivas 24h.</p>
       </div>
       <div class="svc-card">
-        <div class="svc-icon"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg></div>
-        <h3>Momentos à Mesa</h3>
-        <p>Serviço de café, recepção e acolhimento corporativo — criamos conexões e ambientes que aproximam. Cuidado em cada detalhe para você aproveitar o que importa.</p>
+        <div class="svc-icon"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="2" width="12" height="20" rx="1"/><path d="M15 8h4l2 3-2 3h-4"/><circle cx="9" cy="12" r="1"/></svg></div>
+        <h3>Portaria e Acesso</h3>
+        <p>Controle rigoroso de entrada e saída de moradores, visitantes e prestadores.</p>
       </div>
       <div class="svc-card">
-        <div class="svc-icon"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/></svg></div>
-        <h3>Apoio a Condomínios</h3>
-        <p>Portaria, limpeza e manutenção de áreas comuns para condomínios residenciais e comerciais, com gestão operacional completa.</p>
+        <div class="svc-icon"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 22l7-7m0 0l2-6 4 4-6 2zm7-7l4-4a2 2 0 012.83 2.83L19 12"/><path d="M5 20l2-2"/></svg></div>
+        <h3>Limpeza e Conservação</h3>
+        <p>Manutenção impecável das áreas comuns com cronograma técnico de higiene.</p>
       </div>
       <div class="svc-card">
-        <div class="svc-icon"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg></div>
-        <h3>Empresas e Indústrias</h3>
-        <p>Mão de obra qualificada para atividades de apoio operacional, recepção, limpeza e conservação em ambientes industriais e corporativos.</p>
-      </div>
-      <div class="svc-card">
-        <div class="svc-icon"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 14l9-5-9-5-9 5 9 5z"/><path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/></svg></div>
-        <h3>Escolas e Instituições</h3>
-        <p>Portaria, limpeza e atendimento para instituições de ensino, com profissionais preparados para ambientes educacionais.</p>
-      </div>
-      <div class="svc-card">
-        <div class="svc-icon"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg></div>
-        <h3>Supermercados e Varejo</h3>
-        <p>Equipes para atendimento ao cliente, organização de estoque, embalagem e suporte às operações do varejo alimentício e demais segmentos.</p>
+        <div class="svc-icon"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg></div>
+        <h3>Manutenção Predial</h3>
+        <p>Zeladoria ativa para garantir o funcionamento de toda a infraestrutura.</p>
       </div>
     </div>
   </div>
 </section>
 
-<!-- Clients -->
-<section class="clients">
-  <div class="container">
-    <span class="label">Segmentos que atendemos</span>
-    <span class="gold-rule"></span>
-    <div class="clients-row">
-      <div class="client-chip"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16"/><rect x="9" y="10" width="6" height="11"/></svg>Empresas</div>
-      <div class="client-chip"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>Indústrias</div>
-      <div class="client-chip"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M12 14l9-5-9-5-9 5 9 5z"/></svg>Escolas</div>
-      <div class="client-chip"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4"/></svg>Supermercados</div>
-      <div class="client-chip"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/></svg>Condomínios</div>
-      <div class="client-chip"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/></svg>Recepção corporativa</div>
+<!-- Segurança Ativa -->
+<section class="seguranca-ativa">
+  <div class="container seguranca-ativa-inner">
+    <div class="seguranca-ativa-content">
+      <h2>Segurança Ativa</h2>
+      <p class="intro">Acreditamos que a segurança é o nosso compromisso maior com a sua paz. <strong>Investimos pesadamente em:</strong></p>
+      <ul class="sa-list">
+        <li>
+          <span class="sa-check"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></span>
+          Treinamento contínuo da equipe.
+        </li>
+        <li>
+          <span class="sa-check"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></span>
+          Monitoramento em tempo real.
+        </li>
+        <li>
+          <span class="sa-check"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></span>
+          Protocolos de emergência rígidos.
+        </li>
+        <li>
+          <span class="sa-check"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></span>
+          Tecnologia de integração de dados.
+        </li>
+      </ul>
+    </div>
+    <div class="seguranca-ativa-image">
+      <img src="img/seguranca-ativa.jpg" alt="Agente de segurança C&S em posição de vigilância" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+      <div class="img-placeholder" style="display:none;">🛡️</div>
     </div>
   </div>
 </section>
@@ -649,11 +783,11 @@
 <footer>
   <div class="container footer-inner">
     <div class="footer-brand">
-      <strong>Costa &amp; Sobral</strong> — Soluções em Serviços Terceirizados
+      <strong>C&amp;S</strong> — Soluções em Serviços Terceirizados
     </div>
     <div class="footer-right">
-      <div class="footer-cnpj">CNPJ 62.729.475/0001-70 · Suzano, SP</div>
-      <div class="footer-copy">© 2025 Costa &amp; Sobral Soluções e Serviços Ltda. Todos os direitos reservados.</div>
+      <div class="footer-cnpj">CNPJ 66.840.249/0001-13 · Suzano, SP</div>
+      <div class="footer-copy">© 2025 C&amp;S Soluções e Serviços Ltda. Todos os direitos reservados.</div>
     </div>
   </div>
 </footer>
