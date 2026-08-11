@@ -91,10 +91,10 @@ export default async function handler(req, res) {
     const html        = generateHTML(content);
     const contentJson = JSON.stringify(content, null, 2);
 
-    await Promise.all([
-      commitFile({ token, owner, repo, branch, path: 'index.html',   text: html,        msg: 'chore: atualiza conteúdo via CMS' }),
-      commitFile({ token, owner, repo, branch, path: 'content.json', text: contentJson, msg: 'chore: atualiza content.json via CMS' }),
-    ]);
+    // Commits em série: o SHA de cada arquivo é independente,
+    // mas commits paralelos podem causar conflito de SHA no mesmo branch.
+    await commitFile({ token, owner, repo, branch, path: 'index.html',   text: html,        msg: 'chore: atualiza conteúdo via CMS' });
+    await commitFile({ token, owner, repo, branch, path: 'content.json', text: contentJson, msg: 'chore: atualiza content.json via CMS' });
 
     return res.status(200).json({
       ok: true,
