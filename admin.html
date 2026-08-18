@@ -1,828 +1,295 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <title>Admin — C&S</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="robots" content="noindex, nofollow">
-  <style>
-    :root {
-      --gold:#D4A520; --gold-lt:#E8C050; --gold-dim:rgba(212,165,32,.12);
-      --onyx:#0C0C0E; --slate:#161719; --surface:#1A1B1E;
-      --text:#EDEAE2; --text-sub:#8A8FA0; --silver:#B8BCCC;
-      --border:rgba(212,165,32,.2); --green:#5EC882; --red:#E05555;
-      --sidebar-w:272px;
-    }
-    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-    html,body{height:100%;}
-    body{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--onyx);color:var(--text);display:flex;flex-direction:column;}
-
-    /* ── Login ─────────────────────────────────────────── */
-    #login-screen{position:fixed;inset:0;z-index:9999;background:var(--onyx);display:flex;align-items:center;justify-content:center;}
-    .login-box{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:40px 36px;width:340px;text-align:center;}
-    .login-box .logo{font-family:Georgia,serif;font-size:1.2rem;color:var(--gold);margin-bottom:4px;}
-    .login-box .sub{font-size:.75rem;color:var(--text-sub);margin-bottom:28px;letter-spacing:.07em;text-transform:uppercase;}
-    .login-box input{width:100%;background:var(--onyx);border:1px solid var(--border);border-radius:6px;padding:12px 14px;color:var(--text);font-size:.95rem;margin-bottom:14px;outline:none;transition:border-color .2s;}
-    .login-box input:focus{border-color:var(--gold);}
-    .login-box button{width:100%;background:var(--gold);color:var(--onyx);font-weight:700;font-size:.9rem;letter-spacing:.06em;text-transform:uppercase;border:none;border-radius:6px;padding:13px;cursor:pointer;transition:background .2s;}
-    .login-box button:hover{background:var(--gold-lt);}
-    .login-error{font-size:.8rem;color:var(--red);margin-top:10px;display:none;}
-
-    /* ── Layout ─────────────────────────────────────────── */
-    #app{display:none;flex:1;overflow:hidden;flex-direction:row;}
-    aside{width:var(--sidebar-w);background:var(--slate);border-right:1px solid var(--border);overflow-y:auto;display:flex;flex-direction:column;flex-shrink:0;}
-    .aside-top{padding:18px 16px 14px;border-bottom:1px solid var(--border);}
-    .aside-brand{font-family:Georgia,serif;font-size:.9rem;color:var(--gold);}
-    .aside-sub{font-size:.62rem;color:var(--text-sub);letter-spacing:.08em;text-transform:uppercase;margin-top:2px;}
-    nav.sidebar-nav{padding:10px 8px;flex:1;}
-    .nav-section{font-size:.58rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-sub);padding:10px 8px 4px;}
-    .nav-item{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:6px;cursor:pointer;font-size:.82rem;color:var(--silver);transition:background .15s,color .15s;user-select:none;}
-    .nav-item:hover{background:var(--gold-dim);color:var(--text);}
-    .nav-item.active{background:var(--gold-dim);color:var(--gold);font-weight:600;}
-    .nav-item svg{flex-shrink:0;opacity:.7;}
-    .nav-item.active svg{opacity:1;}
-
-    /* ── Publish button ─────────────────────────────────── */
-    .aside-actions{padding:14px 10px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:8px;}
-    .btn-publish{background:var(--gold);color:var(--onyx);font-weight:700;font-size:.82rem;letter-spacing:.06em;text-transform:uppercase;border:none;border-radius:6px;padding:13px 14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:background .2s,opacity .2s;width:100%;}
-    .btn-publish:hover:not(:disabled){background:var(--gold-lt);}
-    .btn-publish:disabled{opacity:.55;cursor:not-allowed;}
-    .btn-secondary{background:transparent;color:var(--silver);font-size:.78rem;border:1px solid var(--border);border-radius:6px;padding:9px 14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;transition:border-color .2s,color .2s;width:100%;}
-    .btn-secondary:hover{border-color:var(--gold);color:var(--gold);}
-    .btn-danger{color:var(--red);border-color:rgba(224,85,85,.3);}
-    .btn-danger:hover{border-color:var(--red)!important;color:var(--red)!important;}
-
-    /* Status bar */
-    .publish-status{font-size:.72rem;padding:8px 10px;border-radius:6px;text-align:center;display:none;line-height:1.45;}
-    .publish-status.loading{background:rgba(212,165,32,.1);color:var(--gold);display:flex;align-items:center;justify-content:center;gap:7px;}
-    .publish-status.success{background:rgba(94,200,130,.12);color:var(--green);display:block;}
-    .publish-status.error{background:rgba(224,85,85,.1);color:var(--red);display:block;}
-
-    /* Spinner */
-    @keyframes spin{to{transform:rotate(360deg);}}
-    .spinner{width:14px;height:14px;border:2px solid rgba(212,165,32,.3);border-top-color:var(--gold);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0;}
-
-    /* ── Main ───────────────────────────────────────────── */
-    main{flex:1;overflow-y:auto;padding:28px 32px;}
-    .section-panel{display:none;}
-    .section-panel.active{display:block;}
-    .panel-header{margin-bottom:24px;}
-    .panel-header h1{font-family:Georgia,serif;font-size:1.4rem;color:var(--text);margin-bottom:3px;}
-    .panel-header p{font-size:.82rem;color:var(--text-sub);}
-
-    /* Fields */
-    .field-group{margin-bottom:18px;}
-    .field-group label{display:block;font-size:.66rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-bottom:5px;}
-    .field-group .hint{font-size:.7rem;color:var(--text-sub);margin-bottom:5px;}
-    .field-group input,.field-group textarea,.field-group select{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:10px 12px;color:var(--text);font-size:.88rem;font-family:inherit;outline:none;transition:border-color .2s;resize:vertical;}
-    .field-group input:focus,.field-group textarea:focus{border-color:var(--gold);}
-    .field-group textarea{min-height:80px;}
-    .field-group select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238A8FA0' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;-webkit-appearance:none;appearance:none;padding-right:30px;}
-    .card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:20px 18px;margin-bottom:14px;}
-    .card-title{font-size:.7rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--gold);margin-bottom:14px;}
-    .two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
-    .hours-row{display:flex;align-items:center;gap:12px;padding:7px 0;border-bottom:1px solid rgba(212,165,32,.08);}
-    .hours-row:last-child{border-bottom:none;}
-    .hours-row .day-label{width:76px;font-size:.82rem;color:var(--text-sub);}
-    .hours-row input[type=text]{flex:1;padding:6px 10px;font-size:.82rem;}
-    .hours-row label{display:flex;align-items:center;gap:5px;font-size:.75rem;color:var(--text-sub);cursor:pointer;white-space:nowrap;}
-    .hours-row input[type=checkbox]{accent-color:var(--gold);}
-
-    /* Pilares / SA items */
-    .pilar-block{border:1px solid var(--border);border-radius:6px;padding:14px;margin-bottom:10px;}
-    .pilar-block-title{font-size:.65rem;font-weight:700;color:var(--text-sub);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px;}
-    .sa-items-list .sa-item-row{display:flex;gap:8px;margin-bottom:8px;align-items:center;}
-    .sa-items-list .sa-item-row input{flex:1;}
-    .sa-items-list .sa-item-row button{background:none;border:1px solid rgba(224,85,85,.35);color:var(--red);border-radius:4px;padding:4px 8px;font-size:.7rem;cursor:pointer;white-space:nowrap;transition:border-color .2s;}
-    .sa-items-list .sa-item-row button:hover{border-color:var(--red);}
-    .btn-add-item{background:none;border:1px dashed var(--border);color:var(--text-sub);border-radius:5px;padding:7px 14px;font-size:.75rem;cursor:pointer;transition:border-color .2s,color .2s;margin-top:4px;}
-    .btn-add-item:hover{border-color:var(--gold);color:var(--gold);}
-
-    /* Toast */
-    #toast{position:fixed;bottom:22px;right:22px;z-index:9998;background:var(--surface);border:1px solid var(--green);border-radius:8px;padding:11px 16px;font-size:.83rem;color:var(--green);display:none;align-items:center;gap:8px;box-shadow:0 4px 20px rgba(0,0,0,.4);}
-    #toast.show{display:flex;}
-    #toast.err{border-color:var(--red);color:var(--red);}
-  </style>
+<meta charset="UTF-8">
+<title>Admin — C&amp;S</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--g:#c79a3b;--gl:#e7c77a;--gd:rgba(199,154,59,.12);--o:#0d0d0d;--s:#141311;--sf:#1b1915;--t:#f3f0e9;--ts:#9a948a;--sv:#c9c9c9;--br:rgba(199,154,59,.2);--gr:#5ec882;--r:#e05555;--sw:270px;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}html,body{height:100%;}
+body{font-family:'Montserrat',system-ui,sans-serif;background:var(--o);color:var(--t);display:flex;}
+#app{display:flex;flex:1;overflow:hidden;}
+aside{width:var(--sw);background:var(--s);border-right:1px solid var(--br);overflow-y:auto;display:flex;flex-direction:column;flex-shrink:0;}
+.at{padding:20px 18px 16px;border-bottom:1px solid var(--br);}
+.ab{font-family:'Cormorant Garamond',Georgia,serif;font-size:1.3rem;font-weight:700;color:var(--g);}
+.as{font-size:.6rem;color:var(--ts);letter-spacing:.14em;text-transform:uppercase;margin-top:2px;}
+nav{padding:10px 8px;flex:1;}
+.ns{font-size:.58rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--ts);padding:12px 8px 5px;}
+.ni{display:flex;align-items:center;gap:9px;padding:10px 12px;border-radius:7px;cursor:pointer;font-size:.82rem;color:var(--sv);transition:all .15s;user-select:none;}
+.ni svg{flex-shrink:0;opacity:.65;}.ni.active svg{opacity:1;}
+.ni:hover{background:var(--gd);color:var(--t);}.ni.active{background:var(--gd);color:var(--g);font-weight:600;}
+.aa{padding:14px 12px;border-top:1px solid var(--br);display:flex;flex-direction:column;gap:9px;}
+.bp{background:var(--g);color:var(--o);font-weight:700;font-size:.8rem;letter-spacing:.05em;text-transform:uppercase;border:none;border-radius:7px;padding:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:background .2s;}.bp:hover{background:var(--gl);}
+.bs{background:transparent;color:var(--sv);font-size:.78rem;border:1px solid var(--br);border-radius:7px;padding:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;transition:all .2s;}.bs:hover{border-color:var(--g);color:var(--g);}
+.bd{color:var(--r);border-color:rgba(224,85,85,.3);}.bd:hover{border-color:var(--r)!important;color:var(--r)!important;}
+.st{font-size:.72rem;padding:9px;border-radius:6px;text-align:center;display:none;line-height:1.4;}
+.st.ok{background:rgba(94,200,130,.12);color:var(--gr);display:block;}
+main{flex:1;overflow-y:auto;padding:30px 34px;}
+.sp{display:none;max-width:700px;}.sp.active{display:block;}
+.ph{margin-bottom:22px;}.ph h1{font-family:'Cormorant Garamond',Georgia,serif;font-size:1.5rem;color:var(--t);margin-bottom:3px;}.ph p{font-size:.82rem;color:var(--ts);}
+.card{background:var(--sf);border:1px solid var(--br);border-radius:9px;padding:22px 20px;margin-bottom:16px;}
+.fg{margin-bottom:16px;}.fg:last-child{margin-bottom:0;}
+.fg label{display:block;font-size:.64rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--g);margin-bottom:6px;}
+.fg .hint{font-size:.72rem;color:var(--ts);margin-bottom:6px;}
+.fg input,.fg textarea{width:100%;background:var(--o);border:1px solid var(--br);border-radius:6px;padding:11px 13px;color:var(--t);font-size:.9rem;font-family:inherit;outline:none;transition:border-color .2s;resize:vertical;}
+.fg input:focus,.fg textarea:focus{border-color:var(--g);}.fg textarea{min-height:80px;}
+#toast{position:fixed;bottom:22px;right:22px;background:var(--sf);border:1px solid var(--gr);border-radius:8px;padding:12px 18px;font-size:.84rem;color:var(--gr);display:none;box-shadow:0 4px 20px rgba(0,0,0,.5);z-index:99;}
+#toast.show{display:block;}#toast.err{border-color:var(--r);color:var(--r);}
+@media(max-width:720px){aside{position:fixed;z-index:10;height:100%;transform:translateX(-100%);transition:transform .25s;}aside.open{transform:none;}main{padding:18px 16px;}
+.mob-toggle{position:fixed;top:12px;left:12px;z-index:11;background:var(--g);color:var(--o);border:none;border-radius:6px;padding:8px 10px;cursor:pointer;font-weight:700;font-size:.8rem;display:block;}}
+.mob-toggle{display:none;}
+#login-overlay{position:fixed;inset:0;z-index:9999;background:var(--o);display:flex;align-items:center;justify-content:center;}
+.lbox{background:var(--sf);border:1px solid var(--br);border-radius:10px;padding:40px 36px;width:320px;text-align:center;}
+.lb-brand{font-family:'Cormorant Garamond',Georgia,serif;font-size:1.9rem;font-weight:700;color:var(--g);margin-bottom:4px;}
+.lb-sub{font-size:.6rem;color:var(--ts);letter-spacing:.13em;text-transform:uppercase;margin-bottom:28px;}
+.lbox input{width:100%;background:var(--o);border:1px solid var(--br);border-radius:6px;padding:12px 14px;color:var(--t);font-size:.9rem;margin-bottom:14px;outline:none;font-family:inherit;transition:border-color .2s;}
+.lbox input:focus{border-color:var(--g);}
+.lbox .lbtn{width:100%;background:var(--g);color:var(--o);font-weight:700;font-size:.85rem;letter-spacing:.06em;text-transform:uppercase;border:none;border-radius:6px;padding:13px;cursor:pointer;font-family:inherit;transition:background .2s;}
+.lbox .lbtn:hover{background:var(--gl);}.lbox .lbtn:disabled{opacity:.6;cursor:default;}
+.lb-err{font-size:.78rem;color:var(--r);margin-top:10px;min-height:18px;}
+</style>
 </head>
 <body>
-
-<!-- ── Login ─────────────────────────────────────────────── -->
-<div id="login-screen">
-  <div class="login-box">
-    <div class="logo">C&amp;S</div>
-    <div class="sub">Painel Administrativo</div>
-    <input type="password" id="pwd-input" placeholder="Senha de acesso" autocomplete="current-password">
-    <button onclick="doLogin()">Entrar</button>
-    <div class="login-error" id="login-error">Senha incorreta. Tente novamente.</div>
+<div id="login-overlay">
+  <div class="lbox">
+    <div class="lb-brand">C&amp;S</div>
+    <div class="lb-sub">Gerenciador de Conteúdo</div>
+    <input type="password" id="pwd" placeholder="Senha de acesso" autocomplete="current-password" onkeydown="if(event.key==='Enter')login()">
+    <button class="lbtn" onclick="login()">Entrar</button>
+    <div class="lb-err" id="lb-err"></div>
   </div>
 </div>
-
-<!-- ── App ──────────────────────────────────────────────── -->
+<button class="mob-toggle" onclick="document.getElementById('aside').classList.toggle('open')">☰ Menu</button>
 <div id="app">
+<aside id="aside">
+<div class="at"><div class="ab">C&amp;S</div><div class="as">Gerenciador de Conteúdo</div></div>
+<nav>
+<div class="ns">Seções do Site</div>
+<div class="ni active" data-panel="hero"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/></svg> Hero / Início</div>
+<div class="ni" data-panel="trust"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Selos de Confiança</div>
+<div class="ni" data-panel="about"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg> Quem Somos</div>
+<div class="ni" data-panel="services"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg> Serviços</div>
+<div class="ni" data-panel="seguranca"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Segurança Jurídica</div>
+<div class="ni" data-panel="como"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg> Como Funciona</div>
+<div class="ni" data-panel="trabalhe"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg> Trabalhe Conosco</div>
+<div class="ni" data-panel="contato"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.657 16.657L13.414 20.9a2 2 0 01-2.828 0l-4.243-4.243a8 8 0 1111.314 0z"/><circle cx="12" cy="11" r="3"/></svg> Contato</div>
+<div class="ni" data-panel="seo"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg> SEO / Meta</div>
+<div class="ni" data-panel="footer"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="18" x2="21" y2="18"/><line x1="3" y1="12" x2="15" y2="12"/><line x1="3" y1="6" x2="9" y2="6"/></svg> Rodapé</div>
 
-  <aside>
-    <div class="aside-top">
-      <div class="aside-brand">C&amp;S</div>
-      <div class="aside-sub">Gerenciador de Conteúdo</div>
-    </div>
-
-    <nav class="sidebar-nav">
-      <div class="nav-section">Seções do Site</div>
-      <div class="nav-item active" data-panel="hero">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/></svg>
-        Hero / Início
-      </div>
-      <div class="nav-item" data-panel="mvv">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-        Missão, Visão, Valores
-      </div>
-      <div class="nav-item" data-panel="about">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
-        Quem Somos
-      </div>
-      <div class="nav-item" data-panel="services">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-        Serviços
-      </div>
-      <div class="nav-item" data-panel="seguranca">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-        Segurança Ativa
-      </div>
-      <div class="nav-item" data-panel="contact">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><circle cx="12" cy="11" r="3"/></svg>
-        Contato e Horários
-      </div>
-      <div class="nav-item" data-panel="seo">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-        SEO / Meta
-      </div>
-      <div class="nav-item" data-panel="footer">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="18" x2="21" y2="18"/><line x1="3" y1="12" x2="15" y2="12"/><line x1="3" y1="6" x2="9" y2="6"/></svg>
-        Rodapé
-      </div>
-    </nav>
-
-    <div class="aside-actions">
-      <div class="publish-status" id="publish-status"></div>
-      <button class="btn-publish" id="btn-publish" onclick="publish()">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-        Publicar no Site
-      </button>
-      <button class="btn-secondary" onclick="saveDraft()">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-        Salvar Rascunho
-      </button>
-      <button class="btn-secondary" onclick="window.open('https://www.cservicos.com','_blank')">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3"/></svg>
-        Ver Site
-      </button>
-      <button class="btn-secondary btn-danger" onclick="logout()">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
-        Sair
-      </button>
-    </div>
-  </aside>
-
-  <main>
-
-    <!-- HERO -->
-    <div class="section-panel active" id="panel-hero">
-      <div class="panel-header">
-        <h1>Hero / Início</h1>
-        <p>Primeira seção visível ao abrir o site.</p>
-      </div>
-      <div class="card">
-        <div class="card-title">Textos principais</div>
-        <div class="field-group">
-          <label>Título principal</label>
-          <div class="hint">Use [colchetes] para destacar em dourado. Ex: com [qualidade que você confia]</div>
-          <input type="text" id="hero_title">
-        </div>
-        <div class="field-group">
-          <label>Tagline</label>
-          <input type="text" id="hero_tagline">
-        </div>
-        <div class="field-group">
-          <label>Subtítulo / descrição</label>
-          <textarea id="hero_sub"></textarea>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-title">Botões</div>
-        <div class="two-col">
-          <div class="field-group">
-            <label>Botão principal</label>
-            <input type="text" id="hero_btn1_text">
-          </div>
-          <div class="field-group">
-            <label>Botão secundário</label>
-            <input type="text" id="hero_btn2_text">
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- MVV -->
-    <div class="section-panel" id="panel-mvv">
-      <div class="panel-header">
-        <h1>Missão, Visão e Valores</h1>
-        <p>Barra exibida logo abaixo do hero.</p>
-      </div>
-      <div class="card">
-        <div class="field-group">
-          <label>Missão</label>
-          <textarea id="mvv_missao"></textarea>
-        </div>
-        <div class="field-group">
-          <label>Visão</label>
-          <textarea id="mvv_visao"></textarea>
-        </div>
-        <div class="field-group">
-          <label>Valores</label>
-          <textarea id="mvv_valores"></textarea>
-        </div>
-      </div>
-    </div>
-
-    <!-- ABOUT -->
-    <div class="section-panel" id="panel-about">
-      <div class="panel-header">
-        <h1>Quem Somos</h1>
-        <p>Seção de apresentação da empresa com os 4 pilares.</p>
-      </div>
-      <div class="card">
-        <div class="card-title">Texto</div>
-        <div class="field-group">
-          <label>Título</label>
-          <input type="text" id="about_title">
-        </div>
-        <div class="field-group">
-          <label>Parágrafo 1</label>
-          <textarea id="about_p1"></textarea>
-        </div>
-        <div class="field-group">
-          <label>Parágrafo 2</label>
-          <textarea id="about_p2"></textarea>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-title">Pilares (4 cards)</div>
-        <div id="pilares-container"></div>
-      </div>
-    </div>
-
-    <!-- SERVICES -->
-    <div class="section-panel" id="panel-services">
-      <div class="panel-header">
-        <h1>Serviços</h1>
-        <p>Edite os 4 cards de serviço.</p>
-      </div>
-      <div class="card">
-        <div class="card-title">Título da seção</div>
-        <div class="field-group">
-          <input type="text" id="services_title">
-        </div>
-      </div>
-      <div id="services-container"></div>
-    </div>
-
-    <!-- SEGURANÇA ATIVA -->
-    <div class="section-panel" id="panel-seguranca">
-      <div class="panel-header">
-        <h1>Segurança Ativa</h1>
-        <p>Seção com imagem e lista de diferenciais.</p>
-      </div>
-      <div class="card">
-        <div class="card-title">Textos</div>
-        <div class="field-group">
-          <label>Título</label>
-          <input type="text" id="sa_title">
-        </div>
-        <div class="field-group">
-          <label>Introdução</label>
-          <div class="hint">Pode usar &lt;strong&gt;texto&lt;/strong&gt; para negrito.</div>
-          <textarea id="sa_intro"></textarea>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-title">Lista de itens</div>
-        <div class="sa-items-list" id="sa-items-container"></div>
-        <button class="btn-add-item" onclick="addSaItem()">+ Adicionar item</button>
-      </div>
-      <div class="card">
-        <div class="card-title">Imagem</div>
-        <div class="two-col">
-          <div class="field-group">
-            <label>Caminho da imagem</label>
-            <input type="text" id="sa_img_src" placeholder="img/seguranca.jpg">
-          </div>
-          <div class="field-group">
-            <label>Texto alternativo (alt)</label>
-            <input type="text" id="sa_img_alt">
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- CONTACT -->
-    <div class="section-panel" id="panel-contact">
-      <div class="panel-header">
-        <h1>Contato e Horários</h1>
-        <p>Informações de contato e tabela de funcionamento.</p>
-      </div>
-      <div class="card">
-        <div class="card-title">Dados de contato</div>
-        <div class="field-group">
-          <label>Endereço (linha 1)</label>
-          <input type="text" id="contact_addr1">
-        </div>
-        <div class="field-group">
-          <label>Endereço (linha 2)</label>
-          <input type="text" id="contact_addr2">
-        </div>
-        <div class="field-group">
-          <label>CEP</label>
-          <input type="text" id="contact_cep">
-        </div>
-        <div class="two-col">
-          <div class="field-group">
-            <label>Telefone (exibição)</label>
-            <input type="text" id="contact_phone_display">
-          </div>
-          <div class="field-group">
-            <label>WhatsApp (só números)</label>
-            <input type="text" id="contact_phone_wa" placeholder="5511999999999">
-          </div>
-        </div>
-        <div class="field-group">
-          <label>Instagram (sem @)</label>
-          <input type="text" id="contact_instagram">
-        </div>
-        <div class="field-group">
-          <label>Mensagem padrão do WhatsApp</label>
-          <input type="text" id="contact_wa_msg">
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-title">Horário de funcionamento</div>
-        <div id="hours-container"></div>
-      </div>
-    </div>
-
-    <!-- SEO -->
-    <div class="section-panel" id="panel-seo">
-      <div class="panel-header">
-        <h1>SEO / Meta</h1>
-        <p>Textos que aparecem no Google e redes sociais.</p>
-      </div>
-      <div class="card">
-        <div class="card-title">Google</div>
-        <div class="field-group">
-          <label>Título da aba (title)</label>
-          <input type="text" id="seo_title">
-        </div>
-        <div class="field-group">
-          <label>Descrição (meta description)</label>
-          <textarea id="seo_desc" style="min-height:60px;"></textarea>
-        </div>
-        <div class="field-group">
-          <label>Palavras-chave (separadas por vírgula)</label>
-          <textarea id="seo_keywords" style="min-height:50px;"></textarea>
-        </div>
-        <div class="field-group">
-          <label>URL do site</label>
-          <input type="text" id="seo_url">
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-title">Compartilhamento (Open Graph)</div>
-        <div class="field-group">
-          <label>Título</label>
-          <input type="text" id="og_title">
-        </div>
-        <div class="field-group">
-          <label>Descrição</label>
-          <textarea id="og_desc" style="min-height:60px;"></textarea>
-        </div>
-      </div>
-    </div>
-
-    <!-- FOOTER -->
-    <div class="section-panel" id="panel-footer">
-      <div class="panel-header">
-        <h1>Rodapé</h1>
-        <p>Informações legais.</p>
-      </div>
-      <div class="card">
-        <div class="card-title">Dados da empresa</div>
-        <div class="two-col">
-          <div class="field-group">
-            <label>CNPJ</label>
-            <input type="text" id="footer_cnpj">
-          </div>
-          <div class="field-group">
-            <label>Cidade/Estado</label>
-            <input type="text" id="footer_city">
-          </div>
-        </div>
-        <div class="field-group">
-          <label>Texto de copyright</label>
-          <input type="text" id="footer_copy">
-        </div>
-      </div>
-    </div>
-
-  </main>
+</nav>
+<div class="aa">
+<div class="st" id="status"></div>
+<button class="bp" onclick="gerar()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg> Publicar no Site</button>
+<button class="bs" onclick="salvarRascunho()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Salvar Rascunho</button>
+<button class="bs" onclick="window.open('https://www.cservicos.com','_blank')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3"/></svg> Ver Site</button>
+<button class="bs bd" onclick="resetar()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 105.64-11.36L1 10"/></svg> Restaurar Padrão</button>
+<button class="bs bd" onclick="sair()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg> Sair</button>
 </div>
-
+</aside>
+<main><div class="sp active" id="panel-hero">
+<div class="ph"><h1>Hero / Início</h1><p>Primeira seção visível ao abrir o site.</p></div>
+<div class="card"><div class="fg"><label>Linha superior (eyebrow)</label><input type="text" id="hero_eyebrow"></div>
+<div class="fg"><label>Título principal</label><div class="hint">Use &lt;em&gt;palavra&lt;/em&gt; para destacar em dourado itálico.</div><textarea id="hero_title"></textarea></div>
+<div class="fg"><label>Tagline</label><input type="text" id="hero_tagline"></div>
+<div class="fg"><label>Subtítulo / descrição</label><textarea id="hero_lead"></textarea></div>
+<div class="fg"><label>Botão principal (texto)</label><input type="text" id="hero_btn1"></div>
+<div class="fg"><label>Botão secundário (texto)</label><input type="text" id="hero_btn2"></div>
+</div>
+</div>
+<div class="sp" id="panel-trust">
+<div class="ph"><h1>Selos de Confiança</h1><p>Faixa com 4 selos abaixo do hero.</p></div>
+<div class="card"><div class="fg"><label>Selo 1</label><input type="text" id="trust_1"></div>
+<div class="fg"><label>Selo 2</label><input type="text" id="trust_2"></div>
+<div class="fg"><label>Selo 3</label><input type="text" id="trust_3"></div>
+<div class="fg"><label>Selo 4</label><input type="text" id="trust_4"></div>
+</div>
+</div>
+<div class="sp" id="panel-about">
+<div class="ph"><h1>Quem Somos</h1><p>Apresentação da empresa com os 4 pilares.</p></div>
+<div class="card"><div class="fg"><label>Linha superior</label><input type="text" id="about_eyebrow"></div>
+<div class="fg"><label>Título</label><input type="text" id="about_title"></div>
+<div class="fg"><label>Parágrafo 1</label><textarea id="about_p1"></textarea></div>
+<div class="fg"><label>Parágrafo 2</label><div class="hint">Pode usar &lt;strong&gt;negrito&lt;/strong&gt;.</div><textarea id="about_p2"></textarea></div>
+<div class="fg"><label>Pilar 1 — título</label><input type="text" id="pillar_1_title"></div>
+<div class="fg"><label>Pilar 1 — descrição</label><textarea id="pillar_1_desc"></textarea></div>
+<div class="fg"><label>Pilar 2 — título</label><input type="text" id="pillar_2_title"></div>
+<div class="fg"><label>Pilar 2 — descrição</label><textarea id="pillar_2_desc"></textarea></div>
+<div class="fg"><label>Pilar 3 — título</label><input type="text" id="pillar_3_title"></div>
+<div class="fg"><label>Pilar 3 — descrição</label><textarea id="pillar_3_desc"></textarea></div>
+<div class="fg"><label>Pilar 4 — título</label><input type="text" id="pillar_4_title"></div>
+<div class="fg"><label>Pilar 4 — descrição</label><textarea id="pillar_4_desc"></textarea></div>
+</div>
+</div>
+<div class="sp" id="panel-services">
+<div class="ph"><h1>Serviços</h1><p>Título da seção e os 3 cards com itens.</p></div>
+<div class="card"><div class="fg"><label>Linha superior</label><input type="text" id="svc_eyebrow"></div>
+<div class="fg"><label>Título da seção</label><input type="text" id="svc_title"></div>
+<div class="fg"><label>Subtítulo</label><textarea id="svc_sub"></textarea></div>
+<div class="fg"><label>Serviço 1 — título</label><input type="text" id="svc_1_title"></div>
+<div class="fg"><label>Serviço 1 — descrição</label><textarea id="svc_1_lead"></textarea></div>
+<div class="fg"><label>Serviço 1 — Item 1</label><input type="text" id="svc_1_item_1"></div>
+<div class="fg"><label>Serviço 1 — Item 2</label><input type="text" id="svc_1_item_2"></div>
+<div class="fg"><label>Serviço 1 — Item 3</label><input type="text" id="svc_1_item_3"></div>
+<div class="fg"><label>Serviço 1 — Item 4</label><input type="text" id="svc_1_item_4"></div>
+<div class="fg"><label>Serviço 1 — Item 5</label><input type="text" id="svc_1_item_5"></div>
+<div class="fg"><label>Serviço 2 — título</label><input type="text" id="svc_2_title"></div>
+<div class="fg"><label>Serviço 2 — descrição</label><textarea id="svc_2_lead"></textarea></div>
+<div class="fg"><label>Serviço 2 — Item 1</label><input type="text" id="svc_2_item_1"></div>
+<div class="fg"><label>Serviço 2 — Item 2</label><input type="text" id="svc_2_item_2"></div>
+<div class="fg"><label>Serviço 2 — Item 3</label><input type="text" id="svc_2_item_3"></div>
+<div class="fg"><label>Serviço 2 — Item 4</label><input type="text" id="svc_2_item_4"></div>
+<div class="fg"><label>Serviço 2 — Item 5</label><input type="text" id="svc_2_item_5"></div>
+<div class="fg"><label>Serviço 3 — título</label><input type="text" id="svc_3_title"></div>
+<div class="fg"><label>Serviço 3 — descrição</label><textarea id="svc_3_lead"></textarea></div>
+<div class="fg"><label>Serviço 3 — Item 1</label><input type="text" id="svc_3_item_1"></div>
+<div class="fg"><label>Serviço 3 — Item 2</label><input type="text" id="svc_3_item_2"></div>
+<div class="fg"><label>Serviço 3 — Item 3</label><input type="text" id="svc_3_item_3"></div>
+<div class="fg"><label>Serviço 3 — Item 4</label><input type="text" id="svc_3_item_4"></div>
+<div class="fg"><label>Serviço 3 — Item 5</label><input type="text" id="svc_3_item_5"></div>
+</div>
+</div>
+<div class="sp" id="panel-seguranca">
+<div class="ph"><h1>Segurança Jurídica</h1><p>Lista de garantias legais da C&S.</p></div>
+<div class="card"><div class="fg"><label>Linha superior</label><input type="text" id="seg_eyebrow"></div>
+<div class="fg"><label>Título</label><textarea id="seg_title"></textarea></div>
+<div class="fg"><label>Item 1</label><textarea id="seg_item_1"></textarea></div>
+<div class="fg"><label>Item 2</label><textarea id="seg_item_2"></textarea></div>
+<div class="fg"><label>Item 3</label><textarea id="seg_item_3"></textarea></div>
+<div class="fg"><label>Item 4</label><textarea id="seg_item_4"></textarea></div>
+<div class="fg"><label>Item 5</label><textarea id="seg_item_5"></textarea></div>
+<div class="fg"><label>Item 6</label><textarea id="seg_item_6"></textarea></div>
+</div>
+</div>
+<div class="sp" id="panel-como">
+<div class="ph"><h1>Como Funciona</h1><p>As 4 etapas do processo.</p></div>
+<div class="card"><div class="fg"><label>Linha superior</label><input type="text" id="como_eyebrow"></div>
+<div class="fg"><label>Título</label><input type="text" id="como_title"></div>
+<div class="fg"><label>Etapa 1 — título</label><input type="text" id="step_1_title"></div>
+<div class="fg"><label>Etapa 1 — descrição</label><textarea id="step_1_desc"></textarea></div>
+<div class="fg"><label>Etapa 2 — título</label><input type="text" id="step_2_title"></div>
+<div class="fg"><label>Etapa 2 — descrição</label><textarea id="step_2_desc"></textarea></div>
+<div class="fg"><label>Etapa 3 — título</label><input type="text" id="step_3_title"></div>
+<div class="fg"><label>Etapa 3 — descrição</label><textarea id="step_3_desc"></textarea></div>
+<div class="fg"><label>Etapa 4 — título</label><input type="text" id="step_4_title"></div>
+<div class="fg"><label>Etapa 4 — descrição</label><textarea id="step_4_desc"></textarea></div>
+</div>
+</div>
+<div class="sp" id="panel-trabalhe">
+<div class="ph"><h1>Trabalhe Conosco</h1><p>Texto de convite e formulário de vagas.</p></div>
+<div class="card"><div class="fg"><label>Linha superior</label><input type="text" id="trab_eyebrow"></div>
+<div class="fg"><label>Título</label><input type="text" id="trab_title"></div>
+<div class="fg"><label>Texto de descrição</label><textarea id="trab_desc"></textarea></div>
+</div>
+</div>
+<div class="sp" id="panel-contato">
+<div class="ph"><h1>Contato</h1><p>Informações de contato do site.</p></div>
+<div class="card"><div class="fg"><label>Linha superior</label><input type="text" id="contato_eyebrow"></div>
+<div class="fg"><label>Título</label><input type="text" id="contato_title"></div>
+</div>
+</div>
+<div class="sp" id="panel-seo">
+<div class="ph"><h1>SEO / Meta</h1><p>Textos que aparecem no Google.</p></div>
+<div class="card"><div class="fg"><label>Título da aba (title)</label><input type="text" id="seo_title"></div>
+<div class="fg"><label>Descrição (meta description)</label><textarea id="seo_desc"></textarea></div>
+</div>
+</div>
+<div class="sp" id="panel-footer">
+<div class="ph"><h1>Rodapé</h1><p>Descrição, copyright e tagline.</p></div>
+<div class="card"><div class="fg"><label>Descrição institucional</label><textarea id="footer_desc"></textarea></div>
+<div class="fg"><label>Linha de copyright + CNPJ</label><input type="text" id="footer_copy"></div>
+<div class="fg"><label>Tagline do rodapé</label><input type="text" id="footer_tagline"></div>
+</div>
+</div>
+</main>
+</div>
 <div id="toast"></div>
-
 <script>
-// ── Estado ─────────────────────────────────────────────────────────────────
-let sessionPassword = '';
-let data = {};
+const DEFAULTS={"hero_eyebrow": "Soluções em Serviços Terceirizados · Suzano, SP", "hero_title": "Portaria, limpeza e manutenção com a <em>confiança</em> que o seu patrimônio merece.", "hero_tagline": "Movendo Confiança, Gerando Valor", "hero_lead": "Capital humano treinado e gestão eficiente para condomínios, empresas e indústrias em Suzano e região.", "hero_btn1": "Falar no WhatsApp", "hero_btn2": "Conheça nossos serviços", "trust_1": "Empresa regularizada", "trust_2": "Colaboradores CLT", "trust_3": "Cobertura garantida de faltas", "trust_4": "Atendimento em Suzano e região", "about_eyebrow": "Quem somos", "about_title": "Pessoas bem preparadas, gestão organizada.", "about_p1": "A C&amp;S é uma empresa de serviços terceirizados para condomínios, empresas e indústrias, focada em gestão eficiente e no cuidado com o seu patrimônio.", "about_p2": "Nosso diferencial está na união entre <strong>pessoas bem selecionadas e treinadas</strong> e uma <strong>gestão organizada e transparente</strong> — do primeiro dia no posto ao acompanhamento contínuo. Cada cliente recebe um planejamento sob medida para a sua realidade.", "pillar_1_title": "Estratégia", "pillar_1_desc": "Planejamento sob medida para a necessidade de cada cliente.", "pillar_2_title": "Eficiência", "pillar_2_desc": "Processos que otimizam recursos e entregam resultado no dia a dia.", "pillar_3_title": "Pessoas", "pillar_3_desc": "Equipe selecionada, uniformizada e preparada para cada posto.", "pillar_4_title": "Transparência", "pillar_4_desc": "Documentação e relatórios sempre à disposição do contratante.", "svc_eyebrow": "O que oferecemos", "svc_title": "Serviços sob medida para cada tipo de negócio", "svc_sub": "Três frentes que se complementam para proteger, limpar e manter o seu espaço funcionando.", "svc_1_title": "Portaria e Controle de Acesso", "svc_1_lead": "Controle rigoroso de quem entra e sai, com profissionais atentos e bem preparados, 24 horas por dia.", "svc_1_item_1": "Controle de acesso de moradores, visitantes, prestadores e entregas.", "svc_1_item_2": "Rondas internas preventivas pelas áreas comuns.", "svc_1_item_3": "Operação de portões, interfones, cancelas e monitoramento por CFTV.", "svc_1_item_4": "Cobertura garantida de faltas e férias — o posto nunca fica descoberto.", "svc_1_item_5": "Uniformização completa e postura profissional.", "svc_2_title": "Limpeza e Conservação", "svc_2_lead": "Ambientes impecáveis, com cronograma técnico de higiene e equipe uniformizada.", "svc_2_item_1": "Higienização de áreas comuns, banheiros e áreas externas.", "svc_2_item_2": "Cronograma dimensionado para a metragem e o fluxo do local.", "svc_2_item_3": "Reposição e controle de materiais de higiene.", "svc_2_item_4": "Cobertura garantida de faltas — sem dias sem limpeza.", "svc_2_item_5": "Checklist diário e supervisão de qualidade.", "svc_3_title": "Manutenção Predial e Zeladoria", "svc_3_lead": "Zeladoria ativa para manter toda a infraestrutura funcionando.", "svc_3_item_1": "Conservação predial e zeladoria do dia a dia.", "svc_3_item_2": "Pequenos reparos e acompanhamento de manutenções.", "svc_3_item_3": "Gestão de chaves, recebimentos e apoio à administração.", "svc_3_item_4": "Controle de prestadores e serviços externos.", "svc_3_item_5": "Relatórios de ocorrências para o síndico ou gestor.", "seg_eyebrow": "Segurança jurídica", "seg_title": "Quando você terceiriza, terceiriza também o risco. A C&amp;S mantém tudo em ordem.", "seg_item_1": "Empresa regularizada, CNPJ ativo (66.840.249/0001-13) e enquadramento correto.", "seg_item_2": "Colaboradores registrados em CLT, com FGTS e INSS recolhidos em dia.", "seg_item_3": "Documentação mensal disponível ao contratante para conferência.", "seg_item_4": "Contrato claro, com escopo, SLA e cobertura de faltas definidos.", "seg_item_5": "Gestão que protege o CNPJ do contratante de passivos trabalhistas.", "seg_item_6": "Comunicação direta e transparente com o síndico ou gestor.", "como_eyebrow": "Como funciona", "como_title": "Do primeiro contato ao posto em operação", "step_1_title": "Diagnóstico", "step_1_desc": "Entendemos o seu espaço, o fluxo e as necessidades reais.", "step_2_title": "Dimensionamento", "step_2_desc": "Proposta sob medida: número de postos, escala e perfil da equipe.", "step_3_title": "Seleção e treinamento", "step_3_desc": "Selecionamos e preparamos os profissionais para o seu posto.", "step_4_title": "Operação e acompanhamento", "step_4_desc": "Início do posto, com supervisão e relatórios contínuos.", "trab_eyebrow": "Trabalhe conosco", "trab_title": "Faça parte da equipe C&amp;S", "trab_desc": "Estamos sempre em busca de profissionais comprometidos para portaria, controle de acesso, limpeza e zeladoria em Suzano e região.", "contato_eyebrow": "Fale com a gente", "contato_title": "Onde estamos &amp; como falar com a C&amp;S", "footer_desc": "Serviços terceirizados de portaria, limpeza e manutenção predial para condomínios, empresas e indústrias em Suzano e região.", "footer_copy": "© 2026 C&amp;S Soluções e Serviços Ltda. · CNPJ 66.840.249/0001-13", "footer_tagline": "Suzano, SP · Movendo Confiança, Gerando Valor", "seo_title": "C&amp;S — Portaria, Limpeza e Manutenção Predial | Suzano, SP", "seo_desc": "Serviços terceirizados em Suzano, SP: portaria e controle de acesso, limpeza e conservação, manutenção predial e zeladoria para condomínios, empresas e indústrias. Empresa regularizada, CLT em dia. Orçamento pelo WhatsApp: (11) 92661-2817."};
+const IDS=["hero_eyebrow", "hero_title", "hero_tagline", "hero_lead", "hero_btn1", "hero_btn2", "trust_1", "trust_2", "trust_3", "trust_4", "about_eyebrow", "about_title", "about_p1", "about_p2", "pillar_1_title", "pillar_1_desc", "pillar_2_title", "pillar_2_desc", "pillar_3_title", "pillar_3_desc", "pillar_4_title", "pillar_4_desc", "svc_eyebrow", "svc_title", "svc_sub", "svc_1_title", "svc_1_lead", "svc_1_item_1", "svc_1_item_2", "svc_1_item_3", "svc_1_item_4", "svc_1_item_5", "svc_2_title", "svc_2_lead", "svc_2_item_1", "svc_2_item_2", "svc_2_item_3", "svc_2_item_4", "svc_2_item_5", "svc_3_title", "svc_3_lead", "svc_3_item_1", "svc_3_item_2", "svc_3_item_3", "svc_3_item_4", "svc_3_item_5", "seg_eyebrow", "seg_title", "seg_item_1", "seg_item_2", "seg_item_3", "seg_item_4", "seg_item_5", "seg_item_6", "como_eyebrow", "como_title", "step_1_title", "step_1_desc", "step_2_title", "step_2_desc", "step_3_title", "step_3_desc", "step_4_title", "step_4_desc", "trab_eyebrow", "trab_title", "trab_desc", "contato_eyebrow", "contato_title", "seo_title", "seo_desc", "footer_desc", "footer_copy", "footer_tagline"];
+let data={};
+let sessionPassword='';
+let loginAttempts=0;
+let loginBlockedUntil=0;
 
-const DEFAULTS = {
-  brand_name: 'C&S',
-  brand_full: 'C&S — Soluções em Serviços Terceirizados',
-  hero_title: 'Serviços terceirizados com [qualidade que você confia]',
-  hero_tagline: 'Movendo Confiança, Gerando Valor',
-  hero_sub: 'Segurança, portaria, limpeza e manutenção predial para condomínios, empresas e indústrias — capital humano treinado e tecnologia integrada para proteger e cuidar do seu patrimônio.',
-  hero_btn1_text: 'Falar no WhatsApp',
-  hero_btn2_text: 'Conheça nossos serviços',
-  mvv_missao: 'Agregar modernidade, praticidade e segurança, com a prioridade de conectar as pessoas com a tecnologia, para entregar um alto valor aos seus clientes.',
-  mvv_visao: 'Ser uma empresa consolidada no mercado, reconhecida pela excelência técnica e pela geração de soluções viáveis e inteligentes para nossos parceiros.',
-  mvv_valores: 'Ética, transparência, compromisso com a qualidade e desenvolvimento contínuo de nossa equipe, focando na particularidade de cada cliente.',
-  about_title: 'C&S',
-  about_p1: 'Somos uma empresa especializada na prestação de serviços terceirizados para condomínios, empresas e indústrias focada no crescimento e gestão eficiente.',
-  about_p2: 'Nosso diferencial está na integração entre capital humano treinado e tecnologias de ponta, garantindo que o seu patrimônio esteja sempre protegido e bem cuidado.',
-  pilares: [
-    { icon: 'estrategia', title: 'Estratégia', desc: 'Planejamento tático personalizado para as necessidades de cada cliente.' },
-    { icon: 'eficiencia',  title: 'Eficiência',  desc: 'Processos ágeis que otimizam recursos e garantem resultados superiores.' },
-    { icon: 'experiencia', title: 'Experiência', desc: 'Equipe com vasto know-how em segurança condominial e facilities.' },
-    { icon: 'solucao',     title: 'Solução',     desc: 'Respostas completas para os desafios de gestão e segurança do dia a dia.' },
-  ],
-  services_title: 'Serviços sob medida para cada tipo de negócio',
-  services: [
-    { icon: 'seguranca', title: 'Segurança e Vigilância',  desc: 'Proteção patrimonial com agentes treinados e rondas ostensivas 24h.' },
-    { icon: 'portaria',  title: 'Portaria e Acesso',       desc: 'Controle rigoroso de entrada e saída de moradores, visitantes e prestadores.' },
-    { icon: 'limpeza',   title: 'Limpeza e Conservação',   desc: 'Manutenção impecável das áreas comuns com cronograma técnico de higiene.' },
-    { icon: 'predial',   title: 'Manutenção Predial',      desc: 'Zeladoria ativa para garantir o funcionamento de toda a infraestrutura.' },
-  ],
-  sa_title: 'Segurança Ativa',
-  sa_intro: 'Acreditamos que a segurança é o nosso compromisso maior com a sua paz. <strong>Investimos pesadamente em:</strong>',
-  sa_items: [
-    'Treinamento contínuo da equipe.',
-    'Monitoramento em tempo real.',
-    'Protocolos de emergência rígidos.',
-    'Tecnologia de integração de dados.',
-  ],
-  sa_img_src: 'img/seguranca.jpg',
-  sa_img_alt: 'Agente de segurança C&S em posição de vigilância',
-  contact_addr1: 'Av. Rio de Janeiro, 100 — Sl 03',
-  contact_addr2: 'Parque Suzano, Suzano — SP',
-  contact_cep: 'CEP 08673-070',
-  contact_phone_display: '(11) 92661-2817',
-  contact_phone_wa: '5511926612817',
-  contact_instagram: 'cs_facilities',
-  contact_wa_msg: 'Olá, gostaria de solicitar um orçamento.',
-  hours: [
-    { day: 'Segunda', open: '09:00 – 18:00', closed: false },
-    { day: 'Terça',   open: '09:00 – 18:00', closed: false },
-    { day: 'Quarta',  open: '09:00 – 18:00', closed: false },
-    { day: 'Quinta',  open: '09:00 – 18:00', closed: false },
-    { day: 'Sexta',   open: '09:00 – 18:00', closed: false },
-    { day: 'Sábado',  open: '', closed: true },
-    { day: 'Domingo', open: '', closed: true },
-  ],
-  seo_title: 'C&S — Soluções em Serviços Terceirizados | Suzano, SP',
-  seo_desc: 'Empresa de serviços terceirizados em Suzano, SP. Portaria, limpeza, recepção corporativa e apoio operacional para empresas, indústrias, escolas, supermercados e condomínios. Ligue: (11) 92661-2817.',
-  seo_keywords: 'serviços terceirizados Suzano, portaria Suzano SP, limpeza terceirizada, mão de obra terceirizada, facilities Suzano, C&S',
-  seo_url: 'https://www.cservicos.com/',
-  og_title: 'C&S — Soluções em Serviços Terceirizados',
-  og_desc: 'Portaria, limpeza, recepção corporativa e apoio operacional para empresas, indústrias, escolas, supermercados e condomínios em Suzano, SP.',
-  footer_cnpj: '66.840.249/0001-13',
-  footer_city: 'Suzano, SP',
-  footer_copy: '© 2025 C&S Soluções e Serviços Ltda. Todos os direitos reservados.',
-};
+document.querySelectorAll('.ni').forEach(it=>it.addEventListener('click',()=>{
+  document.querySelectorAll('.sp').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));
+  const panel=document.getElementById('panel-'+it.dataset.panel);
+  if(panel)panel.classList.add('active');
+  it.classList.add('active');
+  document.getElementById('aside').classList.remove('open');
+}));
 
-// ── Auth ───────────────────────────────────────────────────────────────────
-let loginAttempts = 0;
-let loginBlockedUntil = 0;
+function load(){
+  const s=localStorage.getItem('cs_admin_v2');
+  data=s?JSON.parse(s):JSON.parse(JSON.stringify(DEFAULTS));
+  IDS.forEach(id=>{const el=document.getElementById(id);if(el&&data[id]!==undefined)el.value=data[id];});
+}
+function collect(){IDS.forEach(id=>{const el=document.getElementById(id);if(el)data[id]=el.value;});}
 
-async function doLogin() {
-  const now = Date.now();
-  if (now < loginBlockedUntil) {
-    const seg = Math.ceil((loginBlockedUntil - now) / 1000);
-    showLoginError(`Muitas tentativas. Aguarde ${seg}s.`);
-    return;
-  }
-  const pwd = document.getElementById('pwd-input').value.trim();
-  if (!pwd) return;
-  const btn = document.querySelector('.login-box button');
-  btn.disabled = true;
-  btn.textContent = 'Verificando…';
-  try {
-    const res = await fetch('/api/save', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ password: pwd, content: null, ping: true }),
-    });
-    if (res.status === 401) {
+function salvarRascunho(){collect();localStorage.setItem('cs_admin_v2',JSON.stringify(data));toast('Rascunho salvo neste navegador.');}
+
+async function login(){
+  const now=Date.now();
+  if(now<loginBlockedUntil){const s=Math.ceil((loginBlockedUntil-now)/1000);document.getElementById('lb-err').textContent='Bloqueado. Aguarde '+s+'s.';return;}
+  const pwd=document.getElementById('pwd').value.trim();
+  if(!pwd)return;
+  const btn=document.querySelector('.lbtn');
+  btn.textContent='Verificando...';btn.disabled=true;
+  try{
+    const res=await fetch('/api/save',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:pwd,ping:true})});
+    if(res.ok){
+      sessionPassword=pwd;loginAttempts=0;
+      document.getElementById('login-overlay').style.display='none';
+    }else{
       loginAttempts++;
-      if (loginAttempts >= 5) {
-        loginBlockedUntil = Date.now() + 15 * 60 * 1000;
-        loginAttempts = 0;
-        showLoginError('Conta bloqueada por 15 minutos.');
-      } else {
-        showLoginError(`Senha incorreta. (${5 - loginAttempts} tentativa${5 - loginAttempts !== 1 ? 's' : ''} restante${5 - loginAttempts !== 1 ? 's' : ''})`);
-      }
-    } else if (res.ok || res.status === 400) {
-      loginAttempts = 0;
-      sessionPassword = pwd;
-      openApp();
-    } else {
-      showLoginError('Erro no servidor. Verifique as configurações.');
+      if(loginAttempts>=5){loginBlockedUntil=Date.now()+15*60*1000;loginAttempts=0;document.getElementById('lb-err').textContent='Muitas tentativas. Aguarde 15 min.';}
+      else{const r=5-loginAttempts;document.getElementById('lb-err').textContent='Senha incorreta. ('+r+' tentativa'+(r!==1?'s':'')+' restante'+(r!==1?'s':'')+')'}
     }
-  } catch {
-    showLoginError('Sem conexão com o servidor. O admin só funciona online.');
-  } finally {
-    btn.disabled = false;
-    btn.textContent = 'Entrar';
+  }catch{document.getElementById('lb-err').textContent='Erro de conex\u00e3o.';}
+  finally{btn.textContent='Entrar';btn.disabled=false;}
+}
+
+function sair(){
+  sessionPassword='';
+  document.getElementById('pwd').value='';
+  document.getElementById('lb-err').textContent='';
+  document.getElementById('login-overlay').style.display='flex';
+}
+
+async function gerar(){
+  collect();localStorage.setItem('cs_admin_v2',JSON.stringify(data));
+  const publishBtn=document.querySelector('.bp');
+  publishBtn.disabled=true;
+  publishBtn.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg> Publicando...';
+  const s=document.getElementById('status');s.className='st';s.textContent='';
+  try{
+    const res=await fetch('/api/save',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:sessionPassword,content:data})});
+    const json=await res.json();
+    if(res.ok){
+      s.className='st ok';s.textContent='\u2713 Publicado! O site atualiza em ~30s.';
+      toast('Site publicado com sucesso!');
+    }else{toast(json.error||'Erro ao publicar.',true);}
+  }catch{toast('Erro de conex\u00e3o ao publicar.',true);}
+  finally{
+    publishBtn.disabled=false;
+    publishBtn.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg> Publicar no Site';
   }
 }
 
-function showLoginError(msg = 'Senha incorreta. Tente novamente.') {
-  const el = document.getElementById('login-error');
-  el.textContent = msg;
-  el.style.display = 'block';
-  sessionPassword = '';
+function resetar(){
+  if(!confirm('Restaurar todos os textos para o padr\u00e3o original?'))return;
+  data=JSON.parse(JSON.stringify(DEFAULTS));
+  IDS.forEach(id=>{const el=document.getElementById(id);if(el)el.value=data[id]||'';});
+  toast('Textos restaurados.');
 }
 
-function openApp() {
-  document.getElementById('login-screen').style.display = 'none';
-  const app = document.getElementById('app');
-  app.style.display = 'flex';
-  loadData();
-}
+let tt;function toast(msg,err){const t=document.getElementById('toast');t.textContent=msg;t.className=err?'show err':'show';clearTimeout(tt);tt=setTimeout(()=>t.className='',4000);}
 
-document.getElementById('pwd-input').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
-
-function logout() {
-  sessionPassword = '';
-  document.getElementById('app').style.display = 'none';
-  document.getElementById('login-screen').style.display = 'flex';
-  document.getElementById('pwd-input').value = '';
-  document.getElementById('login-error').style.display = 'none';
-}
-
-// ── Navigation ─────────────────────────────────────────────────────────────
-document.querySelectorAll('.nav-item').forEach(item => {
-  item.addEventListener('click', () => {
-    const panel = item.dataset.panel;
-    document.querySelectorAll('.section-panel').forEach(p => p.classList.remove('active'));
-    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    document.getElementById('panel-' + panel)?.classList.add('active');
-    item.classList.add('active');
-  });
-});
-
-// ── Data load / save ───────────────────────────────────────────────────────
-function loadData() {
-  const saved = localStorage.getItem('cs_draft');
-  data = saved ? JSON.parse(saved) : JSON.parse(JSON.stringify(DEFAULTS));
-  renderDynamic();
-  populateFields();
-}
-
-function saveDraft() {
-  collectFields();
-  localStorage.setItem('cs_draft', JSON.stringify(data));
-  showToast('Rascunho salvo localmente.', false);
-}
-
-function collectFields() {
-  const ids = [
-    'hero_title','hero_tagline','hero_sub','hero_btn1_text','hero_btn2_text',
-    'mvv_missao','mvv_visao','mvv_valores',
-    'about_title','about_p1','about_p2',
-    'services_title',
-    'sa_title','sa_intro','sa_img_src','sa_img_alt',
-    'contact_addr1','contact_addr2','contact_cep','contact_phone_display',
-    'contact_phone_wa','contact_instagram','contact_wa_msg',
-    'seo_title','seo_desc','seo_keywords','seo_url','og_title','og_desc',
-    'footer_cnpj','footer_city','footer_copy',
-  ];
-  ids.forEach(id => { const el = document.getElementById(id); if (el) data[id] = el.value; });
-
-  // Pilares
-  data.pilares = (data.pilares || []).map((p, i) => ({
-    icon:  document.getElementById('pilar_icon_'  + i)?.value ?? p.icon,
-    title: document.getElementById('pilar_title_' + i)?.value ?? p.title,
-    desc:  document.getElementById('pilar_desc_'  + i)?.value ?? p.desc,
-  }));
-
-  // Services
-  data.services = (data.services || []).map((s, i) => ({
-    icon:  document.getElementById('svc_icon_'  + i)?.value ?? s.icon,
-    title: document.getElementById('svc_title_' + i)?.value ?? s.title,
-    desc:  document.getElementById('svc_desc_'  + i)?.value ?? s.desc,
-  }));
-
-  // SA items
-  const saRows = document.querySelectorAll('.sa-item-input');
-  data.sa_items = Array.from(saRows).map(el => el.value).filter(v => v.trim());
-
-  // Hours
-  data.hours = (data.hours || []).map((h, i) => {
-    const closed = document.getElementById('hour_closed_' + i)?.checked || false;
-    return { day: h.day, open: document.getElementById('hour_open_' + i)?.value || '', closed };
-  });
-}
-
-function populateFields() {
-  const ids = [
-    'hero_title','hero_tagline','hero_sub','hero_btn1_text','hero_btn2_text',
-    'mvv_missao','mvv_visao','mvv_valores',
-    'about_title','about_p1','about_p2',
-    'services_title',
-    'sa_title','sa_intro','sa_img_src','sa_img_alt',
-    'contact_addr1','contact_addr2','contact_cep','contact_phone_display',
-    'contact_phone_wa','contact_instagram','contact_wa_msg',
-    'seo_title','seo_desc','seo_keywords','seo_url','og_title','og_desc',
-    'footer_cnpj','footer_city','footer_copy',
-  ];
-  ids.forEach(id => { const el = document.getElementById(id); if (el && data[id] !== undefined) el.value = data[id]; });
-
-  (data.pilares || []).forEach((p, i) => {
-    const ic = document.getElementById('pilar_icon_'  + i);
-    const ti = document.getElementById('pilar_title_' + i);
-    const de = document.getElementById('pilar_desc_'  + i);
-    if (ic) ic.value = p.icon; if (ti) ti.value = p.title; if (de) de.value = p.desc;
-  });
-  (data.services || []).forEach((s, i) => {
-    const ic = document.getElementById('svc_icon_'  + i);
-    const ti = document.getElementById('svc_title_' + i);
-    const de = document.getElementById('svc_desc_'  + i);
-    if (ic) ic.value = s.icon; if (ti) ti.value = s.title; if (de) de.value = s.desc;
-  });
-  (data.hours || []).forEach((h, i) => {
-    const o = document.getElementById('hour_open_'   + i);
-    const c = document.getElementById('hour_closed_' + i);
-    if (o) o.value = h.open; if (c) c.checked = h.closed;
-    toggleHour(i);
-  });
-}
-
-// ── Dynamic field rendering ────────────────────────────────────────────────
-function renderDynamic() {
-  // Pilares
-  const pilarIconOptions = ['estrategia','eficiencia','experiencia','solucao'];
-  document.getElementById('pilares-container').innerHTML =
-    (data.pilares || []).map((p, i) => `
-      <div class="pilar-block">
-        <div class="pilar-block-title">Pilar ${i+1}</div>
-        <div class="two-col" style="margin-bottom:10px;">
-          <div class="field-group" style="margin-bottom:0">
-            <label>Título</label>
-            <input type="text" id="pilar_title_${i}" value="${esc(p.title)}">
-          </div>
-          <div class="field-group" style="margin-bottom:0">
-            <label>Ícone</label>
-            <select id="pilar_icon_${i}">${
-              pilarIconOptions.map(ic => `<option value="${ic}"${p.icon===ic?' selected':''}>${ic}</option>`).join('')
-            }</select>
-          </div>
-        </div>
-        <div class="field-group" style="margin-bottom:0">
-          <label>Descrição</label>
-          <textarea id="pilar_desc_${i}" style="min-height:60px;">${esc(p.desc)}</textarea>
-        </div>
-      </div>`).join('');
-
-  // Services
-  const svcIconOptions = ['seguranca','portaria','limpeza','predial'];
-  document.getElementById('services-container').innerHTML =
-    (data.services || []).map((s, i) => `
-      <div class="card">
-        <div class="card-title">Serviço ${i + 1}</div>
-        <div class="two-col" style="margin-bottom:10px;">
-          <div class="field-group" style="margin-bottom:0">
-            <label>Título</label>
-            <input type="text" id="svc_title_${i}" value="${esc(s.title)}">
-          </div>
-          <div class="field-group" style="margin-bottom:0">
-            <label>Ícone</label>
-            <select id="svc_icon_${i}">${
-              svcIconOptions.map(ic => `<option value="${ic}"${s.icon===ic?' selected':''}>${ic}</option>`).join('')
-            }</select>
-          </div>
-        </div>
-        <div class="field-group" style="margin-bottom:0">
-          <label>Descrição</label>
-          <textarea id="svc_desc_${i}">${esc(s.desc)}</textarea>
-        </div>
-      </div>`).join('');
-
-  // SA items
-  renderSaItems();
-
-  // Hours
-  document.getElementById('hours-container').innerHTML =
-    (data.hours || []).map((h, i) => `
-      <div class="hours-row">
-        <span class="day-label">${h.day}</span>
-        <input type="text" id="hour_open_${i}" value="${esc(h.open)}" placeholder="09:00 – 18:00" ${h.closed?'disabled':''}>
-        <label>
-          <input type="checkbox" id="hour_closed_${i}" onchange="toggleHour(${i})" ${h.closed?'checked':''}> Fechado
-        </label>
-      </div>`).join('');
-}
-
-function renderSaItems() {
-  const items = data.sa_items || [];
-  document.getElementById('sa-items-container').innerHTML =
-    items.map((item, i) => `
-      <div class="sa-item-row">
-        <input type="text" class="sa-item-input" value="${esc(item)}" placeholder="Item ${i+1}">
-        <button onclick="removeSaItem(${i})">Remover</button>
-      </div>`).join('');
-}
-
-function addSaItem() {
-  collectFields();
-  data.sa_items = data.sa_items || [];
-  data.sa_items.push('');
-  renderSaItems();
-  // focus last
-  const inputs = document.querySelectorAll('.sa-item-input');
-  if (inputs.length) inputs[inputs.length-1].focus();
-}
-
-function removeSaItem(i) {
-  collectFields();
-  data.sa_items.splice(i, 1);
-  renderSaItems();
-}
-
-function toggleHour(i) {
-  const c = document.getElementById('hour_closed_' + i);
-  const o = document.getElementById('hour_open_'   + i);
-  if (o) o.disabled = c?.checked;
-}
-
-function esc(str) {
-  return (str || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
-
-// ── Publish ────────────────────────────────────────────────────────────────
-async function publish() {
-  collectFields();
-  const btn    = document.getElementById('btn-publish');
-  const status = document.getElementById('publish-status');
-  btn.disabled = true;
-  status.className = 'publish-status loading';
-  status.innerHTML = '<div class="spinner"></div> Publicando…';
-  try {
-    const res = await fetch('/api/save', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ password: sessionPassword, content: data }),
-    });
-    const json = await res.json();
-    if (res.ok && json.ok) {
-      localStorage.setItem('cs_draft', JSON.stringify(data));
-      status.className = 'publish-status success';
-      status.textContent = '✓ Publicado! Site atualizado em ~30s.';
-      showToast('Publicado com sucesso!', false);
-    } else {
-      status.className = 'publish-status error';
-      status.textContent = '✗ ' + (json.error || 'Erro ao publicar.');
-      showToast(json.error || 'Erro ao publicar.', true);
-    }
-  } catch {
-    status.className = 'publish-status error';
-    status.textContent = '✗ Sem conexão com o servidor.';
-    showToast('Erro de conexão. Tente novamente.', true);
-  } finally {
-    btn.disabled = false;
-    setTimeout(() => {
-      if (status.classList.contains('success') || status.classList.contains('loading')) {
-        status.className = 'publish-status';
-      }
-    }, 8000);
-  }
-}
-
-// ── Toast ──────────────────────────────────────────────────────────────────
-let toastTimer;
-function showToast(msg, isError = false) {
-  const t = document.getElementById('toast');
-  t.className = isError ? 'show err' : 'show';
-  t.textContent = msg;
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.className = '', 4000);
-}
+load();
 </script>
 </body>
 </html>
