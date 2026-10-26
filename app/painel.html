@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="manifest" href="manifest-painel.json">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="theme-color" content="#0D0D0D">
+<title>C&S — Sistema Operacional</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --gold:#D4AF37;--gold-dark:#B8860B;--gold-light:#F4DD9A;
+  --silver:#C0C0C0;--bg:#0D0D0D;--bg2:#1A1A1A;--bg3:#242424;--bg4:#2e2e2e;
+  --light:#F5F5F0;--green:#3fb950;--red:#f85149;--orange:#d29922;
+  --blue:#58a6ff;--font:'Montserrat',sans-serif;--title:'Playfair Display',serif;
+  --radius:10px;--sidebar-w:240px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--font);background:var(--bg);color:var(--light);display:flex;min-height:100vh}
+
+/* SIDEBAR */
+.sidebar{width:var(--sidebar-w);background:var(--bg2);border-right:1px solid var(--bg3);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100;transition:transform .3s}
+.sidebar-header{padding:20px 16px;border-bottom:1px solid var(--bg3);display:flex;align-items:center;gap:12px}
+.sidebar-header img{height:32px}
+.sidebar-header span{font-family:var(--title);color:var(--gold);font-size:14px}
+.sidebar-nav{flex:1;padding:12px 0;overflow-y:auto}
+.nav-item{display:flex;align-items:center;gap:12px;padding:11px 20px;cursor:pointer;color:var(--silver);font-size:13px;font-weight:500;transition:.2s;border-left:3px solid transparent}
+.nav-item:hover{background:rgba(212,175,55,.05);color:var(--light)}
+.nav-item.active{color:var(--gold);background:rgba(212,175,55,.08);border-left-color:var(--gold)}
+.nav-item.disabled{opacity:.35;cursor:not-allowed}
+.nav-item svg{width:20px;height:20px;fill:currentColor;flex-shrink:0}
+.nav-item .badge{margin-left:auto;background:var(--red);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px}
+.sidebar-footer{padding:16px;border-top:1px solid var(--bg3);font-size:11px;color:#555}
+.sidebar-footer strong{color:var(--gold);display:block;font-size:12px;margin-bottom:2px}
+
+/* MAIN */
+.content{margin-left:var(--sidebar-w);flex:1;min-height:100vh;min-width:0;overflow-x:hidden}
+.topbar{background:var(--bg2);border-bottom:1px solid var(--bg3);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+.topbar h1{font-family:var(--title);font-size:20px;color:var(--gold)}
+.topbar .meta{font-size:12px;color:var(--silver)}
+.topbar-right{display:flex;align-items:center;gap:16px}
+.topbar-right select{background:var(--bg3);color:var(--light);border:1px solid var(--bg4);padding:6px 12px;border-radius:6px;font-family:var(--font);font-size:13px}
+.main-body{padding:24px}
+
+/* CARDS */
+.stat-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:24px}
+.stat-card{background:var(--bg2);border:1px solid var(--bg3);border-radius:var(--radius);padding:20px;position:relative;overflow:hidden}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.stat-card.gold::before{background:var(--gold)}
+.stat-card.green::before{background:var(--green)}
+.stat-card.orange::before{background:var(--orange)}
+.stat-card.red::before{background:var(--red)}
+.stat-card.blue::before{background:var(--blue)}
+.stat-card .number{font-size:32px;font-weight:700;line-height:1}
+.stat-card .label{font-size:12px;color:var(--silver);margin-top:6px}
+
+/* TABLE */
+.section-title{font-family:var(--title);color:var(--gold);font-size:16px;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.section-title .contrato-badge{font-family:var(--font);font-size:11px;background:rgba(212,175,55,.1);color:var(--gold);padding:3px 10px;border-radius:12px;font-weight:600}
+.table-wrap{background:var(--bg2);border:1px solid var(--bg3);border-radius:var(--radius);overflow:hidden;margin-bottom:24px}
+table{width:100%;border-collapse:collapse}
+th{background:var(--bg3);padding:10px 14px;text-align:left;font-size:12px;color:var(--silver);font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+td{padding:10px 14px;font-size:13px;border-top:1px solid var(--bg3)}
+tr:hover td{background:rgba(212,175,55,.03)}
+.status-pill{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:12px;font-size:11px;font-weight:600}
+.status-pill.confirmado{background:rgba(63,185,80,.12);color:var(--green)}
+.status-pill.pendente{background:rgba(210,153,34,.12);color:var(--orange)}
+.status-pill.ausente{background:rgba(248,81,73,.12);color:var(--red)}
+.cargo-tag{font-size:11px;padding:3px 8px;border-radius:8px;background:var(--bg3);color:var(--silver)}
+
+/* ALERT CARDS */
+.alert-card{background:var(--bg2);border:1px solid var(--bg3);border-radius:var(--radius);padding:16px;margin-bottom:12px;display:flex;gap:14px;align-items:flex-start}
+.alert-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.alert-icon.red{background:rgba(248,81,73,.12)}
+.alert-icon.orange{background:rgba(210,153,34,.12)}
+.alert-icon.green{background:rgba(63,185,80,.12)}
+.alert-icon svg{width:20px;height:20px}
+.alert-content h4{font-size:14px;margin-bottom:4px}
+.alert-content p{font-size:12px;color:var(--silver);line-height:1.5}
+.alert-content .time{font-size:11px;color:#555;margin-top:4px}
+.alert-actions{margin-left:auto;display:flex;gap:8px;flex-shrink:0}
+.alert-actions button{padding:6px 14px;border-radius:6px;border:none;font-family:var(--font);font-size:12px;font-weight:600;cursor:pointer;transition:.2s}
+.btn-sm-gold{background:var(--gold);color:var(--bg)}
+.btn-sm-outline{background:transparent;border:1px solid var(--bg4);color:var(--silver)}
+
+/* KANBAN */
+.kanban{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:16px}
+.kanban-col{background:var(--bg2);border:1px solid var(--bg3);border-radius:var(--radius);padding:12px;min-height:200px}
+.kanban-col h4{font-size:12px;color:var(--silver);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--bg3)}
+.kanban-card{background:var(--bg3);border-radius:8px;padding:10px;margin-bottom:8px;font-size:13px}
+.kanban-card .meta{font-size:10px;color:#666;margin-top:4px}
+.kanban-card.urgente{border-left:3px solid var(--red)}
+
+/* OCORR LIST */
+.ocorr-card{background:var(--bg2);border:1px solid var(--bg3);border-radius:var(--radius);padding:16px;margin-bottom:12px}
+.ocorr-card .ocorr-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.ocorr-card .ocorr-cat{font-size:13px;font-weight:600}
+.ocorr-card .ocorr-status{font-size:11px;padding:3px 10px;border-radius:12px;font-weight:600}
+.ocorr-status.aberta{background:rgba(248,81,73,.12);color:var(--red)}
+.ocorr-status.andamento{background:rgba(210,153,34,.12);color:var(--orange)}
+.ocorr-status.resolvida{background:rgba(63,185,80,.12);color:var(--green)}
+.ocorr-card p{font-size:13px;color:var(--silver);line-height:1.5}
+.ocorr-card .ocorr-meta{font-size:11px;color:#555;margin-top:8px}
+
+/* DISABLED MODULE */
+.disabled-module{text-align:center;padding:60px 20px;color:#555}
+.disabled-module svg{width:56px;height:56px;fill:#333;margin-bottom:16px}
+.disabled-module h3{color:#666;font-size:18px;margin-bottom:8px}
+.disabled-module p{font-size:13px}
+
+/* DIAMOND PATTERN (brand) */
+.pattern-bg{position:relative}
+.pattern-bg::after{content:'';position:absolute;inset:0;opacity:.015;background-image:repeating-linear-gradient(45deg,var(--gold) 0,var(--gold) 1px,transparent 1px,transparent 20px),repeating-linear-gradient(-45deg,var(--gold) 0,var(--gold) 1px,transparent 1px,transparent 20px);pointer-events:none}
+
+/* SECTION */
+.section{display:none}
+.section.active{display:block}
+
+/* MOBILE */
+.mobile-toggle{display:none;position:fixed;top:10px;left:10px;z-index:200;background:var(--bg2);border:1px solid var(--bg3);border-radius:8px;padding:6px 10px;cursor:pointer}
+.mobile-toggle svg{width:22px;height:22px;fill:var(--gold)}
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:99}
+.sidebar-overlay.show{display:block}
+@media(max-width:768px){
+  .sidebar{transform:translateX(-100%)}
+  .sidebar.open{transform:translateX(0)}
+  .content{margin-left:0}
+  .mobile-toggle{display:block}
+  .kanban{grid-template-columns:1fr 1fr}
+  .stat-cards{grid-template-columns:repeat(2,1fr)}
+  .topbar{padding:12px 16px;padding-left:52px}
+  .topbar h1{font-size:16px}
+  .topbar .meta{display:none}
+  .topbar-right .meta{font-size:11px}
+  .main-body{padding:16px}
+  .alert-card{flex-direction:column}
+  .alert-actions{margin-left:0;margin-top:12px}
+  .filter-bar{flex-direction:column;gap:6px}
+  .filter-bar select{width:100%}
+  .main-body .filter-bar .filter-label{align-self:flex-start;margin-top:4px}
+  .kanban-col{min-height:0}
+  .cargo-tag{white-space:nowrap}
+  td .status,td [class*="status"]{white-space:nowrap}
+}
+@media(max-width:480px){
+  .kanban{grid-template-columns:1fr}
+  .stat-cards{grid-template-columns:1fr 1fr}
+  .stat-card{padding:14px}
+  .stat-card .number{font-size:24px}
+  .stat-card .label{font-size:11px}
+  /* Mobile table: card layout */
+  .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  table{min-width:500px}
+  th,td{padding:8px 10px;font-size:12px}
+  .section-title{font-size:14px;flex-wrap:wrap}
+  .ocorr-card .ocorr-header{flex-direction:column;align-items:flex-start;gap:6px}
+  .ata-entry .ata-meta{flex-direction:column;gap:2px}
+  table.postos-table{min-width:0}
+  .postos-table th:nth-child(3),.postos-table td:nth-child(3),.postos-table th:nth-child(5),.postos-table td:nth-child(5){display:none}
+}
+
+/* FILTER BAR */
+.filter-bar{display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+.filter-bar select{background:var(--bg3);color:var(--light);border:1px solid var(--bg4);padding:8px 12px;border-radius:8px;font-family:var(--font);font-size:13px}
+.filter-bar .filter-label{font-size:12px;color:var(--silver);align-self:center}
+
+/* LIVRO ATA */
+.ata-entry{background:var(--bg2);border:1px solid var(--bg3);border-radius:var(--radius);padding:14px;margin-bottom:10px}
+.ata-entry.plantao{border-left:3px solid var(--gold)}
+.ata-entry p{font-size:13px;color:var(--silver);line-height:1.5}
+.ata-entry .ata-meta{font-size:11px;color:#555;margin-top:6px;display:flex;gap:12px}
+</style>
+</head>
+<body>
+
+<!-- MOBILE TOGGLE + OVERLAY -->
+<button class="mobile-toggle" onclick="toggleSidebar()"><svg viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg></button>
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+<!-- SIDEBAR -->
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <img src="data:image/png;base64,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" alt="C&S">
+    <span>Sistema Operacional</span>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-item active" onclick="showSection('inicio',this)">
+      <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+      Início
+    </div>
+    <div class="nav-item" onclick="showSection('postos',this)">
+      <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+      Postos
+      <span class="badge" id="alertBadge">2</span>
+    </div>
+    <div class="nav-item disabled" onclick="showSection('rondas',this)">
+      <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
+      Rondas
+    </div>
+    <div class="nav-item" onclick="showSection('ocorrencias',this)">
+      <svg viewBox="0 0 24 24"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>
+      Ocorrências
+      <span class="badge" style="background:var(--orange)">3</span>
+    </div>
+    <div class="nav-item" onclick="showSection('livro',this)">
+      <svg viewBox="0 0 24 24"><path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 4h5v8l-2.5-1.5L6 12V4z"/></svg>
+      Livro Ata
+    </div>
+    <div class="nav-item" onclick="showSection('checklist',this)">
+      <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+      Checklist
+    </div>
+    <div class="nav-item" onclick="showSection('materiais',this)">
+      <svg viewBox="0 0 24 24"><path d="M20 2H4c-1 0-2 .9-2 2v3.01c0 .72.43 1.34 1 1.69V20c0 1.1 1.1 2 2 2h14c.9 0 2-.9 2-2V8.7c.57-.35 1-.97 1-1.69V4c0-1.1-1-2-2-2zm-5 12H9v-2h6v2zm5-7H4V4h16v3z"/></svg>
+      Materiais
+    </div>
+    <div class="nav-item" onclick="showSection('relatorios',this)">
+      <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>
+      Relatórios
+    </div>
+    <div class="nav-item" onclick="showSection('denuncias',this)">
+      <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-7 12h-2v-2h2v2zm0-4h-2V6h2v4z"/></svg>
+      Denúncias
+    </div>
+    <div class="nav-item" onclick="showSection('config',this)">
+      <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 00.12-.61l-1.92-3.32a.488.488 0 00-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58a.49.49 0 00-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+      Configuração
+    </div>
+  </nav>
+  <div class="sidebar-footer">
+    <strong>Karen · Operacional</strong>
+    C&S Soluções em Serviços Terceirizados
+  </div>
+</div>
+
+<!-- CONTENT -->
+<div class="content">
+  <div class="topbar">
+    <div>
+      <h1 id="pageTitle">Início</h1>
+      <div class="meta" id="pageSubtitle">Visão geral da operação</div>
+    </div>
+    <div class="topbar-right">
+      <select id="globalTurno" onchange="filterTurno()">
+        <option value="manha">☀️ Manhã</option>
+        <option value="tarde">🌤️ Tarde</option>
+        <option value="noite">🌙 Noite</option>
+      </select>
+      <span class="meta" id="clockDisplay"></span>
+    </div>
+  </div>
+  <div class="main-body pattern-bg">
+
+<!-- === INÍCIO === -->
+<div class="section active" id="secInicio">
+  <div class="stat-cards">
+    <div class="stat-card gold"><div class="number">5</div><div class="label">Total de Postos</div></div>
+    <div class="stat-card green"><div class="number" id="statConf">3</div><div class="label">Confirmados</div></div>
+    <div class="stat-card orange"><div class="number" id="statPend">1</div><div class="label">Pendentes</div></div>
+    <div class="stat-card red"><div class="number" id="statAus">1</div><div class="label">Ausentes</div></div>
+    <div class="stat-card blue"><div class="number">3</div><div class="label">Ocorrências Abertas</div></div>
+  </div>
+  <div class="section-title">Alertas Ativos</div>
+  <div id="alertList">
+    <div class="alert-card">
+      <div class="alert-icon red"><svg viewBox="0 0 24 24" fill="#f85149"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg></div>
+      <div class="alert-content">
+        <h4>Ana Oliveira — Ausente</h4>
+        <p>Aux. Limpeza · Cond. Flores · Entrada: 07:00 — Sem confirmação após 15 min</p>
+        <div class="time">07:15 — Prioridade alta</div>
+      </div>
+      <div class="alert-actions">
+        <button class="btn-sm-gold">Acionar Cobertura</button>
+        <button class="btn-sm-outline">Ligar</button>
+      </div>
+    </div>
+    <div class="alert-card">
+      <div class="alert-icon orange"><svg viewBox="0 0 24 24" fill="#d29922"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg></div>
+      <div class="alert-content">
+        <h4>Pedro Santos — Pendente</h4>
+        <p>Aux. Limpeza · Cond. Flores · Entrada: 07:00 — Aguardando confirmação</p>
+        <div class="time">07:12 — Monitorando</div>
+      </div>
+      <div class="alert-actions">
+        <button class="btn-sm-outline">Lembrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- === POSTOS === -->
+<div class="section" id="secPostos">
+  <div class="filter-bar">
+    <span class="filter-label">Contrato:</span>
+    <select id="filterContrato"><option value="todos">Todos</option><option value="flores">Cond. Flores</option><option value="park">Cond. Park Residence</option><option value="alphaville">Cond. Alphaville</option><option value="techcorp">TechCorp Ind.</option><option value="logistica">LogCenter</option></select>
+    <span class="filter-label">Status:</span>
+    <select id="filterStatus"><option value="todos">Todos</option><option value="confirmado">Confirmado</option><option value="pendente">Pendente</option><option value="ausente">Ausente</option></select>
+  </div>
+  <div id="postosContent"></div>
+</div>
+
+<!-- === RONDAS === -->
+<div class="section" id="secRondas">
+  <div class="disabled-module">
+    <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
+    <h3>Módulo de Rondas</h3>
+    <p>Em desenvolvimento. Preparado para integração com tags NFC.<br>Ative por posto nas Configurações quando disponível.</p>
+  </div>
+</div>
+
+<!-- === OCORRÊNCIAS === -->
+<div class="section" id="secOcorrencias">
+  <div class="filter-bar">
+    <span class="filter-label">Posto:</span>
+    <select><option>Todos</option><option>Cond. Flores</option><option>Cond. Park</option><option>Cond. Alphaville</option><option>TechCorp</option><option>LogCenter</option></select>
+    <span class="filter-label">Status:</span>
+    <select><option>Todas</option><option>Aberta</option><option>Em andamento</option><option>Resolvida</option></select>
+  </div>
+  <div id="ocorrContent">
+    <div class="ocorr-card">
+      <div class="ocorr-header"><span class="ocorr-cat">🔧 Manutenção</span><span class="ocorr-status aberta">Aberta</span></div>
+      <p>Portão automático com defeito no sensor de presença. Abre mas não fecha automaticamente.</p>
+      <div class="ocorr-meta">Cond. Flores · João Silva · 26/10 07:32</div>
+    </div>
+    <div class="ocorr-card">
+      <div class="ocorr-header"><span class="ocorr-cat">🧹 Limpeza</span><span class="ocorr-status andamento">Em andamento</span></div>
+      <p>Vazamento de água no subsolo B2. Área isolada, aguardando encanador.</p>
+      <div class="ocorr-meta">Cond. Park Residence · Maria Lopes · 25/10 14:20</div>
+    </div>
+    <div class="ocorr-card">
+      <div class="ocorr-header"><span class="ocorr-cat">🔒 Segurança</span><span class="ocorr-status aberta">Aberta</span></div>
+      <p>Câmera 03 (estacionamento) sem imagem desde ontem. Tela preta no monitor.</p>
+      <div class="ocorr-meta">Cond. Alphaville · Carlos Mendes · 25/10 22:45</div>
+    </div>
+  </div>
+</div>
+
+<!-- === LIVRO ATA === -->
+<div class="section" id="secLivro">
+  <div class="filter-bar">
+    <span class="filter-label">Posto:</span>
+    <select><option>Cond. Flores</option><option>Cond. Park</option><option>Cond. Alphaville</option><option>TechCorp</option><option>LogCenter</option></select>
+    <span class="filter-label">Data:</span>
+    <input type="date" value="2026-10-26" style="background:var(--bg3);color:var(--light);border:1px solid var(--bg4);padding:8px 12px;border-radius:8px;font-family:var(--font);font-size:13px">
+  </div>
+  <div class="ata-entry plantao">
+    <p>🔄 <strong>Passagem de plantão</strong> — Turno encerrado às 15:02. Posto em ordem. Portão com defeito reportado na ocorrência.</p>
+    <div class="ata-meta"><span>João Silva · Porteiro</span><span>26/10 15:02</span></div>
+  </div>
+  <div class="ata-entry">
+    <p>Morador do apt 302 reclamou de barulho na garagem. Informado que manutenção está prevista para amanhã.</p>
+    <div class="ata-meta"><span>João Silva · Porteiro</span><span>26/10 10:15</span></div>
+  </div>
+  <div class="ata-entry">
+    <p>Entrega de gás para apt 501. Porteiro acompanhou até o elevador de serviço.</p>
+    <div class="ata-meta"><span>João Silva · Porteiro</span><span>26/10 08:40</span></div>
+  </div>
+  <div class="ata-entry plantao">
+    <p>🔄 <strong>Início de turno</strong> — Posto recebido em ordem. Checklist realizado.</p>
+    <div class="ata-meta"><span>João Silva · Porteiro</span><span>26/10 07:05</span></div>
+  </div>
+</div>
+
+<!-- === CHECKLIST === -->
+<div class="section" id="secChecklist">
+  <div class="filter-bar">
+    <span class="filter-label">Posto:</span>
+    <select><option>Cond. Flores</option><option>Cond. Park</option></select>
+  </div>
+  <div class="section-title">Último Checklist — Cond. Flores <span class="contrato-badge">26/10 07:05</span></div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Item</th><th>Status</th><th>Observação</th></tr></thead>
+      <tbody>
+        <tr><td>Portão automático</td><td><span class="status-pill ausente">❌ NOK</span></td><td style="font-size:12px;color:var(--silver)">Sensor com defeito, não fecha auto</td></tr>
+        <tr><td>Câmeras</td><td><span class="status-pill confirmado">✅ OK</span></td><td></td></tr>
+        <tr><td>Iluminação interna</td><td><span class="status-pill confirmado">✅ OK</span></td><td></td></tr>
+        <tr><td>Iluminação externa</td><td><span class="status-pill confirmado">✅ OK</span></td><td></td></tr>
+        <tr><td>Interfone</td><td><span class="status-pill confirmado">✅ OK</span></td><td></td></tr>
+        <tr><td>Elevadores</td><td><span class="status-pill confirmado">✅ OK</span></td><td></td></tr>
+        <tr><td>Cerca elétrica</td><td><span class="status-pill confirmado">✅ OK</span></td><td></td></tr>
+        <tr><td>Extintores</td><td><span class="status-pill confirmado">✅ OK</span></td><td></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- === MATERIAIS === -->
+<div class="section" id="secMateriais">
+  <div class="section-title">Controle de Materiais</div>
+  <div class="kanban">
+    <div class="kanban-col">
+      <h4>📩 Solicitado</h4>
+      <div class="kanban-card urgente">Luvas descartáveis (20 pares)<div class="meta">Cond. Flores · 26/10 08:30 · Urgente</div></div>
+      <div class="kanban-card">Detergente 5L (2 un)<div class="meta">Cond. Park · 25/10 16:00</div></div>
+    </div>
+    <div class="kanban-col">
+      <h4>✅ Aprovado</h4>
+      <div class="kanban-card">Desinfetante 5L (3 un)<div class="meta">Cond. Flores · Aprov. Karen 25/10</div></div>
+    </div>
+    <div class="kanban-col">
+      <h4>🚚 Entregue</h4>
+      <div class="kanban-card">Sacos de lixo 100L (50 un)<div class="meta">Cond. Alphaville · Entr. 24/10</div></div>
+    </div>
+    <div class="kanban-col">
+      <h4>📦 No Posto</h4>
+      <div class="kanban-card">Papel higiênico (24 rolos)<div class="meta">Cond. Flores · Conf. 23/10 ✓</div></div>
+      <div class="kanban-card">Pano de chão (4 un)<div class="meta">Cond. Park · Conf. 22/10 ✓</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- === RELATÓRIOS === -->
+<div class="section" id="secRelatorios">
+  <div class="disabled-module">
+    <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>
+    <h3>Relatórios</h3>
+    <p>Geração automática de relatórios por contrato, colaborador e período.<br>Disponível na versão completa.</p>
+  </div>
+</div>
+
+<!-- === DENÚNCIAS === -->
+<div class="section" id="secDenuncias">
+  <div class="disabled-module">
+    <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-7 12h-2v-2h2v2zm0-4h-2V6h2v4z"/></svg>
+    <h3>Canal de Denúncias</h3>
+    <p>Visível apenas para perfil Diretoria.<br>Recebe denúncias anônimas enviadas pelo app dos postos.</p>
+  </div>
+</div>
+
+<!-- === CONFIG === -->
+<div class="section" id="secConfig">
+  <div class="disabled-module">
+    <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 00.12-.61l-1.92-3.32a.488.488 0 00-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58a.49.49 0 00-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+    <h3>Configuração</h3>
+    <p>Cadastro de postos, colaboradores, turnos e escalas.<br>Gestão de perfis de acesso e integrações.<br>Disponível na versão completa.</p>
+  </div>
+</div>
+
+  </div><!-- /main-body -->
+</div><!-- /content -->
+
+<script>
+// ============ DATA ============
+const CONTRATOS = [
+  {
+    id: 'flores', nome: 'Cond. Flores', prioridade: 'critico',
+    colaboradores: [
+      { nome:'João Silva', cargo:'Porteiro', entrada:'07:00', status:'confirmado', horaConf:'06:58' },
+      { nome:'Maria Souza', cargo:'Aux. Limpeza', entrada:'07:00', status:'confirmado', horaConf:'07:03' },
+      { nome:'Ana Oliveira', cargo:'Aux. Limpeza', entrada:'07:00', status:'ausente', horaConf:null },
+      { nome:'Pedro Santos', cargo:'Aux. Limpeza', entrada:'07:00', status:'pendente', horaConf:null },
+      { nome:'Carlos Lima', cargo:'Zelador', entrada:'07:00', status:'confirmado', horaConf:'07:10' }
+    ]
+  },
+  {
+    id: 'park', nome: 'Cond. Park Residence', prioridade: 'alto',
+    colaboradores: [
+      { nome:'Roberto Ferreira', cargo:'Porteiro', entrada:'07:00', status:'confirmado', horaConf:'06:55' },
+      { nome:'Lucia Mendes', cargo:'Aux. Limpeza', entrada:'08:00', status:'confirmado', horaConf:'07:58' },
+      { nome:'Fernanda Costa', cargo:'Aux. Limpeza', entrada:'08:00', status:'confirmado', horaConf:'08:02' },
+      { nome:'Ricardo Alves', cargo:'Zelador', entrada:'07:00', status:'confirmado', horaConf:'07:01' }
+    ]
+  },
+  {
+    id: 'alphaville', nome: 'Cond. Alphaville', prioridade: 'critico',
+    colaboradores: [
+      { nome:'Carlos Mendes', cargo:'Porteiro', entrada:'07:00', status:'confirmado', horaConf:'06:50' },
+      { nome:'Patrícia Silva', cargo:'Aux. Limpeza', entrada:'07:00', status:'confirmado', horaConf:'07:05' },
+      { nome:'José Santos', cargo:'Aux. Limpeza', entrada:'07:00', status:'confirmado', horaConf:'06:59' },
+      { nome:'Marcos Oliveira', cargo:'Zelador', entrada:'07:00', status:'confirmado', horaConf:'07:08' }
+    ]
+  },
+  {
+    id: 'techcorp', nome: 'TechCorp Ind.', prioridade: 'alto',
+    colaboradores: [
+      { nome:'Antônio Dias', cargo:'Porteiro', entrada:'06:00', status:'confirmado', horaConf:'05:55' },
+      { nome:'Sandra Nunes', cargo:'Aux. Limpeza', entrada:'06:00', status:'confirmado', horaConf:'06:02' },
+      { nome:'Paulo Ribeiro', cargo:'Aux. Limpeza', entrada:'06:00', status:'confirmado', horaConf:'06:01' },
+      { nome:'Vera Souza', cargo:'Aux. Limpeza', entrada:'06:00', status:'confirmado', horaConf:'06:10' }
+    ]
+  },
+  {
+    id: 'logistica', nome: 'LogCenter', prioridade: 'normal',
+    colaboradores: [
+      { nome:'Marcos Santos', cargo:'Porteiro', entrada:'07:00', status:'confirmado', horaConf:'06:58' },
+      { nome:'Fábio Costa', cargo:'Aux. Limpeza', entrada:'07:00', status:'confirmado', horaConf:'07:04' },
+      { nome:'Cláudia Lima', cargo:'Zelador', entrada:'07:00', status:'confirmado', horaConf:'07:02' }
+    ]
+  }
+];
+
+// ============ RENDER POSTOS ============
+function renderPostos() {
+  const html = CONTRATOS.map(c => {
+    const prioLabel = c.prioridade === 'critico' ? '🔴 Crítico' : c.prioridade === 'alto' ? '🟡 Alto' : '🟢 Normal';
+    const total = c.colaboradores.length;
+    const conf = c.colaboradores.filter(x => x.status === 'confirmado').length;
+    const allOk = conf === total;
+    return '<div class="section-title">' + c.nome + ' <span class="contrato-badge">' + prioLabel + ' · ' + conf + '/' + total + '</span></div>' +
+      '<div class="table-wrap"><table class="postos-table"><thead><tr><th>Colaborador</th><th>Cargo</th><th>Entrada</th><th>Status</th><th>Confirmação</th></tr></thead><tbody>' +
+      c.colaboradores.map(col => {
+        const statusClass = col.status;
+        const statusLabel = col.status === 'confirmado' ? '✅ Confirmado' : col.status === 'pendente' ? '⏳ Pendente' : '🔴 Ausente';
+        return '<tr><td><strong>' + col.nome + '</strong></td><td><span class="cargo-tag">' + col.cargo + '</span></td><td>' + col.entrada + '</td>' +
+          '<td><span class="status-pill ' + statusClass + '">' + statusLabel + '</span></td><td>' + (col.horaConf || '—') + '</td></tr>';
+      }).join('') +
+      '</tbody></table></div>';
+  }).join('');
+  document.getElementById('postosContent').innerHTML = html;
+}
+
+// ============ NAVIGATION ============
+const titles = {
+  inicio: ['Início', 'Visão geral da operação'],
+  postos: ['Controle de Postos', 'Presença de todos os colaboradores por contrato'],
+  rondas: ['Rondas', 'Módulo em desenvolvimento'],
+  ocorrencias: ['Ocorrências', 'Registros de todos os postos'],
+  livro: ['Livro Ata', 'Registros de turno por posto'],
+  checklist: ['Checklist', 'Inspeções de início de turno'],
+  materiais: ['Materiais', 'Kanban de controle e reposição'],
+  relatorios: ['Relatórios', 'Geração e exportação'],
+  denuncias: ['Denúncias', 'Canal confidencial'],
+  config: ['Configuração', 'Cadastros e parâmetros do sistema']
+};
+
+function showSection(id, el) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.getElementById('sec' + id.charAt(0).toUpperCase() + id.slice(1)).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  if (el) el.classList.add('active');
+  const t = titles[id] || ['',''];
+  document.getElementById('pageTitle').textContent = t[0];
+  document.getElementById('pageSubtitle').textContent = t[1];
+  // Close mobile sidebar
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('show');
+}
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebarOverlay').classList.toggle('show');
+}
+
+function filterTurno() {
+  // In real app, would fetch data for selected turno
+}
+
+// Clock
+function updateClock() {
+  document.getElementById('clockDisplay').textContent = new Date().toLocaleString('pt-BR', {
+    day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit'
+  });
+}
+
+// ============ INIT ============
+renderPostos();
+updateClock();
+setInterval(updateClock, 30000);
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
+}
+</script>
+<div style="position:fixed;top:6px;left:50%;transform:translateX(-50%);z-index:9999;background:#B8860B;color:#0D0D0D;font:700 9px Montserrat,sans-serif;letter-spacing:1px;padding:2px 8px;border-radius:8px;pointer-events:none;opacity:.85">VERSÃO DE TESTE</div>
+</body>
+</html>
