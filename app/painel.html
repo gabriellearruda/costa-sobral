@@ -2,569 +2,721 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="C&S Painel">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="theme-color" content="#0D0D0D">
 <link rel="manifest" href="manifest-painel.json">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-<meta name="theme-color" content="#0D0D0D">
-<title>C&S — Sistema Operacional</title>
+<title>C&S — Painel</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --gold:#D4AF37;--gold-dark:#B8860B;--gold-light:#F4DD9A;
-  --silver:#C0C0C0;--bg:#0D0D0D;--bg2:#1A1A1A;--bg3:#242424;--bg4:#2e2e2e;
-  --light:#F5F5F0;--green:#3fb950;--red:#f85149;--orange:#d29922;
-  --blue:#58a6ff;--font:'Montserrat',sans-serif;--title:'Playfair Display',serif;
-  --radius:10px;--sidebar-w:240px;
+  --gold:#D4AF37;--gold-dark:#B8860B;--gold-light:#F4DD9A;--silver:#C0C0C0;
+  --bg:#0D0D0D;--bg2:#1A1A1A;--bg3:#242424;--bg4:#2E2E2E;--light:#F5F5F0;
+  --green:#3fb950;--red:#f85149;--orange:#d29922;--blue:#58a6ff;
+  --font:'Montserrat',sans-serif;--title:'Playfair Display',serif;--radius:12px;--sidebar-w:244px;
+  --safe-b:env(safe-area-inset-bottom,0px);--safe-t:env(safe-area-inset-top,0px);
 }
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:var(--font);background:var(--bg);color:var(--light);display:flex;min-height:100vh}
-
-/* SIDEBAR */
-.sidebar{width:var(--sidebar-w);background:var(--bg2);border-right:1px solid var(--bg3);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100;transition:transform .3s}
-.sidebar-header{padding:20px 16px;border-bottom:1px solid var(--bg3);display:flex;align-items:center;gap:12px}
-.sidebar-header img{height:32px}
-.sidebar-header span{font-family:var(--title);color:var(--gold);font-size:14px}
-.sidebar-nav{flex:1;padding:12px 0;overflow-y:auto}
-.nav-item{display:flex;align-items:center;gap:12px;padding:11px 20px;cursor:pointer;color:var(--silver);font-size:13px;font-weight:500;transition:.2s;border-left:3px solid transparent}
-.nav-item:hover{background:rgba(212,175,55,.05);color:var(--light)}
-.nav-item.active{color:var(--gold);background:rgba(212,175,55,.08);border-left-color:var(--gold)}
-.nav-item.disabled{opacity:.35;cursor:not-allowed}
-.nav-item svg{width:20px;height:20px;fill:currentColor;flex-shrink:0}
-.nav-item .badge{margin-left:auto;background:var(--red);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px}
-.sidebar-footer{padding:16px;border-top:1px solid var(--bg3);font-size:11px;color:#555}
-.sidebar-footer strong{color:var(--gold);display:block;font-size:12px;margin-bottom:2px}
-
-/* MAIN */
-.content{margin-left:var(--sidebar-w);flex:1;min-height:100vh;min-width:0;overflow-x:hidden}
-.topbar{background:var(--bg2);border-bottom:1px solid var(--bg3);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
-.topbar h1{font-family:var(--title);font-size:20px;color:var(--gold)}
-.topbar .meta{font-size:12px;color:var(--silver)}
-.topbar-right{display:flex;align-items:center;gap:16px}
-.topbar-right select{background:var(--bg3);color:var(--light);border:1px solid var(--bg4);padding:6px 12px;border-radius:6px;font-family:var(--font);font-size:13px}
-.main-body{padding:24px}
-
-/* CARDS */
-.stat-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:24px}
-.stat-card{background:var(--bg2);border:1px solid var(--bg3);border-radius:var(--radius);padding:20px;position:relative;overflow:hidden}
-.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
-.stat-card.gold::before{background:var(--gold)}
-.stat-card.green::before{background:var(--green)}
-.stat-card.orange::before{background:var(--orange)}
-.stat-card.red::before{background:var(--red)}
-.stat-card.blue::before{background:var(--blue)}
-.stat-card .number{font-size:32px;font-weight:700;line-height:1}
-.stat-card .label{font-size:12px;color:var(--silver);margin-top:6px}
-
-/* TABLE */
-.section-title{font-family:var(--title);color:var(--gold);font-size:16px;margin-bottom:16px;display:flex;align-items:center;gap:8px}
-.section-title .contrato-badge{font-family:var(--font);font-size:11px;background:rgba(212,175,55,.1);color:var(--gold);padding:3px 10px;border-radius:12px;font-weight:600}
-.table-wrap{background:var(--bg2);border:1px solid var(--bg3);border-radius:var(--radius);overflow:hidden;margin-bottom:24px}
-table{width:100%;border-collapse:collapse}
-th{background:var(--bg3);padding:10px 14px;text-align:left;font-size:12px;color:var(--silver);font-weight:600;text-transform:uppercase;letter-spacing:.5px}
-td{padding:10px 14px;font-size:13px;border-top:1px solid var(--bg3)}
-tr:hover td{background:rgba(212,175,55,.03)}
-.status-pill{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:12px;font-size:11px;font-weight:600}
-.status-pill.confirmado{background:rgba(63,185,80,.12);color:var(--green)}
-.status-pill.pendente{background:rgba(210,153,34,.12);color:var(--orange)}
-.status-pill.ausente{background:rgba(248,81,73,.12);color:var(--red)}
-.cargo-tag{font-size:11px;padding:3px 8px;border-radius:8px;background:var(--bg3);color:var(--silver)}
-
-/* ALERT CARDS */
-.alert-card{background:var(--bg2);border:1px solid var(--bg3);border-radius:var(--radius);padding:16px;margin-bottom:12px;display:flex;gap:14px;align-items:flex-start}
-.alert-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.alert-icon.red{background:rgba(248,81,73,.12)}
-.alert-icon.orange{background:rgba(210,153,34,.12)}
-.alert-icon.green{background:rgba(63,185,80,.12)}
-.alert-icon svg{width:20px;height:20px}
-.alert-content h4{font-size:14px;margin-bottom:4px}
-.alert-content p{font-size:12px;color:var(--silver);line-height:1.5}
-.alert-content .time{font-size:11px;color:#555;margin-top:4px}
-.alert-actions{margin-left:auto;display:flex;gap:8px;flex-shrink:0}
-.alert-actions button{padding:6px 14px;border-radius:6px;border:none;font-family:var(--font);font-size:12px;font-weight:600;cursor:pointer;transition:.2s}
-.btn-sm-gold{background:var(--gold);color:var(--bg)}
-.btn-sm-outline{background:transparent;border:1px solid var(--bg4);color:var(--silver)}
-
-/* KANBAN */
-.kanban{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:16px}
-.kanban-col{background:var(--bg2);border:1px solid var(--bg3);border-radius:var(--radius);padding:12px;min-height:200px}
-.kanban-col h4{font-size:12px;color:var(--silver);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--bg3)}
-.kanban-card{background:var(--bg3);border-radius:8px;padding:10px;margin-bottom:8px;font-size:13px}
-.kanban-card .meta{font-size:10px;color:#666;margin-top:4px}
-.kanban-card.urgente{border-left:3px solid var(--red)}
-
-/* OCORR LIST */
-.ocorr-card{background:var(--bg2);border:1px solid var(--bg3);border-radius:var(--radius);padding:16px;margin-bottom:12px}
-.ocorr-card .ocorr-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
-.ocorr-card .ocorr-cat{font-size:13px;font-weight:600}
-.ocorr-card .ocorr-status{font-size:11px;padding:3px 10px;border-radius:12px;font-weight:600}
-.ocorr-status.aberta{background:rgba(248,81,73,.12);color:var(--red)}
-.ocorr-status.andamento{background:rgba(210,153,34,.12);color:var(--orange)}
-.ocorr-status.resolvida{background:rgba(63,185,80,.12);color:var(--green)}
-.ocorr-card p{font-size:13px;color:var(--silver);line-height:1.5}
-.ocorr-card .ocorr-meta{font-size:11px;color:#555;margin-top:8px}
-
-/* DISABLED MODULE */
-.disabled-module{text-align:center;padding:60px 20px;color:#555}
-.disabled-module svg{width:56px;height:56px;fill:#333;margin-bottom:16px}
-.disabled-module h3{color:#666;font-size:18px;margin-bottom:8px}
-.disabled-module p{font-size:13px}
-
-/* DIAMOND PATTERN (brand) */
+body{font-family:var(--font);background:var(--bg);color:var(--light);min-height:100vh;-webkit-tap-highlight-color:transparent}
+button,input,select,textarea{font-family:var(--font)}
 .pattern-bg{position:relative}
-.pattern-bg::after{content:'';position:absolute;inset:0;opacity:.015;background-image:repeating-linear-gradient(45deg,var(--gold) 0,var(--gold) 1px,transparent 1px,transparent 20px),repeating-linear-gradient(-45deg,var(--gold) 0,var(--gold) 1px,transparent 1px,transparent 20px);pointer-events:none}
-
-/* SECTION */
-.section{display:none}
-.section.active{display:block}
-
-/* MOBILE */
-.mobile-toggle{display:none;position:fixed;top:10px;left:10px;z-index:200;background:var(--bg2);border:1px solid var(--bg3);border-radius:8px;padding:6px 10px;cursor:pointer}
-.mobile-toggle svg{width:22px;height:22px;fill:var(--gold)}
-.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:99}
-.sidebar-overlay.show{display:block}
+.pattern-bg::before{content:'';position:fixed;inset:0;pointer-events:none;opacity:.02;background:repeating-linear-gradient(45deg,var(--gold) 0 1px,transparent 1px 22px),repeating-linear-gradient(-45deg,var(--gold) 0 1px,transparent 1px 22px)}
+/* LOGIN */
+.login{position:fixed;inset:0;z-index:600;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:20px;overflow:auto}
+.login.hide{display:none}
+.login .box{width:100%;max-width:420px}
+.login img{height:64px;display:block;margin:0 auto 14px}
+.login h1{font-family:var(--title);color:var(--gold);text-align:center;font-size:24px;margin-bottom:4px}
+.login .sub{text-align:center;color:var(--silver);font-size:13px;margin-bottom:22px}
+.perfil{background:var(--bg2);border:1px solid var(--bg3);border-radius:var(--radius);padding:16px;margin-bottom:12px}
+.perfil h3{font-size:15px;color:var(--gold);margin-bottom:4px}
+.perfil p{font-size:12px;color:var(--silver);margin-bottom:12px}
+/* SIDEBAR */
+.sidebar{position:fixed;left:0;top:0;bottom:0;width:var(--sidebar-w);background:var(--bg2);border-right:1px solid var(--bg3);display:flex;flex-direction:column;z-index:100;transition:transform .3s}
+.sidebar .brand{padding:16px;border-bottom:1px solid var(--bg3);padding-top:max(16px,var(--safe-t))}
+.sidebar .brand img{height:38px;display:block}
+.sidebar .brand .who{margin-top:10px;font-size:12px;color:var(--gold);font-weight:600}
+.sidebar .brand .who span{display:block;color:var(--silver);font-weight:400;font-size:11px;margin-top:2px}
+.nav{flex:1;overflow:auto;padding:8px 0}
+.nav-item{display:flex;align-items:center;gap:12px;padding:11px 18px;color:var(--silver);font-size:13.5px;cursor:pointer;border-left:3px solid transparent}
+.nav-item:hover{background:rgba(212,175,55,.05)}
+.nav-item.active{color:var(--gold);background:rgba(212,175,55,.08);border-left-color:var(--gold)}
+.nav-item.disabled{opacity:.35;cursor:default}
+.nav-item svg{width:19px;height:19px;fill:currentColor;flex-shrink:0}
+.nav-item .badge{margin-left:auto;background:var(--red);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px}
+.nav-sep{font-size:10px;color:#666;text-transform:uppercase;letter-spacing:1px;padding:14px 18px 6px}
+.sidebar .foot{padding:12px 16px;border-top:1px solid var(--bg3);padding-bottom:calc(12px + var(--safe-b))}
+.content{margin-left:var(--sidebar-w);min-height:100vh;min-width:0;overflow-x:hidden}
+.topbar{background:var(--bg2);border-bottom:1px solid var(--bg3);padding:14px 24px;padding-top:max(14px,var(--safe-t));display:flex;align-items:center;justify-content:space-between;gap:12px;position:sticky;top:0;z-index:50}
+.topbar h1{font-family:var(--title);font-size:20px;color:var(--gold)}
+.topbar .meta{font-size:12px;color:var(--silver);margin-top:2px}
+.topbar .right{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--silver)}
+.test-badge{background:var(--gold-dark);color:var(--bg);font-size:9px;font-weight:700;letter-spacing:1px;padding:3px 8px;border-radius:8px;white-space:nowrap}
+.menu-btn{display:none;position:fixed;top:max(12px,var(--safe-t));left:12px;z-index:110;background:var(--bg3);border:1px solid var(--bg4);border-radius:8px;width:38px;height:38px;color:var(--gold);font-size:20px;cursor:pointer}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:99}
+.overlay.show{display:block}
+.main{padding:22px 24px 60px}
+.section{display:none}.section.active{display:block;animation:fade .25s}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+/* COMPONENTES */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:22px}
+.stat{background:var(--bg2);border:1px solid var(--bg3);border-top:3px solid var(--gold);border-radius:var(--radius);padding:16px}
+.stat .n{font-size:28px;font-weight:700}
+.stat .l{font-size:12px;color:var(--silver);margin-top:4px}
+.stat.green{border-top-color:var(--green)}.stat.orange{border-top-color:var(--orange)}.stat.red{border-top-color:var(--red)}.stat.blue{border-top-color:var(--blue)}
+.h2{font-family:var(--title);color:var(--gold);font-size:17px;margin:6px 0 12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.card{background:var(--bg2);border:1px solid var(--bg3);border-radius:var(--radius);padding:16px;margin-bottom:12px}
+.card h4{font-size:14px;color:var(--light);margin-bottom:4px}
+.card p{font-size:13px;color:var(--silver);line-height:1.5}
+.meta{font-size:11px;color:#777;margin-top:6px}
+.empty{color:#666;font-size:13px;text-align:center;padding:18px}
+.pill{display:inline-block;font-size:11px;padding:3px 9px;border-radius:10px;font-weight:700;white-space:nowrap}
+.pill.green{background:rgba(63,185,80,.15);color:var(--green)}.pill.orange{background:rgba(210,153,34,.15);color:var(--orange)}
+.pill.red{background:rgba(248,81,73,.15);color:var(--red)}.pill.silver{background:var(--bg3);color:var(--silver)}
+.pill.gold{background:rgba(212,175,55,.15);color:var(--gold)}.pill.blue{background:rgba(88,166,255,.15);color:var(--blue)}
+.tag{font-size:11px;padding:3px 8px;border-radius:8px;background:var(--bg3);color:var(--silver);white-space:nowrap}
+.btn{padding:9px 14px;border:none;border-radius:9px;font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap}
+.btn:active{transform:scale(.97)}
+.btn-gold{background:linear-gradient(135deg,var(--gold),var(--gold-dark));color:var(--bg)}
+.btn-outline{background:transparent;border:1px solid var(--gold-dark);color:var(--gold)}
+.btn-ghost{background:var(--bg3);color:var(--light)}
+.btn-red{background:var(--red);color:#fff}
+.btn-green{background:var(--green);color:#fff}
+.btn-full{width:100%;padding:13px;font-size:14px}
+.filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;align-items:center}
+.filters select,.filters input,.form input,.form select,.form textarea{background:var(--bg3);color:var(--light);border:1px solid var(--bg4);padding:10px 12px;border-radius:9px;font-size:14px;outline:none}
+.form label{display:block;font-size:12px;color:var(--silver);margin:10px 0 5px}
+.form input,.form select,.form textarea{width:100%}
+.form .row{display:flex;gap:10px}.form .row>*{flex:1;min-width:0}
+.table-wrap{background:var(--bg2);border:1px solid var(--bg3);border-radius:var(--radius);overflow-x:auto;margin-bottom:18px}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;font-size:11px;color:var(--silver);text-transform:uppercase;letter-spacing:.5px;padding:11px 14px;background:var(--bg3);white-space:nowrap}
+td{padding:11px 14px;font-size:13px;border-top:1px solid var(--bg3);vertical-align:middle}
+td.small{font-size:12px;color:var(--silver)}
+/* POSTO CARDS */
+.postos-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:14px}
+.pcard{background:var(--bg2);border:1px solid var(--bg3);border-radius:var(--radius);overflow:hidden}
+.pcard.alert{border-color:rgba(248,81,73,.5)}
+.pcard .ph{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--bg3)}
+.pcard .ph b{font-family:var(--title);color:var(--gold);font-size:16px}
+.prow{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:9px 14px;border-top:1px solid var(--bg3);font-size:13px}
+.prow:first-of-type{border-top:none}
+.prow .nm{font-weight:600}
+.prow .ds{font-size:11px;color:var(--silver);margin-top:2px}
+.alert-card{background:rgba(248,81,73,.06);border:1px solid rgba(248,81,73,.3);border-radius:var(--radius);padding:12px 14px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.alert-card.orange{background:rgba(210,153,34,.06);border-color:rgba(210,153,34,.3)}
+.alert-card .acts{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+/* KANBAN */
+.kanban{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.kcol{background:var(--bg2);border:1px solid var(--bg3);border-radius:var(--radius);padding:12px;min-height:160px}
+.kcol h4{font-size:12px;color:var(--silver);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--bg3)}
+.kcard{background:var(--bg3);border-radius:9px;padding:10px;margin-bottom:8px;font-size:13px}
+.kcard.urg{border-left:3px solid var(--red)}
+.kcard .meta{margin-top:4px}
+.kcard .btn{margin-top:8px;padding:6px 10px;font-size:11px}
+/* TOGGLES */
+.toggle{position:relative;width:44px;height:24px;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0}
+.toggle span{position:absolute;inset:0;background:var(--bg4);border-radius:24px;cursor:pointer;transition:.2s}
+.toggle span::before{content:'';position:absolute;width:18px;height:18px;left:3px;top:3px;background:#888;border-radius:50%;transition:.2s}
+.toggle input:checked+span{background:var(--gold-dark)}
+.toggle input:checked+span::before{transform:translateX(20px);background:var(--light)}
+.toggle input:disabled+span{opacity:.35;cursor:not-allowed}
+.param-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-top:1px solid var(--bg3);font-size:13.5px}
+.param-row:first-child{border-top:none}
+.param-row small{display:block;color:#777;font-size:11px;margin-top:2px}
+.tabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+.tab{padding:9px 14px;border-radius:9px;border:1px solid var(--bg3);background:var(--bg2);color:var(--silver);font-size:13px;font-weight:600;cursor:pointer}
+.tab.active{border-color:var(--gold);color:var(--gold)}
+.disabled-module{text-align:center;padding:50px 20px;color:#666}
+.disabled-module svg{width:48px;height:48px;fill:#444;margin-bottom:12px}
+/* MODAL / TOAST */
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:300;align-items:center;justify-content:center;padding:16px}
+.modal.show{display:flex}
+.modal .sheet{background:var(--bg2);border:1px solid var(--gold-dark);border-radius:16px;width:100%;max-width:560px;max-height:90vh;overflow:auto;padding:22px}
+.modal h3{font-family:var(--title);color:var(--gold);font-size:20px;margin-bottom:6px}
+.modal .acts{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap}
+.toast{position:fixed;bottom:calc(24px + var(--safe-b));left:50%;transform:translateX(-50%) translateY(120px);background:var(--green);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;font-size:14px;z-index:700;transition:.3s;opacity:0;max-width:90vw;text-align:center}
+.toast.show{transform:translateX(-50%);opacity:1}
+.toast.warn{background:var(--orange)}
+.dias{display:flex;gap:6px;flex-wrap:wrap}
+.dia{display:flex;flex-direction:column;gap:4px;background:var(--bg3);border-radius:8px;padding:8px;font-size:11px;color:var(--silver);width:calc(25% - 5px);min-width:110px}
+.dia input[type=time]{padding:6px;font-size:13px}
+.dia label{margin:0;display:flex;align-items:center;gap:6px;color:var(--light);font-weight:600}
+.dia label input{width:auto}
+/* RESPONSIVO */
+@media(max-width:860px){
+  .kanban{grid-template-columns:1fr 1fr}
+}
 @media(max-width:768px){
   .sidebar{transform:translateX(-100%)}
-  .sidebar.open{transform:translateX(0)}
+  .sidebar.open{transform:none}
   .content{margin-left:0}
-  .mobile-toggle{display:block}
-  .kanban{grid-template-columns:1fr 1fr}
-  .stat-cards{grid-template-columns:repeat(2,1fr)}
-  .topbar{padding:12px 16px;padding-left:52px}
-  .topbar h1{font-size:16px}
-  .topbar .meta{display:none}
-  .topbar-right .meta{font-size:11px}
-  .main-body{padding:16px}
-  .alert-card{flex-direction:column}
-  .alert-actions{margin-left:0;margin-top:12px}
-  .filter-bar{flex-direction:column;gap:6px}
-  .filter-bar select{width:100%}
-  .main-body .filter-bar .filter-label{align-self:flex-start;margin-top:4px}
-  .kanban-col{min-height:0}
-  .cargo-tag{white-space:nowrap}
-  td .status,td [class*="status"]{white-space:nowrap}
-}
-@media(max-width:480px){
+  .menu-btn{display:block}
+  .topbar{padding:12px 14px;padding-left:60px;padding-top:max(12px,var(--safe-t))}
+  .topbar h1{font-size:17px}
+  .topbar .meta,.topbar .right .clock{display:none}
+  .main{padding:16px 14px 60px}
+  .stats{grid-template-columns:1fr 1fr}
+  .stat .n{font-size:24px}
+  .postos-grid{grid-template-columns:1fr}
+  .alert-card{flex-direction:column;align-items:stretch}
+  .alert-card .acts{justify-content:flex-start}
+  .filters>*{flex:1;min-width:140px}
   .kanban{grid-template-columns:1fr}
-  .stat-cards{grid-template-columns:1fr 1fr}
-  .stat-card{padding:14px}
-  .stat-card .number{font-size:24px}
-  .stat-card .label{font-size:11px}
-  /* Mobile table: card layout */
-  .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
-  table{min-width:500px}
-  th,td{padding:8px 10px;font-size:12px}
-  .section-title{font-size:14px;flex-wrap:wrap}
-  .ocorr-card .ocorr-header{flex-direction:column;align-items:flex-start;gap:6px}
-  .ata-entry .ata-meta{flex-direction:column;gap:2px}
-  table.postos-table{min-width:0}
-  .postos-table th:nth-child(3),.postos-table td:nth-child(3),.postos-table th:nth-child(5),.postos-table td:nth-child(5){display:none}
+  .kcol{min-height:0}
+  .hide-m{display:none}
+  .dia{width:calc(50% - 3px)}
+  .filters .btn{white-space:normal}
+  /* Tabelas viram cartões no celular */
+  .table-wrap{overflow:visible;background:transparent;border:none}
+  .table-wrap table,.table-wrap tbody,.table-wrap tr,.table-wrap td{display:block;width:100%}
+  .table-wrap thead{display:none}
+  .table-wrap tr{background:var(--bg2);border:1px solid var(--bg3);border-radius:var(--radius);padding:8px 0;margin-bottom:10px}
+  .table-wrap td,.table-wrap td.hide-m{display:flex;justify-content:space-between;align-items:center;gap:12px;border:none;padding:6px 14px;text-align:right}
+  .table-wrap td::before{content:attr(data-label);font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.4px;text-align:left;flex-shrink:0;margin-right:auto}
+  .table-wrap td>.meta{margin:0}
+  .table-wrap td:first-child{font-size:15px;border-bottom:1px solid var(--bg3);padding-bottom:10px;margin-bottom:4px;justify-content:flex-start;text-align:left}
+  .table-wrap td:first-child::before{display:none}
+  .table-wrap td:first-child>div{margin-left:auto}
+  .table-wrap td[data-label=""]::before{display:none}
+  .table-wrap td[data-label=""]{justify-content:flex-end}
 }
-
-/* FILTER BAR */
-.filter-bar{display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap}
-.filter-bar select{background:var(--bg3);color:var(--light);border:1px solid var(--bg4);padding:8px 12px;border-radius:8px;font-family:var(--font);font-size:13px}
-.filter-bar .filter-label{font-size:12px;color:var(--silver);align-self:center}
-
-/* LIVRO ATA */
-.ata-entry{background:var(--bg2);border:1px solid var(--bg3);border-radius:var(--radius);padding:14px;margin-bottom:10px}
-.ata-entry.plantao{border-left:3px solid var(--gold)}
-.ata-entry p{font-size:13px;color:var(--silver);line-height:1.5}
-.ata-entry .ata-meta{font-size:11px;color:#555;margin-top:6px;display:flex;gap:12px}
+</style>
+<style>
+/* ---- v3 ---- */
+.net{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;padding:4px 10px;border-radius:9px;background:var(--bg3);color:var(--silver);white-space:nowrap}
+.net::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--green)}
+.net.off::before{background:var(--red)}.net.sync::before{background:var(--orange)}
+.modo-card{display:flex;gap:12px;align-items:flex-start;padding:12px;border:1px solid var(--bg3);border-radius:10px;margin-bottom:8px;cursor:pointer}
+.modo-card.on{border-color:var(--gold);background:rgba(212,175,55,.06)}
+.modo-card .l{width:30px;height:30px;border-radius:50%;background:var(--bg3);color:var(--gold);font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.modo-card.on .l{background:var(--gold);color:var(--bg)}
+.modo-card b{font-size:13.5px}.modo-card small{display:block;color:var(--silver);font-size:12px;margin-top:3px;line-height:1.4}
+.foto-btn{background:var(--bg3);border:1px solid var(--bg4);color:var(--gold);border-radius:8px;padding:5px 9px;font-size:11.5px;font-weight:700;cursor:pointer;white-space:nowrap}
+.leitura{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.erro-cfg{max-width:460px;margin:80px auto;padding:20px;text-align:center}
+.login .msg{color:var(--red);font-size:13px;text-align:center;margin-top:10px;min-height:18px}
+.panico-ov{display:none;position:fixed;inset:0;z-index:800;background:rgba(160,20,20,.95);align-items:center;justify-content:center;text-align:center;padding:24px;flex-direction:column}
+.panico-ov.show{display:flex}
+.panico-ov h2{font-family:var(--title);font-size:30px;margin:10px 0}
 </style>
 </head>
 <body>
 
-<!-- MOBILE TOGGLE + OVERLAY -->
-<button class="mobile-toggle" onclick="toggleSidebar()"><svg viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg></button>
-<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
-
-<!-- SIDEBAR -->
-<div class="sidebar" id="sidebar">
-  <div class="sidebar-header">
-    <img src="data:image/png;base64,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" alt="C&S">
-    <span>Sistema Operacional</span>
-  </div>
-  <nav class="sidebar-nav">
-    <div class="nav-item active" onclick="showSection('inicio',this)">
-      <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
-      Início
+<!-- LOGIN -->
+<div class="login" id="login">
+  <div class="box">
+    <img src="icons/logo.png" alt="C&S">
+    <h1>Sistema Operacional</h1>
+    <div class="sub">Acesso da administração e dos condomínios</div>
+    <div class="perfil form">
+      <label>E-mail</label><input id="lgEmail" type="email" autocomplete="username">
+      <label>Senha</label><input id="lgSenha" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')entrar()">
+      <button class="btn btn-gold btn-full" style="margin-top:14px" id="lgBtn" onclick="entrar()">ENTRAR</button>
+      <div class="msg" id="lgMsg"></div>
     </div>
-    <div class="nav-item" onclick="showSection('postos',this)">
-      <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
-      Postos
-      <span class="badge" id="alertBadge">2</span>
-    </div>
-    <div class="nav-item disabled" onclick="showSection('rondas',this)">
-      <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
-      Rondas
-    </div>
-    <div class="nav-item" onclick="showSection('ocorrencias',this)">
-      <svg viewBox="0 0 24 24"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>
-      Ocorrências
-      <span class="badge" style="background:var(--orange)">3</span>
-    </div>
-    <div class="nav-item" onclick="showSection('livro',this)">
-      <svg viewBox="0 0 24 24"><path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 4h5v8l-2.5-1.5L6 12V4z"/></svg>
-      Livro Ata
-    </div>
-    <div class="nav-item" onclick="showSection('checklist',this)">
-      <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
-      Checklist
-    </div>
-    <div class="nav-item" onclick="showSection('materiais',this)">
-      <svg viewBox="0 0 24 24"><path d="M20 2H4c-1 0-2 .9-2 2v3.01c0 .72.43 1.34 1 1.69V20c0 1.1 1.1 2 2 2h14c.9 0 2-.9 2-2V8.7c.57-.35 1-.97 1-1.69V4c0-1.1-1-2-2-2zm-5 12H9v-2h6v2zm5-7H4V4h16v3z"/></svg>
-      Materiais
-    </div>
-    <div class="nav-item" onclick="showSection('relatorios',this)">
-      <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>
-      Relatórios
-    </div>
-    <div class="nav-item" onclick="showSection('denuncias',this)">
-      <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-7 12h-2v-2h2v2zm0-4h-2V6h2v4z"/></svg>
-      Denúncias
-    </div>
-    <div class="nav-item" onclick="showSection('config',this)">
-      <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 00.12-.61l-1.92-3.32a.488.488 0 00-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58a.49.49 0 00-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
-      Configuração
-    </div>
-  </nav>
-  <div class="sidebar-footer">
-    <strong>Karen · Operacional</strong>
-    C&S Soluções em Serviços Terceirizados
+    <p class="meta" style="text-align:center">O acesso é liberado pela administração da C&S.</p>
   </div>
 </div>
 
-<!-- CONTENT -->
+<!-- ALERTA DE PÂNICO (tela cheia) -->
+<div class="panico-ov" id="panicoOv"><div style="font-size:60px">🚨</div><h2 id="panicoTit">PÂNICO</h2><p id="panicoTxt" style="font-size:17px;margin-bottom:22px"></p><button class="btn btn-ghost" style="font-size:15px;padding:14px 30px" onclick="cientePanico()">CIENTE</button></div>
+
+<button class="menu-btn" onclick="toggleMenu()">☰</button>
+<div class="overlay" id="overlay" onclick="toggleMenu(false)"></div>
+
+<aside class="sidebar" id="sidebar">
+  <div class="brand"><img src="icons/logo.png" alt="C&S"><div class="who" id="who"></div></div>
+  <nav class="nav" id="nav"></nav>
+  <div class="foot"><button class="btn btn-ghost" style="width:100%" onclick="sair()">Sair</button></div>
+</aside>
+
 <div class="content">
   <div class="topbar">
-    <div>
-      <h1 id="pageTitle">Início</h1>
-      <div class="meta" id="pageSubtitle">Visão geral da operação</div>
-    </div>
-    <div class="topbar-right">
-      <select id="globalTurno" onchange="filterTurno()">
-        <option value="manha">☀️ Manhã</option>
-        <option value="tarde">🌤️ Tarde</option>
-        <option value="noite">🌙 Noite</option>
-      </select>
-      <span class="meta" id="clockDisplay"></span>
-    </div>
+    <div><h1 id="pgTitle">Visão Geral</h1><div class="meta" id="pgSub"></div></div>
+    <div class="right"><span class="net" id="net">ONLINE</span><span class="clock" id="clock"></span></div>
   </div>
-  <div class="main-body pattern-bg">
-
-<!-- === INÍCIO === -->
-<div class="section active" id="secInicio">
-  <div class="stat-cards">
-    <div class="stat-card gold"><div class="number">5</div><div class="label">Total de Postos</div></div>
-    <div class="stat-card green"><div class="number" id="statConf">3</div><div class="label">Confirmados</div></div>
-    <div class="stat-card orange"><div class="number" id="statPend">1</div><div class="label">Pendentes</div></div>
-    <div class="stat-card red"><div class="number" id="statAus">1</div><div class="label">Ausentes</div></div>
-    <div class="stat-card blue"><div class="number">3</div><div class="label">Ocorrências Abertas</div></div>
-  </div>
-  <div class="section-title">Alertas Ativos</div>
-  <div id="alertList">
-    <div class="alert-card">
-      <div class="alert-icon red"><svg viewBox="0 0 24 24" fill="#f85149"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg></div>
-      <div class="alert-content">
-        <h4>Ana Oliveira — Ausente</h4>
-        <p>Aux. Limpeza · Cond. Flores · Entrada: 07:00 — Sem confirmação após 15 min</p>
-        <div class="time">07:15 — Prioridade alta</div>
-      </div>
-      <div class="alert-actions">
-        <button class="btn-sm-gold">Acionar Cobertura</button>
-        <button class="btn-sm-outline">Ligar</button>
-      </div>
-    </div>
-    <div class="alert-card">
-      <div class="alert-icon orange"><svg viewBox="0 0 24 24" fill="#d29922"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg></div>
-      <div class="alert-content">
-        <h4>Pedro Santos — Pendente</h4>
-        <p>Aux. Limpeza · Cond. Flores · Entrada: 07:00 — Aguardando confirmação</p>
-        <div class="time">07:12 — Monitorando</div>
-      </div>
-      <div class="alert-actions">
-        <button class="btn-sm-outline">Lembrar</button>
-      </div>
-    </div>
-  </div>
+  <div class="main pattern-bg" id="main"></div>
 </div>
 
-<!-- === POSTOS === -->
-<div class="section" id="secPostos">
-  <div class="filter-bar">
-    <span class="filter-label">Contrato:</span>
-    <select id="filterContrato"><option value="todos">Todos</option><option value="flores">Cond. Flores</option><option value="park">Cond. Park Residence</option><option value="alphaville">Cond. Alphaville</option><option value="techcorp">TechCorp Ind.</option><option value="logistica">LogCenter</option></select>
-    <span class="filter-label">Status:</span>
-    <select id="filterStatus"><option value="todos">Todos</option><option value="confirmado">Confirmado</option><option value="pendente">Pendente</option><option value="ausente">Ausente</option></select>
-  </div>
-  <div id="postosContent"></div>
-</div>
+<div class="modal" id="modal" onclick="if(event.target===this)fecharModal()"><div class="sheet" id="modalBody"></div></div>
+<div class="toast" id="toast"></div>
 
-<!-- === RONDAS === -->
-<div class="section" id="secRondas">
-  <div class="disabled-module">
-    <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
-    <h3>Módulo de Rondas</h3>
-    <p>Em desenvolvimento. Preparado para integração com tags NFC.<br>Ative por posto nas Configurações quando disponível.</p>
-  </div>
-</div>
-
-<!-- === OCORRÊNCIAS === -->
-<div class="section" id="secOcorrencias">
-  <div class="filter-bar">
-    <span class="filter-label">Posto:</span>
-    <select><option>Todos</option><option>Cond. Flores</option><option>Cond. Park</option><option>Cond. Alphaville</option><option>TechCorp</option><option>LogCenter</option></select>
-    <span class="filter-label">Status:</span>
-    <select><option>Todas</option><option>Aberta</option><option>Em andamento</option><option>Resolvida</option></select>
-  </div>
-  <div id="ocorrContent">
-    <div class="ocorr-card">
-      <div class="ocorr-header"><span class="ocorr-cat">🔧 Manutenção</span><span class="ocorr-status aberta">Aberta</span></div>
-      <p>Portão automático com defeito no sensor de presença. Abre mas não fecha automaticamente.</p>
-      <div class="ocorr-meta">Cond. Flores · João Silva · 26/10 07:32</div>
-    </div>
-    <div class="ocorr-card">
-      <div class="ocorr-header"><span class="ocorr-cat">🧹 Limpeza</span><span class="ocorr-status andamento">Em andamento</span></div>
-      <p>Vazamento de água no subsolo B2. Área isolada, aguardando encanador.</p>
-      <div class="ocorr-meta">Cond. Park Residence · Maria Lopes · 25/10 14:20</div>
-    </div>
-    <div class="ocorr-card">
-      <div class="ocorr-header"><span class="ocorr-cat">🔒 Segurança</span><span class="ocorr-status aberta">Aberta</span></div>
-      <p>Câmera 03 (estacionamento) sem imagem desde ontem. Tela preta no monitor.</p>
-      <div class="ocorr-meta">Cond. Alphaville · Carlos Mendes · 25/10 22:45</div>
-    </div>
-  </div>
-</div>
-
-<!-- === LIVRO ATA === -->
-<div class="section" id="secLivro">
-  <div class="filter-bar">
-    <span class="filter-label">Posto:</span>
-    <select><option>Cond. Flores</option><option>Cond. Park</option><option>Cond. Alphaville</option><option>TechCorp</option><option>LogCenter</option></select>
-    <span class="filter-label">Data:</span>
-    <input type="date" value="2026-10-26" style="background:var(--bg3);color:var(--light);border:1px solid var(--bg4);padding:8px 12px;border-radius:8px;font-family:var(--font);font-size:13px">
-  </div>
-  <div class="ata-entry plantao">
-    <p>🔄 <strong>Passagem de plantão</strong> — Turno encerrado às 15:02. Posto em ordem. Portão com defeito reportado na ocorrência.</p>
-    <div class="ata-meta"><span>João Silva · Porteiro</span><span>26/10 15:02</span></div>
-  </div>
-  <div class="ata-entry">
-    <p>Morador do apt 302 reclamou de barulho na garagem. Informado que manutenção está prevista para amanhã.</p>
-    <div class="ata-meta"><span>João Silva · Porteiro</span><span>26/10 10:15</span></div>
-  </div>
-  <div class="ata-entry">
-    <p>Entrega de gás para apt 501. Porteiro acompanhou até o elevador de serviço.</p>
-    <div class="ata-meta"><span>João Silva · Porteiro</span><span>26/10 08:40</span></div>
-  </div>
-  <div class="ata-entry plantao">
-    <p>🔄 <strong>Início de turno</strong> — Posto recebido em ordem. Checklist realizado.</p>
-    <div class="ata-meta"><span>João Silva · Porteiro</span><span>26/10 07:05</span></div>
-  </div>
-</div>
-
-<!-- === CHECKLIST === -->
-<div class="section" id="secChecklist">
-  <div class="filter-bar">
-    <span class="filter-label">Posto:</span>
-    <select><option>Cond. Flores</option><option>Cond. Park</option></select>
-  </div>
-  <div class="section-title">Último Checklist — Cond. Flores <span class="contrato-badge">26/10 07:05</span></div>
-  <div class="table-wrap">
-    <table>
-      <thead><tr><th>Item</th><th>Status</th><th>Observação</th></tr></thead>
-      <tbody>
-        <tr><td>Portão automático</td><td><span class="status-pill ausente">❌ NOK</span></td><td style="font-size:12px;color:var(--silver)">Sensor com defeito, não fecha auto</td></tr>
-        <tr><td>Câmeras</td><td><span class="status-pill confirmado">✅ OK</span></td><td></td></tr>
-        <tr><td>Iluminação interna</td><td><span class="status-pill confirmado">✅ OK</span></td><td></td></tr>
-        <tr><td>Iluminação externa</td><td><span class="status-pill confirmado">✅ OK</span></td><td></td></tr>
-        <tr><td>Interfone</td><td><span class="status-pill confirmado">✅ OK</span></td><td></td></tr>
-        <tr><td>Elevadores</td><td><span class="status-pill confirmado">✅ OK</span></td><td></td></tr>
-        <tr><td>Cerca elétrica</td><td><span class="status-pill confirmado">✅ OK</span></td><td></td></tr>
-        <tr><td>Extintores</td><td><span class="status-pill confirmado">✅ OK</span></td><td></td></tr>
-      </tbody>
-    </table>
-  </div>
-</div>
-
-<!-- === MATERIAIS === -->
-<div class="section" id="secMateriais">
-  <div class="section-title">Controle de Materiais</div>
-  <div class="kanban">
-    <div class="kanban-col">
-      <h4>📩 Solicitado</h4>
-      <div class="kanban-card urgente">Luvas descartáveis (20 pares)<div class="meta">Cond. Flores · 26/10 08:30 · Urgente</div></div>
-      <div class="kanban-card">Detergente 5L (2 un)<div class="meta">Cond. Park · 25/10 16:00</div></div>
-    </div>
-    <div class="kanban-col">
-      <h4>✅ Aprovado</h4>
-      <div class="kanban-card">Desinfetante 5L (3 un)<div class="meta">Cond. Flores · Aprov. Karen 25/10</div></div>
-    </div>
-    <div class="kanban-col">
-      <h4>🚚 Entregue</h4>
-      <div class="kanban-card">Sacos de lixo 100L (50 un)<div class="meta">Cond. Alphaville · Entr. 24/10</div></div>
-    </div>
-    <div class="kanban-col">
-      <h4>📦 No Posto</h4>
-      <div class="kanban-card">Papel higiênico (24 rolos)<div class="meta">Cond. Flores · Conf. 23/10 ✓</div></div>
-      <div class="kanban-card">Pano de chão (4 un)<div class="meta">Cond. Park · Conf. 22/10 ✓</div></div>
-    </div>
-  </div>
-</div>
-
-<!-- === RELATÓRIOS === -->
-<div class="section" id="secRelatorios">
-  <div class="disabled-module">
-    <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>
-    <h3>Relatórios</h3>
-    <p>Geração automática de relatórios por contrato, colaborador e período.<br>Disponível na versão completa.</p>
-  </div>
-</div>
-
-<!-- === DENÚNCIAS === -->
-<div class="section" id="secDenuncias">
-  <div class="disabled-module">
-    <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-7 12h-2v-2h2v2zm0-4h-2V6h2v4z"/></svg>
-    <h3>Canal de Denúncias</h3>
-    <p>Visível apenas para perfil Diretoria.<br>Recebe denúncias anônimas enviadas pelo app dos postos.</p>
-  </div>
-</div>
-
-<!-- === CONFIG === -->
-<div class="section" id="secConfig">
-  <div class="disabled-module">
-    <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 00.12-.61l-1.92-3.32a.488.488 0 00-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58a.49.49 0 00-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
-    <h3>Configuração</h3>
-    <p>Cadastro de postos, colaboradores, turnos e escalas.<br>Gestão de perfis de acesso e integrações.<br>Disponível na versão completa.</p>
-  </div>
-</div>
-
-  </div><!-- /main-body -->
-</div><!-- /content -->
-
+<script>window.CS_APP = 'painel';</script>
+<script src="vendor/supabase.js"></script>
+<script src="config.js"></script>
+<script src="dados.js"></script>
 <script>
-// ============ DATA ============
-const CONTRATOS = [
-  {
-    id: 'flores', nome: 'Cond. Flores', prioridade: 'critico',
-    colaboradores: [
-      { nome:'João Silva', cargo:'Porteiro', entrada:'07:00', status:'confirmado', horaConf:'06:58' },
-      { nome:'Maria Souza', cargo:'Aux. Limpeza', entrada:'07:00', status:'confirmado', horaConf:'07:03' },
-      { nome:'Ana Oliveira', cargo:'Aux. Limpeza', entrada:'07:00', status:'ausente', horaConf:null },
-      { nome:'Pedro Santos', cargo:'Aux. Limpeza', entrada:'07:00', status:'pendente', horaConf:null },
-      { nome:'Carlos Lima', cargo:'Zelador', entrada:'07:00', status:'confirmado', horaConf:'07:10' }
-    ]
-  },
-  {
-    id: 'park', nome: 'Cond. Park Residence', prioridade: 'alto',
-    colaboradores: [
-      { nome:'Roberto Ferreira', cargo:'Porteiro', entrada:'07:00', status:'confirmado', horaConf:'06:55' },
-      { nome:'Lucia Mendes', cargo:'Aux. Limpeza', entrada:'08:00', status:'confirmado', horaConf:'07:58' },
-      { nome:'Fernanda Costa', cargo:'Aux. Limpeza', entrada:'08:00', status:'confirmado', horaConf:'08:02' },
-      { nome:'Ricardo Alves', cargo:'Zelador', entrada:'07:00', status:'confirmado', horaConf:'07:01' }
-    ]
-  },
-  {
-    id: 'alphaville', nome: 'Cond. Alphaville', prioridade: 'critico',
-    colaboradores: [
-      { nome:'Carlos Mendes', cargo:'Porteiro', entrada:'07:00', status:'confirmado', horaConf:'06:50' },
-      { nome:'Patrícia Silva', cargo:'Aux. Limpeza', entrada:'07:00', status:'confirmado', horaConf:'07:05' },
-      { nome:'José Santos', cargo:'Aux. Limpeza', entrada:'07:00', status:'confirmado', horaConf:'06:59' },
-      { nome:'Marcos Oliveira', cargo:'Zelador', entrada:'07:00', status:'confirmado', horaConf:'07:08' }
-    ]
-  },
-  {
-    id: 'techcorp', nome: 'TechCorp Ind.', prioridade: 'alto',
-    colaboradores: [
-      { nome:'Antônio Dias', cargo:'Porteiro', entrada:'06:00', status:'confirmado', horaConf:'05:55' },
-      { nome:'Sandra Nunes', cargo:'Aux. Limpeza', entrada:'06:00', status:'confirmado', horaConf:'06:02' },
-      { nome:'Paulo Ribeiro', cargo:'Aux. Limpeza', entrada:'06:00', status:'confirmado', horaConf:'06:01' },
-      { nome:'Vera Souza', cargo:'Aux. Limpeza', entrada:'06:00', status:'confirmado', horaConf:'06:10' }
-    ]
-  },
-  {
-    id: 'logistica', nome: 'LogCenter', prioridade: 'normal',
-    colaboradores: [
-      { nome:'Marcos Santos', cargo:'Porteiro', entrada:'07:00', status:'confirmado', horaConf:'06:58' },
-      { nome:'Fábio Costa', cargo:'Aux. Limpeza', entrada:'07:00', status:'confirmado', horaConf:'07:04' },
-      { nome:'Cláudia Lima', cargo:'Zelador', entrada:'07:00', status:'confirmado', horaConf:'07:02' }
-    ]
-  }
+let A = null; // acesso: {papel, posto, email, nome}
+let secaoAtual = 'visao', filtroPosto = 'todos';
+
+const IC = {
+  visao: '<path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/>',
+  postos: '<path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>',
+  ocorrencias: '<path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>',
+  livro: '<path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 4h5v8l-2.5-1.5L6 12V4z"/>',
+  checklist: '<path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>',
+  materiais: '<path d="M20 2H4c-1 0-2 .9-2 2v3.01c0 .72.43 1.34 1 1.69V20c0 1.1 1.1 2 2 2h14c.9 0 2-.9 2-2V8.7c.57-.35 1-.97 1-1.69V4c0-1.1-1-2-2-2zm-5 12H9v-2h6v2zm5-7H4V4h16v3z"/>',
+  encomendas: '<path d="M20 6h-2.18c.11-.31.18-.65.18-1 0-1.66-1.34-3-3-3-1.05 0-1.96.54-2.5 1.35l-.5.67-.5-.68C10.96 2.54 10.05 2 9 2 7.34 2 6 3.34 6 5c0 .35.07.69.18 1H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2z"/>',
+  avisos: '<path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/>',
+  cobertura: '<path d="M20 15.5c-1.25 0-2.45-.2-3.57-.57a1.02 1.02 0 00-1.02.24l-2.2 2.2a15.045 15.045 0 01-6.59-6.59l2.2-2.21a.96.96 0 00.25-1A11.36 11.36 0 018.5 4c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1 0 9.39 7.61 17 17 17 .55 0 1-.45 1-1v-3.5c0-.55-.45-1-1-1z"/>',
+  colaboradores: '<path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>',
+  parametros: '<path d="M3 17v2h6v-2H3zM3 5v2h10V5H3zm10 16v-2h8v-2h-8v-2h-2v6h2zM7 9v2H3v2h4v2h2V9H7zm14 4v-2H11v2h10zm-6-4h2V7h4V5h-4V3h-2v6z"/>',
+  acessos: '<path d="M12.65 10A5.99 5.99 0 007 6c-3.31 0-6 2.69-6 6s2.69 6 6 6a5.99 5.99 0 005.65-4H17v4h4v-4h2v-4H12.65zM7 14c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/>',
+  denuncias: '<path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-7 12h-2v-2h2v2zm0-4h-2V6h2v4z"/>',
+  rondas: '<path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/>',
+  relatorios: '<path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/>'
+};
+const svg = k => '<svg viewBox="0 0 24 24">' + IC[k] + '</svg>';
+
+const SECOES = [
+  { id: 'visao', nome: 'Visão Geral', sub: 'Confirmações de todos os postos agora', perfis: ['adm', 'rh', 'sup', 'cond'] },
+  { id: 'postos', nome: 'Escala do Dia', sub: 'Quem trabalha hoje em cada posto', perfis: ['adm', 'rh', 'sup', 'cond'] },
+  { id: 'ocorrencias', nome: 'Ocorrências', perfis: ['adm', 'rh', 'sup', 'cond'], modulo: 'ocorrencias' },
+  { id: 'livro', nome: 'Livro Ata', perfis: ['adm', 'rh', 'sup', 'cond'], modulo: 'livro' },
+  { id: 'checklist', nome: 'Checklist', perfis: ['adm', 'rh', 'sup', 'cond'], modulo: 'checklist' },
+  { id: 'materiais', nome: 'Materiais', perfis: ['adm', 'rh', 'sup', 'cond'], modulo: 'materiais' },
+  { id: 'encomendas', nome: 'Encomendas', perfis: ['adm', 'rh', 'sup', 'cond'], modulo: 'encomendas' },
+  { sep: 'Administração', perfis: ['adm', 'rh', 'sup'] },
+  { id: 'avisos', nome: 'Avisos aos Postos', sub: 'Mensagens que chegam na hora nos celulares dos postos', perfis: ['adm', 'rh', 'sup'] },
+  { id: 'cobertura', nome: 'Cobertura / Freelancers', sub: 'Contatos de emergência para cobrir faltas', perfis: ['adm', 'rh', 'sup'] },
+  { id: 'colaboradores', nome: 'Colaboradores e Escala', sub: 'Cadastro e escala de cada posto', perfis: ['adm', 'rh', 'sup'] },
+  { id: 'parametros', nome: 'Parâmetros', sub: 'Módulos e modo de encomendas por condomínio', perfis: ['adm'] },
+  { id: 'acessos', nome: 'Acessos', sub: 'Quem entra no painel e nos celulares dos postos', perfis: ['adm', 'rh'] },
+  { id: 'denuncias', nome: 'Denúncias', sub: 'Canal confidencial — administração e RH', perfis: ['adm', 'rh'] },
+  { id: 'rondas', nome: 'Rondas', perfis: ['adm', 'rh', 'sup'], off: true },
+  { id: 'relatorios', nome: 'Relatórios', perfis: ['adm', 'rh', 'sup', 'cond'], off: true }
 ];
 
-// ============ RENDER POSTOS ============
-function renderPostos() {
-  const html = CONTRATOS.map(c => {
-    const prioLabel = c.prioridade === 'critico' ? '🔴 Crítico' : c.prioridade === 'alto' ? '🟡 Alto' : '🟢 Normal';
-    const total = c.colaboradores.length;
-    const conf = c.colaboradores.filter(x => x.status === 'confirmado').length;
-    const allOk = conf === total;
-    return '<div class="section-title">' + c.nome + ' <span class="contrato-badge">' + prioLabel + ' · ' + conf + '/' + total + '</span></div>' +
-      '<div class="table-wrap"><table class="postos-table"><thead><tr><th>Colaborador</th><th>Cargo</th><th>Entrada</th><th>Status</th><th>Confirmação</th></tr></thead><tbody>' +
-      c.colaboradores.map(col => {
-        const statusClass = col.status;
-        const statusLabel = col.status === 'confirmado' ? '✅ Confirmado' : col.status === 'pendente' ? '⏳ Pendente' : '🔴 Ausente';
-        return '<tr><td><strong>' + col.nome + '</strong></td><td><span class="cargo-tag">' + col.cargo + '</span></td><td>' + col.entrada + '</td>' +
-          '<td><span class="status-pill ' + statusClass + '">' + statusLabel + '</span></td><td>' + (col.horaConf || '—') + '</td></tr>';
-      }).join('') +
-      '</tbody></table></div>';
+const isAdm = () => A && A.papel === 'adm';
+const isGestor = () => A && ['adm', 'rh', 'sup'].includes(A.papel); // vê e opera todos os postos
+const isAdmRh = () => A && ['adm', 'rh'].includes(A.papel);  // cadastros: escala, freelancers, acessos, denúncias
+const NOME_PAPEL = { adm: 'Administrador', rh: 'RH', sup: 'Supervisor' };
+const postosVisiveis = () => isGestor() ? DB.postos() : DB.postos().filter(p => p.id === A.posto);
+const nomePosto = id => (DB.posto(id) || {}).nome || id || '—';
+const quando = iso => { if (!iso) return ''; const d = new Date(iso); return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) + ' ' + fmtHora(d); };
+function toast(m, warn) { const t = document.getElementById('toast'); t.textContent = m; t.className = 'toast show' + (warn ? ' warn' : ''); clearTimeout(t._t); t._t = setTimeout(() => t.className = 'toast', 3000); }
+function abrirModal(h) { document.getElementById('modalBody').innerHTML = h; document.getElementById('modal').classList.add('show'); }
+function fecharModal() { document.getElementById('modal').classList.remove('show'); }
+const modalAberto = () => document.getElementById('modal').classList.contains('show');
+function toggleMenu(f) { const s = document.getElementById('sidebar'), o = document.getElementById('overlay'); const open = f === undefined ? !s.classList.contains('open') : f; s.classList.toggle('open', open); o.classList.toggle('show', open); }
+
+// ===================== LOGIN =====================
+async function entrar() {
+  const msg = document.getElementById('lgMsg'), btn = document.getElementById('lgBtn');
+  msg.textContent = ''; btn.disabled = true; btn.textContent = 'ENTRANDO...';
+  try {
+    const a = await Nuvem.entrar(document.getElementById('lgEmail').value, document.getElementById('lgSenha').value);
+    if (a.papel === 'posto') { await Nuvem.sair(); throw new Error('Este é o login de um celular de posto. Use o app do posto.'); }
+    A = a; abrirSistema();
+  } catch (e) { msg.textContent = e.message; }
+  btn.disabled = false; btn.textContent = 'ENTRAR';
+}
+async function sair() { await Nuvem.sair(); location.reload(); }
+
+function atualizarStatus() {
+  const n = document.getElementById('net'); if (!n) return;
+  const pend = Nuvem.pendentes();
+  if (!navigator.onLine) { n.className = 'net off'; n.textContent = 'Sem internet'; }
+  else if (pend) { n.className = 'net sync'; n.textContent = 'Enviando ' + pend; }
+  else if (!Nuvem.conectado) { n.className = 'net sync'; n.textContent = 'Conectando'; }
+  else { n.className = 'net'; n.textContent = 'Tempo real'; }
+}
+
+// ===================== NAVEGAÇÃO =====================
+function secaoVisivel(s) {
+  if (!s.perfis.includes(A.papel)) return false;
+  if (!isGestor() && s.modulo && !DB.params(A.posto)[s.modulo]) return false;
+  return true;
+}
+function montarNav() {
+  const al = contarAlertas();
+  const ocAb = DB.list('ocorrencias').filter(o => o.status !== 'resolvida').length;
+  document.getElementById('nav').innerHTML = SECOES.filter(secaoVisivel).map(s => {
+    if (s.sep) return '<div class="nav-sep">' + s.sep + '</div>';
+    const n = s.id === 'visao' ? al : s.id === 'ocorrencias' ? ocAb : 0;
+    return '<div class="nav-item' + (s.off ? ' disabled' : '') + (s.id === secaoAtual ? ' active' : '') + '" onclick="' + (s.off ? 'irOff(\'' + s.id + '\')' : 'ir(\'' + s.id + '\')') + '">' + svg(s.id) + s.nome + (n ? '<span class="badge">' + n + '</span>' : '') + '</div>';
   }).join('');
-  document.getElementById('postosContent').innerHTML = html;
 }
-
-// ============ NAVIGATION ============
-const titles = {
-  inicio: ['Início', 'Visão geral da operação'],
-  postos: ['Controle de Postos', 'Presença de todos os colaboradores por contrato'],
-  rondas: ['Rondas', 'Módulo em desenvolvimento'],
-  ocorrencias: ['Ocorrências', 'Registros de todos os postos'],
-  livro: ['Livro Ata', 'Registros de turno por posto'],
-  checklist: ['Checklist', 'Inspeções de início de turno'],
-  materiais: ['Materiais', 'Kanban de controle e reposição'],
-  relatorios: ['Relatórios', 'Geração e exportação'],
-  denuncias: ['Denúncias', 'Canal confidencial'],
-  config: ['Configuração', 'Cadastros e parâmetros do sistema']
-};
-
-function showSection(id, el) {
-  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-  document.getElementById('sec' + id.charAt(0).toUpperCase() + id.slice(1)).classList.add('active');
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  if (el) el.classList.add('active');
-  const t = titles[id] || ['',''];
-  document.getElementById('pageTitle').textContent = t[0];
-  document.getElementById('pageSubtitle').textContent = t[1];
-  // Close mobile sidebar
-  document.getElementById('sidebar').classList.remove('open');
-  document.getElementById('sidebarOverlay').classList.remove('show');
-}
-
-function toggleSidebar() {
-  document.getElementById('sidebar').classList.toggle('open');
-  document.getElementById('sidebarOverlay').classList.toggle('show');
-}
-
-function filterTurno() {
-  // In real app, would fetch data for selected turno
-}
-
-// Clock
-function updateClock() {
-  document.getElementById('clockDisplay').textContent = new Date().toLocaleString('pt-BR', {
-    day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit'
+function irOff(id) { secaoAtual = id; montarNav(); setTitulo(); document.getElementById('main').innerHTML = '<div class="disabled-module">' + svg(id) + '<h3 style="color:#666">Módulo em preparação</h3><p style="font-size:13px;margin-top:6px">' + (id === 'rondas' ? 'Preparado para tags NFC — será liberado quando houver ronda nos postos.' : 'Relatórios mensais por condomínio — próxima etapa.') + '</p></div>'; toggleMenu(false); }
+function setTitulo() { const s = SECOES.find(x => x.id === secaoAtual); document.getElementById('pgTitle').textContent = s.nome; document.getElementById('pgSub').textContent = s.sub || (isGestor() ? 'Todos os postos' : nomePosto(A.posto)); }
+function ir(id) { secaoAtual = id; montarNav(); setTitulo(); render(); toggleMenu(false); window.scrollTo(0, 0); }
+const M = () => document.getElementById('main');
+function rotularTabelas() {
+  document.querySelectorAll('#main table').forEach(t => {
+    const ths = [...t.querySelectorAll('thead th')].map(th => th.textContent.trim());
+    t.querySelectorAll('tbody tr').forEach(tr => [...tr.children].forEach((td, i) => td.setAttribute('data-label', ths[i] || '')));
   });
 }
-
-// ============ INIT ============
-renderPostos();
-updateClock();
-setInterval(updateClock, 30000);
-</script>
-<script>
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
+function render() { const f = RENDER[secaoAtual]; if (f) f(); rotularTabelas(); }
+function filtroPostoHtml() {
+  if (!isGestor()) return '';
+  return '<select onchange="filtroPosto=this.value;render()"><option value="todos">Todos os postos</option>' + DB.postos().map(p => '<option value="' + p.id + '"' + (filtroPosto === p.id ? ' selected' : '') + '>' + esc(p.nome) + '</option>').join('') + '</select>';
 }
+const doFiltro = pid => isGestor() ? (filtroPosto === 'todos' || filtroPosto === pid) : pid === A.posto;
+async function verFoto(path, titulo) {
+  abrirModal('<h3>' + esc(titulo) + '</h3><p class="meta">Carregando...</p>');
+  const url = await Nuvem.urlFoto(path);
+  abrirModal('<h3>' + esc(titulo) + '</h3>' + (url ? '<img src="' + url + '" style="width:100%;border-radius:12px;margin-top:10px">' : '<p class="meta">Foto ainda não enviada pelo posto (pode estar sem internet).</p>') + '<div class="acts"><button class="btn btn-ghost" onclick="fecharModal()">Fechar</button></div>');
+}
+const btnFoto = (path, tit) => path ? '<button class="foto-btn" onclick="verFoto(\'' + path + '\',\'' + esc(tit).replace(/'/g, '') + '\')">📷 ' + esc(tit.split(' ')[0]) + '</button>' : '';
+
+// ===================== VISÃO GERAL =====================
+function alertasPresenca(ps) {
+  const out = [], vistos = {};
+  ps.forEach(p => situacoesPosto(p.id).forEach(x => {
+    if (!x.sit.emTurno || (x.sit.status !== 'ausente' && x.sit.status !== 'verificar')) return;
+    if (x.sit.grupoKey) { if (vistos[x.sit.grupoKey]) return; vistos[x.sit.grupoKey] = 1; }
+    out.push({ p, x });
+  }));
+  return out;
+}
+function contarAlertas() { if (!A) return 0; const ps = postosVisiveis(); return alertasPresenca(ps).length + DB.list('alertas').filter(a => !a.visto && ps.some(p => p.id === a.posto)).length; }
+function linhaPessoa(x) {
+  const s = x.sit, info = STATUS_INFO[s.status], c = x.colab, h = s.turno && s.turno.ini ? s.turno.ini + '–' + s.turno.fim : '';
+  return '<div class="prow"><div><div class="nm">' + esc(c.nome) + (s.cobertura ? ' <span class="pill blue">cobertura</span>' : '') + '</div><div class="ds">' + esc(c.funcao) + (h ? ' · ' + h : '') + (s.status === 'confirmado' ? ' · confirmou ' + s.horaConf : '') + '</div></div><span class="pill ' + info.cor + '">' + info.label + '</span></div>';
+}
+function rVisao() {
+  const ps = postosVisiveis().filter(p => doFiltro(p.id));
+  const tot = { esc: 0, conf: 0, pend: 0 };
+  const dados = ps.map(p => { const l = situacoesPosto(p.id), turno = l.filter(x => x.sit.emTurno);
+    turno.forEach(x => { tot.esc++; if (x.sit.status === 'confirmado') tot.conf++; else if (x.sit.status !== 'ausente' && x.sit.status !== 'verificar') tot.pend++; });
+    return { p, turno }; });
+  const alertas = alertasPresenca(ps);
+  const ocAb = DB.list('ocorrencias').filter(o => o.status !== 'resolvida' && ps.some(p => p.id === o.posto)).length;
+  const encAg = DB.list('encomendas').filter(e => e.status === 'aguardando' && ps.some(p => p.id === e.posto)).length;
+  const panicos = DB.list('alertas').filter(a => !a.visto && ps.some(p => p.id === a.posto));
+  let h = '<div class="filters">' + filtroPostoHtml() + '</div>';
+  h += '<div class="stats"><div class="stat"><div class="n">' + tot.esc + '</div><div class="l">Escalados agora</div></div><div class="stat green"><div class="n">' + tot.conf + '</div><div class="l">Confirmados</div></div><div class="stat orange"><div class="n">' + tot.pend + '</div><div class="l">Pendentes / aguardando</div></div><div class="stat red"><div class="n">' + alertas.length + '</div><div class="l">Alertas de presença</div></div><div class="stat blue"><div class="n">' + ocAb + '</div><div class="l">Ocorrências abertas</div></div><div class="stat"><div class="n">' + encAg + '</div><div class="l">Encomendas aguardando</div></div></div>';
+  if (panicos.length) h += '<div class="h2">🚨 Botão de pânico</div>' + panicos.map(a => '<div class="alert-card"><div><b>' + esc(nomePosto(a.posto)) + '</b> — alerta de pânico<div class="meta">' + quando(a.criadoEm) + '</div></div><div class="acts">' + (isGestor() ? '<button class="btn btn-red" onclick="DB.update(\'alertas\',\'' + a.id + '\',{visto:true});render();montarNav()">Ciente</button>' : '') + '</div></div>').join('');
+  if (alertas.length) h += '<div class="h2">Alertas de presença</div>' + alertas.map(a => {
+    const c = a.x.colab, s = a.x.sit;
+    const quem = s.grupoNomes ? s.grupoNomes.map(esc).join(' ou ') : esc(c.nome);
+    const det = s.grupoNomes ? 'Plantão 12x36 ' + (c.escala.periodo === 'noturno' ? 'noturno' : 'diurno') + ' sem confirmação — dia do plantão não cadastrado' : esc(s.texto || '');
+    return '<div class="alert-card' + (s.status === 'verificar' ? ' orange' : '') + '"><div><b>' + quem + '</b> · ' + esc(c.funcao) + ' · ' + esc(a.p.nome) + '<div class="meta">' + (s.turno && s.turno.ini ? 'Entrada ' + s.turno.ini + ' · ' : '') + det + '</div></div><div class="acts">' +
+      (isGestor() ? '<button class="btn btn-gold" onclick="acionarFreelance(\'' + c.id + '\')">Acionar freelance</button><button class="btn btn-outline" onclick="marcarCobertura(\'' + a.p.id + '\',\'' + c.id + '\')">Registrar cobertura</button>' : '<span class="pill ' + STATUS_INFO[s.status].cor + '">' + STATUS_INFO[s.status].label + '</span>') + '</div></div>';
+  }).join('');
+  h += '<div class="h2">Postos agora</div><div class="postos-grid">' + dados.map(d => {
+    const conf = d.turno.filter(x => x.sit.status === 'confirmado').length, al = d.turno.some(x => x.sit.status === 'ausente' || x.sit.status === 'verificar');
+    return '<div class="pcard' + (al ? ' alert' : '') + '"><div class="ph"><b>' + esc(d.p.nome) + '</b><span class="pill ' + (al ? 'red' : conf === d.turno.length && conf ? 'green' : 'orange') + '">' + conf + '/' + d.turno.length + ' confirmados</span></div>' + (d.turno.length ? d.turno.map(linhaPessoa).join('') : '<div class="empty">Ninguém escalado neste horário</div>') + '</div>';
+  }).join('') + '</div>';
+  M().innerHTML = h;
+}
+function marcarCobertura(pid, cid) {
+  const c = DB.colaboradores().find(x => x.id === cid);
+  abrirModal('<h3>Registrar cobertura</h3><p class="meta">' + esc(c.nome) + ' · ' + esc(nomePosto(pid)) + '</p><div class="form"><label>Quem está cobrindo</label><input id="cobNome" placeholder="Nome"><label>Observação</label><input id="cobObs" placeholder="Ex: freelance acionado às 07:20"></div><div class="acts"><button class="btn btn-ghost" onclick="fecharModal()">Cancelar</button><button class="btn btn-gold" onclick="salvarCobertura(\'' + pid + '\',\'' + cid + '\')">Salvar</button></div>');
+}
+function salvarCobertura(pid, cid) {
+  const n = document.getElementById('cobNome').value.trim(); if (!n) return toast('Informe quem cobre', true);
+  const x = situacoesPosto(pid).find(y => y.colab.id === cid);
+  DB.push('coberturas', { posto: pid, falta: x.colab.nome, cobridor: n, obs: document.getElementById('cobObs').value.trim() });
+  DB.confirmar(cid, x.sit.turno.data, { posto: pid, cobertura: true, cobridor: n });
+  DB.push('livro', { posto: pid, texto: 'Cobertura: ' + n + ' no lugar de ' + x.colab.nome + '.', autor: 'Administração C&S', tipo: 'registro' });
+  fecharModal(); toast('✅ Cobertura registrada'); render(); montarNav();
+}
+
+// ===================== ESCALA DO DIA =====================
+function rPostos() {
+  const hoje = isoDia(new Date());
+  let h = '<div class="filters">' + filtroPostoHtml() + '</div>';
+  postosVisiveis().filter(p => doFiltro(p.id)).forEach(p => {
+    const l = situacoesPosto(p.id);
+    h += '<div class="h2">' + esc(p.nome) + ' <span class="tag">' + l.length + ' colaboradores</span></div><div class="table-wrap"><table><thead><tr><th>Colaborador</th><th>Função</th><th class="hide-m">Escala</th><th>Hoje</th><th>Agora</th></tr></thead><tbody>' +
+      l.map(x => { const t = turnoNoDia(x.colab, hoje), info = STATUS_INFO[x.sit.status];
+        return '<tr><td><b>' + esc(x.colab.nome) + '</b>' + (x.colab.vaga ? ' <span class="pill red">vaga</span>' : '') + '</td><td><span class="tag">' + esc(x.colab.funcao) + '</span></td><td class="small hide-m">' + esc(descreverEscala(x.colab.escala)) + '</td><td class="small">' + (t ? (t.ini ? t.ini + '–' + t.fim : 'a definir') + (t.certeza === 'talvez' ? ' <span class="pill orange">?</span>' : '') : 'folga') + '</td><td><span class="pill ' + info.cor + '">' + info.label + '</span>' + (x.sit.horaConf ? '<div class="meta">' + x.sit.horaConf + '</div>' : '') + '</td></tr>'; }).join('') + '</tbody></table></div>';
+  });
+  M().innerHTML = h;
+}
+
+// ===================== OCORRÊNCIAS =====================
+let filtroOc = 'abertas';
+function rOcorrencias() {
+  const st = { aberta: ['Aberta', 'red'], andamento: ['Em andamento', 'orange'], resolvida: ['Resolvida', 'green'] };
+  const l = DB.list('ocorrencias').filter(o => doFiltro(o.posto) && (filtroOc === 'todas' || (filtroOc === 'abertas' ? o.status !== 'resolvida' : o.status === 'resolvida')));
+  let h = '<div class="filters">' + filtroPostoHtml() + '<select onchange="filtroOc=this.value;render()">' + [['abertas', 'Abertas'], ['resolvidas', 'Resolvidas'], ['todas', 'Todas']].map(o => '<option value="' + o[0] + '"' + (filtroOc === o[0] ? ' selected' : '') + '>' + o[1] + '</option>').join('') + '</select></div>';
+  h += l.length ? l.map(o => '<div class="card"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><h4>' + esc(o.categoria) + ' · ' + esc(nomePosto(o.posto)) + '</h4><span class="pill ' + st[o.status][1] + '">' + st[o.status][0] + '</span></div><p>' + esc(o.descricao) + '</p><div class="meta">' + esc(o.autor || '') + ' · ' + quando(o.criadoEm) + (o.origem === 'checklist' ? ' · gerada pelo checklist' : '') + '</div>' +
+    '<div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap">' + btnFoto(o.fotoPath, 'Foto da ocorrência') + (isGestor() && o.status !== 'resolvida' ? (o.status === 'aberta' ? '<button class="btn btn-outline" onclick="DB.update(\'ocorrencias\',\'' + o.id + '\',{status:\'andamento\'});render()">Em andamento</button>' : '') + '<button class="btn btn-green" onclick="DB.update(\'ocorrencias\',\'' + o.id + '\',{status:\'resolvida\',resolvidaEm:new Date().toISOString()});render();montarNav()">Resolvida</button>' : '') + '</div></div>').join('') : '<div class="empty">Nenhuma ocorrência.</div>';
+  M().innerHTML = h;
+}
+
+// ===================== LIVRO ATA =====================
+function rLivro() {
+  const l = DB.list('livro').filter(o => doFiltro(o.posto)).slice(0, 120);
+  M().innerHTML = '<div class="filters">' + filtroPostoHtml() + '</div>' + (l.length ? l.map(r => '<div class="card"' + (r.tipo === 'plantao' ? ' style="border-left:3px solid var(--gold)"' : '') + '><p style="color:var(--light)">' + esc(r.texto) + '</p><div class="meta">' + esc(nomePosto(r.posto)) + ' · ' + esc(r.autor || '') + ' · ' + quando(r.criadoEm) + (r.tipo === 'plantao' ? ' · 🔄 passagem de plantão' : '') + '</div></div>').join('') : '<div class="empty">Nenhum registro.</div>');
+}
+
+// ===================== CHECKLIST =====================
+function rChecklist() {
+  const l = DB.list('checklists').filter(c => doFiltro(c.posto)).slice(0, 60);
+  let h = '<div class="filters">' + filtroPostoHtml() + '</div>';
+  h += l.length ? '<div class="table-wrap"><table><thead><tr><th>Data</th><th>Posto</th><th>Tipo</th><th>Responsável</th><th>Resultado</th><th></th></tr></thead><tbody>' + l.map(c => { const nok = c.itens.filter(i => !i.ok).length;
+    return '<tr><td class="small">' + quando(c.criadoEm) + '</td><td>' + esc(nomePosto(c.posto)) + '</td><td><span class="tag">' + (CHECKLISTS[c.tipo] || {}).nome + '</span></td><td>' + esc(c.autor) + '</td><td><span class="pill ' + (nok ? 'red' : 'green') + '">' + (nok ? nok + ' problema(s)' : 'Tudo OK') + '</span></td><td><button class="btn btn-ghost" onclick="verChecklist(\'' + c.id + '\')">Ver</button></td></tr>'; }).join('') + '</tbody></table></div>' : '<div class="empty">Nenhum checklist enviado ainda.</div>';
+  M().innerHTML = h;
+}
+function verChecklist(id) {
+  const c = DB.list('checklists').find(x => x.id === id);
+  abrirModal('<h3>Checklist ' + CHECKLISTS[c.tipo].nome + '</h3><p class="meta">' + esc(nomePosto(c.posto)) + ' · ' + esc(c.autor) + ' · ' + quando(c.criadoEm) + '</p>' + c.itens.map(i => '<div class="param-row"><span>' + esc(i.item) + (i.obs ? '<small>' + esc(i.obs) + '</small>' : '') + '</span><span class="pill ' + (i.ok ? 'green' : 'red') + '">' + (i.ok ? 'OK' : 'Problema') + '</span></div>').join('') + '<div class="acts"><button class="btn btn-ghost" onclick="fecharModal()">Fechar</button></div>');
+}
+
+// ===================== MATERIAIS =====================
+const ETAPAS = [['solicitado', 'Solicitado', 'Aprovar'], ['aprovado', 'Aprovado', 'Marcar entregue'], ['entregue', 'Entregue (aguardando posto)', null], ['noposto', 'No posto', null]];
+function rMateriais() {
+  const l = DB.list('solicitacoes').filter(s => doFiltro(s.posto));
+  let h = '<div class="filters">' + filtroPostoHtml() + '</div><div class="h2">Reposições</div><div class="kanban">';
+  h += ETAPAS.map((e, i) => { const it = l.filter(s => s.etapa === e[0]);
+    return '<div class="kcol"><h4>' + e[1] + ' (' + it.length + ')</h4>' + (it.map(s => '<div class="kcard' + (s.urgencia === 'urgente' ? ' urg' : '') + '"><b>' + esc(s.material) + '</b> · ' + s.qtd + ' un<div class="meta">' + esc(nomePosto(s.posto)) + ' · ' + quando(s.criadoEm) + (s.urgencia === 'urgente' ? ' · urgente' : '') + '</div>' + (isGestor() && e[2] ? '<button class="btn btn-gold" onclick="avancar(\'' + s.id + '\',\'' + ETAPAS[i + 1][0] + '\')">' + e[2] + '</button>' : '') + (e[0] === 'entregue' ? '<div class="meta">O posto confirma o recebimento no app</div>' : '') + '</div>').join('') || '<div class="empty">—</div>') + '</div>'; }).join('');
+  h += '</div><div class="h2" style="margin-top:22px">Estoque nos postos</div>';
+  postosVisiveis().filter(p => doFiltro(p.id)).forEach(p => {
+    const est = DB.estoque(p.id);
+    h += '<div class="table-wrap"><table><thead><tr><th>' + esc(p.nome) + '</th><th>Qtd</th><th>Mínimo</th><th>Status</th></tr></thead><tbody>' + MATERIAIS_CATALOGO.map(m => { const q = est[m.id], min = DB.minimo(p.id, m.id), s = statusEstoque(q, min);
+      return '<tr><td>' + esc(m.nome) + '</td><td>' + (q == null ? '—' : q + ' ' + m.un) + '</td><td>' + (isAdmRh() ? '<button class="btn btn-ghost" onclick="editarMinimo(\'' + p.id + '\',\'' + m.id + '\')">' + min + '</button>' : min) + '</td><td><span class="pill ' + { ok: 'green', low: 'orange', out: 'red', none: 'silver' }[s.id] + '">' + s.label + '</span></td></tr>'; }).join('') + '</tbody></table></div>';
+  });
+  M().innerHTML = h;
+}
+function avancar(id, etapa) { DB.update('solicitacoes', id, { etapa, atualizadoEm: new Date().toISOString() }); toast('Atualizado'); render(); }
+function editarMinimo(pid, mid) {
+  const m = MATERIAIS_CATALOGO.find(x => x.id === mid);
+  abrirModal('<h3>Estoque mínimo</h3><p class="meta">' + esc(m.nome) + ' · ' + esc(nomePosto(pid)) + '</p><div class="form"><label>Mínimo (' + m.un + ')</label><input id="minV" type="number" min="0" value="' + DB.minimo(pid, mid) + '"></div><div class="acts"><button class="btn btn-ghost" onclick="fecharModal()">Cancelar</button><button class="btn btn-gold" onclick="DB.setMinimo(\'' + pid + '\',\'' + mid + '\',parseInt(document.getElementById(\'minV\').value,10)||0);fecharModal();render()">Salvar</button></div>');
+}
+
+// ===================== ENCOMENDAS =====================
+let abaEnc = 'lista', buscaEnc = '';
+function rEncomendas() {
+  const pvis = postosVisiveis().filter(p => doFiltro(p.id) && DB.params(p.id).encomendas);
+  const comBase = pvis.filter(p => DB.modoEncomenda(p.id) !== 'interno');
+  let h = '<div class="filters">' + filtroPostoHtml() + '<input placeholder="🔎 Unidade ou nome" value="' + esc(buscaEnc) + '" oninput="buscaEnc=this.value;clearTimeout(window._tb);window._tb=setTimeout(render,300)"></div>';
+  h += '<div class="tabs"><button class="tab' + (abaEnc === 'lista' ? ' active' : '') + '" onclick="abaEnc=\'lista\';render()">Encomendas</button>' + (comBase.length ? '<button class="tab' + (abaEnc === 'moradores' ? ' active' : '') + '" onclick="abaEnc=\'moradores\';render()">Base de moradores</button>' : '') + '</div>';
+  if (abaEnc === 'moradores' && comBase.length) { M().innerHTML = h + htmlMoradores(comBase); return; }
+  const b = buscaEnc.trim().toUpperCase();
+  const l = DB.list('encomendas').filter(e => pvis.some(p => p.id === e.posto) && (!b || (e.unidade + ' ' + (e.destinatario || '') + ' ' + (e.retiradoPor || '')).toUpperCase().includes(b)));
+  const ag = l.filter(e => e.status === 'aguardando'), ret = l.filter(e => e.status === 'retirada');
+  if (!isGestor()) { const m = MODOS_ENCOMENDA[DB.modoEncomenda(A.posto)]; h += '<p class="meta" style="margin:-4px 0 12px">Modo ' + m.letra + ' — ' + m.nome + '</p>'; }
+  h += '<div class="stats"><div class="stat orange"><div class="n">' + ag.length + '</div><div class="l">Aguardando retirada</div></div><div class="stat green"><div class="n">' + ret.length + '</div><div class="l">Retiradas</div></div></div>';
+  h += l.length ? '<div class="table-wrap"><table><thead><tr><th>Unidade</th><th>Posto</th><th>Chegada</th><th class="hide-m">Destinatário</th><th class="hide-m">Transportadora</th><th>Status</th><th>Fotos</th></tr></thead><tbody>' + l.slice(0, 200).map(e => '<tr><td><b>' + esc(e.unidade) + '</b></td><td>' + esc(nomePosto(e.posto)) + '</td><td class="small">' + quando(e.criadoEm) + '<div class="meta">' + esc(e.recebidoPor || '') + '</div></td><td class="hide-m">' + esc(e.destinatario || '—') + '</td><td class="small hide-m">' + esc(e.transportadora || '—') + '</td><td>' + (e.status === 'retirada' ? '<span class="pill green">Retirada</span><div class="meta">' + esc(e.retiradoPor) + ' · ' + quando(e.retiradoEm) + '</div>' : '<span class="pill orange">Aguardando</span>' + (e.avisadoEm ? '<div class="meta">morador avisado</div>' : '')) + '</td><td style="white-space:nowrap">' + btnFoto(e.fotoChegada, 'Chegada ' + e.unidade) + ' ' + btnFoto(e.fotoRetirada, 'Retirada ' + e.unidade) + '</td></tr>').join('') + '</tbody></table></div>' : '<div class="empty">Nenhuma encomenda. O registro é feito pela portaria, no app do posto, com foto.</div>';
+  M().innerHTML = h;
+}
+function htmlMoradores(comBase) {
+  const ms = DB.list('moradores').filter(m => comBase.some(p => p.id === m.posto)).sort((a, b) => String(a.unidade).localeCompare(String(b.unidade), 'pt', { numeric: true }));
+  const sel = comBase.length > 1 ? '<div><label>Condomínio</label><select id="morPosto">' + comBase.map(p => '<option value="' + p.id + '">' + esc(p.nome) + '</option>').join('') + '</select></div>' : '<input type="hidden" id="morPosto" value="' + comBase[0].id + '">';
+  let h = '<div class="card form"><h4>Cadastrar morador</h4><div class="row">' + sel + '<div><label>Unidade</label><input id="morUnid" placeholder="Ex: 12B"></div></div><div class="row"><div><label>Nome</label><input id="morNome"></div><div><label>WhatsApp</label><input id="morTel" inputmode="tel" placeholder="(11) 90000-0000"></div></div><button class="btn btn-gold" style="margin-top:12px" onclick="addMorador()">Adicionar</button></div>';
+  h += '<div class="card form"><h4>Importar planilha da administradora (modo B)</h4><p>Salve a planilha como CSV com as colunas <b>unidade; nome; telefone</b> (uma linha por morador) e escolha o arquivo.</p><input type="file" accept=".csv,text/csv" style="margin-top:10px" onchange="importarCsv(this)"></div>';
+  h += ms.length ? '<div class="table-wrap"><table><thead><tr><th>Unidade</th><th>Nome</th><th>Condomínio</th><th>WhatsApp</th><th>Origem</th><th></th></tr></thead><tbody>' + ms.map(m => '<tr><td><b>' + esc(m.unidade) + '</b></td><td>' + esc(m.nome) + '</td><td>' + esc(nomePosto(m.posto)) + '</td><td class="small">' + esc(m.telefone || '—') + '</td><td><span class="tag">' + esc(m.origem) + '</span></td><td><button class="btn btn-ghost" onclick="DB.remove(\'moradores\',\'' + m.id + '\');render()">Remover</button></td></tr>').join('') + '</tbody></table></div>' : '<div class="empty">Nenhum morador na base.</div>';
+  return h;
+}
+function addMorador() {
+  const u = document.getElementById('morUnid').value.trim().toUpperCase(), n = document.getElementById('morNome').value.trim(), t = document.getElementById('morTel').value.trim();
+  if (!u || !n) return toast('Preencha unidade e nome', true);
+  if (t && soDigitos(t).length < 10) return toast('WhatsApp com DDD', true);
+  DB.push('moradores', { posto: document.getElementById('morPosto').value, unidade: u, nome: n, telefone: t, origem: 'manual' }); toast('Morador cadastrado'); render();
+}
+function importarCsv(inp) {
+  const f = inp.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    const pid = document.getElementById('morPosto').value;
+    const linhasCsv = String(r.result).replace(/^﻿/, '').split(/\r?\n/).map(l => l.split(/[;,\t]/).map(x => x.trim().replace(/^"|"$/g, ''))).filter(c => c[0] && c[1]);
+    if (linhasCsv.length && /unid/i.test(linhasCsv[0][0])) linhasCsv.shift();
+    const existentes = new Set(DB.list('moradores').filter(m => m.posto === pid).map(m => (m.unidade + '|' + m.nome).toUpperCase()));
+    let n = 0;
+    linhasCsv.forEach(c => { const k = (c[0] + '|' + c[1]).toUpperCase(); if (existentes.has(k)) return; existentes.add(k); DB.push('moradores', { posto: pid, unidade: c[0].toUpperCase(), nome: c[1], telefone: c[2] || '', origem: 'importado' }); n++; });
+    toast(n + ' moradores importados'); render();
+  };
+  r.readAsText(f, 'utf-8');
+}
+
+// ===================== AVISOS =====================
+function rAvisos() {
+  const ps = DB.postos();
+  let h = '<div class="card form"><h4>Novo aviso</h4><label>Título</label><input id="avTit" maxlength="80" placeholder="Ex: Falta de água amanhã das 8h às 12h"><label>Mensagem</label><textarea id="avTxt" rows="4" placeholder="Escreva o aviso para os postos"></textarea>' +
+    '<div class="row"><div><label>Prioridade</label><select id="avPri"><option value="normal">Normal</option><option value="urgente">Urgente (toca alarme até confirmar)</option></select></div><div><label>Para</label><select id="avPara" onchange="document.getElementById(\'avPostos\').style.display=this.value===\'alguns\'?\'flex\':\'none\'"><option value="todos">Todos os postos</option><option value="alguns">Escolher postos</option></select></div></div>' +
+    '<div id="avPostos" style="display:none;flex-wrap:wrap;gap:12px;margin-top:10px">' + ps.map(p => '<label style="display:flex;gap:6px;align-items:center;margin:0;color:var(--light)"><input type="checkbox" class="avP" value="' + p.id + '" style="width:auto">' + esc(p.nome) + '</label>').join('') + '</div>' +
+    '<button class="btn btn-gold" style="margin-top:14px" onclick="enviarAviso()">Enviar aviso</button><p class="meta">O aviso aparece na hora na tela do celular do posto, com som, e só sai quando alguém confirma "Ciente".</p></div>';
+  const l = DB.list('avisos').slice(0, 40);
+  h += '<div class="h2">Enviados</div>' + (l.length ? l.map(a => {
+    const alvo = a.destino ? ps.filter(p => a.destino.includes(p.id)) : ps;
+    const lidos = alvo.filter(p => DB.leitura(a.id, p.id));
+    return '<div class="card"' + (a.prioridade === 'urgente' ? ' style="border-left:3px solid var(--red)"' : '') + '><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><h4>' + (a.prioridade === 'urgente' ? '🚨 ' : '') + esc(a.titulo) + '</h4><span class="pill ' + (lidos.length === alvo.length ? 'green' : 'orange') + '">' + lidos.length + '/' + alvo.length + ' postos cientes</span></div><p style="white-space:pre-wrap">' + esc(a.texto) + '</p><div class="meta">' + quando(a.criadoEm) + (a.criadoPor ? ' · ' + esc(a.criadoPor) : '') + '</div>' +
+      '<div class="leitura">' + alvo.map(p => { const lt = DB.leitura(a.id, p.id); return '<span class="pill ' + (lt ? 'green' : 'silver') + '" title="' + (lt ? esc(lt.lidoPor || '') + ' · ' + quando(lt.lidoEm) : 'ainda não leu') + '">' + esc(p.nome) + (lt ? ' ✓ ' + esc((lt.lidoPor || '').split(' ')[0]) + ' ' + fmtHora(new Date(lt.lidoEm)) : '') + '</span>'; }).join('') + '</div></div>';
+  }).join('') : '<div class="empty">Nenhum aviso enviado.</div>');
+  M().innerHTML = h;
+}
+function enviarAviso() {
+  const t = document.getElementById('avTit').value.trim(), x = document.getElementById('avTxt').value.trim();
+  if (!t || !x) return toast('Preencha título e mensagem', true);
+  let destino = null;
+  if (document.getElementById('avPara').value === 'alguns') { destino = [...document.querySelectorAll('.avP:checked')].map(c => c.value); if (!destino.length) return toast('Escolha ao menos um posto', true); }
+  DB.push('avisos', { titulo: t, texto: x, prioridade: document.getElementById('avPri').value, destino, criadoPor: A.nome || A.email });
+  toast('📢 Aviso enviado'); render();
+}
+
+// ===================== COBERTURA / FREELANCERS =====================
+function rCobertura() {
+  const fs = DB.list('freelancers').sort((a, b) => a.nome.localeCompare(b.nome));
+  let h = !isAdmRh() ? '<div class="card"><p>Somente o administrador cadastra ou remove freelancers. Use a lista abaixo para ligar, ou "Acionar freelance" nos alertas da Visão Geral.</p></div>' : '<div class="card form"><h4>Cadastrar freelancer</h4><div class="row"><div><label>Nome</label><input id="frNome"></div><div><label>WhatsApp / telefone</label><input id="frTel" inputmode="tel" placeholder="(11) 90000-0000"></div></div><label>Funções que cobre</label><div style="display:flex;gap:14px;flex-wrap:wrap;font-size:13px">' + FUNCOES.filter(f => f !== 'A definir').map(f => '<label style="display:flex;gap:6px;align-items:center;margin:0;color:var(--light)"><input type="checkbox" class="frFun" value="' + f + '" style="width:auto">' + f + '</label>').join('') + '</div><div class="row"><div><label>Região</label><input id="frReg" placeholder="Ex: Suzano / Mogi"></div><div><label>Observação</label><input id="frObs" placeholder="Disponibilidade, valor da diária..."></div></div><button class="btn btn-gold" style="margin-top:12px" onclick="addFreelancer()">Adicionar</button></div>';
+  h += '<div class="h2">Contatos de emergência (' + fs.length + ')</div>' + (fs.length ? '<div class="table-wrap"><table><thead><tr><th>Nome</th><th>Funções</th><th class="hide-m">Região</th><th class="hide-m">Obs.</th><th></th></tr></thead><tbody>' + fs.map(f => '<tr><td><b>' + esc(f.nome) + '</b><div class="meta">' + esc(f.telefone) + '</div></td><td>' + (f.funcoes || []).map(x => '<span class="tag">' + esc(x) + '</span> ').join('') + '</td><td class="small hide-m">' + esc(f.regiao || '') + '</td><td class="small hide-m">' + esc(f.obs || '') + '</td><td style="white-space:nowrap"><a class="btn btn-outline" href="tel:' + soDigitos(f.telefone) + '" style="text-decoration:none">Ligar</a>' + (isAdmRh() ? ' <button class="btn btn-ghost" onclick="DB.remove(\'freelancers\',\'' + f.id + '\');render()">Remover</button>' : '') + '</td></tr>').join('') + '</tbody></table></div>' : '<div class="empty">Nenhum freelancer cadastrado.</div>');
+  const ac = DB.list('acionamentos').slice(0, 20);
+  h += '<div class="h2">Últimos acionamentos</div>' + (ac.length ? ac.map(a => '<div class="card"><p style="color:var(--light)"><b>' + esc(a.freelancer) + '</b> acionado para cobrir <b>' + esc(a.colab) + '</b> · ' + esc(nomePosto(a.posto)) + '</p><div class="meta">' + quando(a.criadoEm) + '</div></div>').join('') : '<div class="empty">Nenhum acionamento ainda. Use "Acionar freelance" nos alertas da Visão Geral.</div>');
+  M().innerHTML = h;
+}
+function addFreelancer() {
+  const n = document.getElementById('frNome').value.trim(), t = document.getElementById('frTel').value.trim(), fun = [...document.querySelectorAll('.frFun:checked')].map(x => x.value);
+  if (!n || soDigitos(t).length < 10 || !fun.length) return toast('Preencha nome, telefone com DDD e ao menos uma função', true);
+  DB.push('freelancers', { nome: n, telefone: t, funcoes: fun, regiao: document.getElementById('frReg').value.trim(), obs: document.getElementById('frObs').value.trim() }); toast('Freelancer cadastrado'); render();
+}
+function acionarFreelance(cid) {
+  const c = DB.colaboradores().find(x => x.id === cid), x = situacoesPosto(c.posto).find(y => y.colab.id === cid), t = x && x.sit.turno ? x.sit.turno : {};
+  const fs = DB.list('freelancers'), aptos = fs.filter(f => (f.funcoes || []).includes(c.funcao)), outros = fs.filter(f => !(f.funcoes || []).includes(c.funcao));
+  const msg = f => 'Olá ' + f.nome.split(' ')[0] + ', aqui é da C&S. Precisamos de cobertura hoje no ' + nomePosto(c.posto) + (t.ini ? ', das ' + t.ini + ' às ' + t.fim : '') + ', função ' + c.funcao + '. Você consegue? Responda assim que puder.';
+  const linha = f => '<div class="param-row"><span><b>' + esc(f.nome) + '</b><small>' + (f.funcoes || []).join(', ') + (f.regiao ? ' · ' + esc(f.regiao) : '') + '</small></span><span style="display:flex;gap:6px"><a class="btn btn-gold" style="text-decoration:none" target="_blank" href="' + linkWhats(f.telefone, msg(f)) + '" onclick="registrarAcionamento(\'' + f.id + '\',\'' + cid + '\')">WhatsApp</a><a class="btn btn-outline" style="text-decoration:none" href="tel:' + soDigitos(f.telefone) + '" onclick="registrarAcionamento(\'' + f.id + '\',\'' + cid + '\')">Ligar</a></span></div>';
+  abrirModal('<h3>Acionar freelance</h3><p class="meta">Falta: ' + esc(c.nome) + ' · ' + esc(c.funcao) + ' · ' + esc(nomePosto(c.posto)) + (t.ini ? ' · ' + t.ini + '–' + t.fim : '') + '</p>' + (aptos.length ? '<div class="h2" style="font-size:14px;margin-top:14px">Cobrem ' + esc(c.funcao) + '</div>' + aptos.map(linha).join('') : '<p class="meta" style="margin-top:12px">Nenhum freelancer cadastrado para ' + esc(c.funcao) + '.</p>') + (outros.length ? '<div class="h2" style="font-size:14px;margin-top:14px">Outros contatos</div>' + outros.map(linha).join('') : '') + '<div class="acts">' + (isAdmRh() ? '<button class="btn btn-ghost" onclick="fecharModal();ir(\'cobertura\')">Cadastrar freelancer</button>' : '') + '<button class="btn btn-outline" onclick="fecharModal()">Fechar</button></div>');
+}
+function registrarAcionamento(fid, cid) { const f = DB.list('freelancers').find(x => x.id === fid), c = DB.colaboradores().find(x => x.id === cid); DB.push('acionamentos', { freelancer: f.nome, colab: c.nome, posto: c.posto }); }
+
+// ===================== COLABORADORES E ESCALA =====================
+function rColaboradores() {
+  const cs = DB.colaboradores().filter(c => doFiltro(c.posto));
+  const pend = cs.filter(c => c.ativo !== false && (c.funcao === 'A definir' || !c.escala || (c.escala.tipo === '12x36' && !c.escala.ref) || c.vaga));
+  let h = '<div class="filters">' + filtroPostoHtml() + (isAdmRh() ? '<button class="btn btn-gold" onclick="editarColab()">+ Novo colaborador</button>' : '<span class="meta">Somente leitura — a escala é alterada pelo administrador.</span>') + '</div>';
+  if (pend.length) h += '<div class="card" style="border-color:rgba(210,153,34,.4)"><h4>⚠️ ' + pend.length + ' cadastros precisam de ajuste</h4><p>Função ou horário faltando, vaga em aberto, ou 12x36 sem o dia do plantão. Sem o dia do plantão, o sistema aceita a confirmação de qualquer um da dupla e só alerta se ninguém confirmar.</p></div>';
+  postosVisiveis().filter(p => doFiltro(p.id)).forEach(p => {
+    const l = DB.colaboradores().filter(c => c.posto === p.id);
+    h += '<div class="h2">' + esc(p.nome) + ' <span class="tag">' + l.filter(c => c.ativo !== false).length + ' ativos</span></div><div class="table-wrap"><table><thead><tr><th>Nome</th><th>Função</th><th>Escala no sistema</th><th class="hide-m">Na planilha</th><th></th></tr></thead><tbody>' +
+      l.map(c => { const fl = [];
+        if (c.vaga) fl.push('<span class="pill red">vaga</span>'); if (c.funcao === 'A definir') fl.push('<span class="pill orange">função?</span>');
+        if (!c.escala) fl.push('<span class="pill orange">horário?</span>'); else if (c.escala.tipo === '12x36' && !c.escala.ref) fl.push('<span class="pill orange">dia do plantão?</span>');
+        if (c.ativo === false) fl.push('<span class="pill silver">inativo</span>');
+        return '<tr' + (c.ativo === false ? ' style="opacity:.5"' : '') + '><td><b>' + esc(c.nome) + '</b><div>' + fl.join(' ') + '</div></td><td><span class="tag">' + esc(c.funcao) + '</span></td><td class="small">' + esc(descreverEscala(c.escala)) + '</td><td class="small hide-m">' + esc(c.original || '—') + '</td><td>' + (isAdmRh() ? '<button class="btn btn-outline" onclick="editarColab(\'' + c.id + '\')">Editar</button>' : '') + '</td></tr>'; }).join('') + '</tbody></table></div>';
+  });
+  M().innerHTML = h;
+}
+function editarColab(id) {
+  const c = id ? DB.colaboradores().find(x => x.id === id) : { id: null, nome: '', posto: filtroPosto !== 'todos' ? filtroPosto : DB.postos()[0].id, funcao: 'Porteiro', escala: { tipo: '12x36', periodo: 'diurno', ini: '07:00', fim: '19:00', ref: null }, ativo: true };
+  const e = c.escala || { tipo: 'nenhuma' }, dias = (e.tipo === 'semanal' && e.dias) || {};
+  abrirModal('<h3>' + (id ? 'Editar colaborador' : 'Novo colaborador') + '</h3>' + (c.original ? '<p class="meta">Na planilha: ' + esc(c.original) + '</p>' : '') +
+    '<div class="form"><div class="row"><div><label>Nome</label><input id="edNome" value="' + esc(c.nome) + '"></div><div><label>Posto</label><select id="edPosto">' + DB.postos().map(p => '<option value="' + p.id + '"' + (p.id === c.posto ? ' selected' : '') + '>' + esc(p.nome) + '</option>').join('') + '</select></div></div>' +
+    '<div class="row"><div><label>Função</label><select id="edFuncao">' + FUNCOES.map(f => '<option' + (f === c.funcao ? ' selected' : '') + '>' + f + '</option>').join('') + '</select></div><div><label>Tipo de escala</label><select id="edTipo" onchange="trocarTipo()"><option value="12x36"' + (e.tipo === '12x36' ? ' selected' : '') + '>12x36</option><option value="semanal"' + (e.tipo === 'semanal' ? ' selected' : '') + '>Dias da semana</option><option value="nenhuma"' + (e.tipo === 'nenhuma' ? ' selected' : '') + '>A definir</option></select></div></div>' +
+    '<div id="box12"><div class="row"><div><label>Período</label><select id="edPer"><option value="diurno"' + (e.periodo !== 'noturno' ? ' selected' : '') + '>Diurno</option><option value="noturno"' + (e.periodo === 'noturno' ? ' selected' : '') + '>Noturno</option></select></div><div><label>Entrada</label><input type="time" id="edIni" value="' + (e.ini || '07:00') + '"></div><div><label>Saída</label><input type="time" id="edFim" value="' + (e.fim || '19:00') + '"></div></div><label>Um dia em que trabalhou (define os dias alternados)</label><input type="date" id="edRef" value="' + (e.ref || '') + '"></div>' +
+    '<div id="boxSem"><label>Dias e horários</label><div class="dias">' + [1, 2, 3, 4, 5, 6, 0].map(d => '<div class="dia"><label><input type="checkbox" class="edDia" data-d="' + d + '"' + (dias[d] ? ' checked' : '') + '>' + DIAS_SEMANA[d] + '</label><input type="time" class="edDi" data-d="' + d + '" value="' + (dias[d] ? dias[d][0] : '07:00') + '"><input type="time" class="edDf" data-d="' + d + '" value="' + (dias[d] ? dias[d][1] : '16:00') + '"></div>').join('') + '</div>' +
+    '<label style="display:flex;gap:8px;align-items:center;margin-top:12px;color:var(--light)"><input type="checkbox" id="edFds" style="width:auto"' + (e.fds ? ' checked' : '') + '> Também trabalha sábado OU domingo (alternado)</label><div class="row"><div><label>Entrada fds</label><input type="time" id="edFi" value="' + ((e.fds && e.fds.ini) || '07:00') + '"></div><div><label>Saída fds</label><input type="time" id="edFf" value="' + ((e.fds && e.fds.fim) || '13:00') + '"></div></div></div>' +
+    '<label style="display:flex;gap:8px;align-items:center;margin-top:14px;color:var(--light)"><input type="checkbox" id="edAtivo" style="width:auto"' + (c.ativo !== false ? ' checked' : '') + '> Ativo</label></div>' +
+    '<div class="acts"><button class="btn btn-ghost" onclick="fecharModal()">Cancelar</button><button class="btn btn-gold" onclick="salvarColab(' + (id ? '\'' + id + '\'' : 'null') + ')">Salvar</button></div>');
+  trocarTipo();
+}
+function trocarTipo() { const t = document.getElementById('edTipo').value; document.getElementById('box12').style.display = t === '12x36' ? '' : 'none'; document.getElementById('boxSem').style.display = t === 'semanal' ? '' : 'none'; }
+function salvarColab(id) {
+  const nome = document.getElementById('edNome').value.trim(); if (!nome) return toast('Informe o nome', true);
+  const t = document.getElementById('edTipo').value; let escala = null;
+  if (t === '12x36') escala = { tipo: '12x36', periodo: document.getElementById('edPer').value, ini: document.getElementById('edIni').value, fim: document.getElementById('edFim').value, ref: document.getElementById('edRef').value || null };
+  if (t === 'semanal') { const dias = {}; document.querySelectorAll('.edDia').forEach(cb => { if (cb.checked) { const d = cb.dataset.d; dias[d] = [document.querySelector('.edDi[data-d="' + d + '"]').value, document.querySelector('.edDf[data-d="' + d + '"]').value]; } });
+    escala = { tipo: 'semanal', dias, fds: document.getElementById('edFds').checked ? { regra: 'sab_ou_dom', ini: document.getElementById('edFi').value, fim: document.getElementById('edFf').value } : null }; }
+  const dados = { nome, posto: document.getElementById('edPosto').value, funcao: document.getElementById('edFuncao').value, escala, ativo: document.getElementById('edAtivo').checked };
+  if (id) { const atual = DB.colaboradores().find(x => x.id === id); if (atual && atual.vaga && nome !== 'A DEFINIR') dados.vaga = false; DB.update('colaboradores', id, dados); }
+  else DB.push('colaboradores', Object.assign({ original: '', vaga: false }, dados));
+  fecharModal(); toast('Salvo'); render();
+}
+
+// ===================== PARÂMETROS =====================
+function rParametros() {
+  let h = '<p class="meta" style="margin:0 0 14px;font-size:12px">O que ficar desligado some do app do posto e do painel do condomínio. As mudanças chegam na hora nos celulares.</p><div class="postos-grid">';
+  h += DB.postos().map(p => { const pr = DB.params(p.id), modo = DB.modoEncomenda(p.id);
+    return '<div class="pcard"><div class="ph"><b>' + esc(p.nome) + '</b><select onchange="DB.update(\'postos\',\'' + p.id + '\',{prioridade:this.value});toast(\'Prioridade salva\')" style="background:var(--bg3);color:var(--light);border:1px solid var(--bg4);border-radius:8px;padding:5px">' + ['critico', 'alto', 'normal'].map(x => '<option value="' + x + '"' + (p.prioridade === x ? ' selected' : '') + '>Prioridade ' + x + '</option>').join('') + '</select></div><div style="padding:6px 14px 12px">' +
+      MODULOS.map(m => '<div class="param-row"><span>' + m.nome + (m.bloqueado ? '<small>em preparação</small>' : '') + '</span><label class="toggle"><input type="checkbox"' + (pr[m.id] ? ' checked' : '') + (m.bloqueado ? ' disabled' : '') + ' onchange="DB.setParam(\'' + p.id + '\',\'' + m.id + '\',this.checked);render();toast(\'Parâmetro salvo\')"><span></span></label></div>').join('') +
+      (pr.encomendas ? '<div style="margin-top:10px"><div class="meta" style="margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">Modo de encomendas</div>' + ['interno', 'parceria', 'api'].map(k => { const md = MODOS_ENCOMENDA[k];
+        return '<div class="modo-card' + (modo === k ? ' on' : '') + '" onclick="trocarModo(\'' + p.id + '\',\'' + k + '\')"><span class="l">' + md.letra + '</span><span><b>' + md.nome + '</b><small>' + md.desc + '</small></span></div>'; }).join('') + (modo === 'api' ? htmlIntegracao(p.id) : '') + '</div>' : '') +
+      '</div></div>'; }).join('') + '</div>';
+  M().innerHTML = h;
+}
+function trocarModo(pid, modo) { DB.update('postos', pid, { encomendaModo: modo }); toast('Modo de encomendas: ' + MODOS_ENCOMENDA[modo].letra); render(); }
+function htmlIntegracao(pid) {
+  const it = DB.list('integracoes').find(i => i.posto === pid) || {};
+  return '<div class="card form" style="margin-top:6px;background:var(--bg3)"><h4>Integração com a administradora</h4><p>Cada administradora tem um sistema diferente. Com a documentação da API dela, criamos a sincronização dos moradores e o aviso automático. Enquanto não estiver ativa, este posto funciona no modo C.</p>' +
+    '<label>Sistema / administradora</label><input id="it_prov_' + pid + '" value="' + esc(it.provedor || '') + '" placeholder="Ex: nome do sistema da administradora"><label>Endereço da API (se houver)</label><input id="it_end_' + pid + '" value="' + esc(it.endpoint || '') + '" placeholder="https://..."><label>Observação</label><input id="it_obs_' + pid + '" value="' + esc(it.observacao || '') + '" placeholder="Contato técnico, documentação..."><p class="meta">Senhas e tokens da API não ficam aqui: vão para os segredos do Supabase.</p>' +
+    '<button class="btn btn-gold" style="margin-top:10px" onclick="salvarIntegracao(\'' + pid + '\')">Salvar</button> <span class="pill ' + (it.status === 'ativa' ? 'green' : 'orange') + '">' + esc(it.status || 'pendente') + '</span></div>';
+}
+function salvarIntegracao(pid) {
+  DB.upsert('integracoes', { posto: pid, provedor: document.getElementById('it_prov_' + pid).value.trim(), endpoint: document.getElementById('it_end_' + pid).value.trim(), observacao: document.getElementById('it_obs_' + pid).value.trim(), atualizadoEm: new Date().toISOString() }, 'posto_id');
+  toast('Integração salva');
+}
+
+// ===================== ACESSOS =====================
+function rAcessos() {
+  const l = DB.list('acessos').sort((a, b) => (a.papel + a.email).localeCompare(b.papel + b.email));
+  const PAP = { adm: ['Administrador', 'gold'], rh: ['RH', 'blue'], sup: ['Supervisor', 'orange'], cond: ['Condomínio', 'blue'], posto: ['Celular do posto', 'green'] };
+  let h = '<div class="card"><h4>Como liberar um acesso</h4><p>1) No Supabase, em <b>Authentication → Users → Add user</b>, crie o e-mail e a senha (marque "Auto Confirm User").<br>2) Aqui embaixo, informe o mesmo e-mail e escolha o papel. Para os celulares dos postos, crie um e-mail por posto (ex.: posto.high@cservicos.com.br).</p></div>';
+  h += '<div class="card form"><h4>Liberar acesso</h4><div class="row"><div><label>E-mail</label><input id="acEmail" type="email"></div><div><label>Nome (opcional)</label><input id="acNome"></div></div><div class="row"><div><label>Papel</label><select id="acPapel" onchange="document.getElementById(\'acPostoBox\').style.display=[\'adm\',\'rh\',\'sup\'].includes(this.value)?\'none\':\'\'"><option value="posto">Celular do posto</option><option value="cond">Condomínio</option><option value="sup">Supervisor (vê tudo, não altera configurações)</option><option value="rh">RH (tudo menos parâmetros)</option>' + (isAdm() ? '<option value="adm">Administrador</option>' : '') + '</select></div><div id="acPostoBox"><label>Posto</label><select id="acPosto">' + DB.postos().map(p => '<option value="' + p.id + '">' + esc(p.nome) + '</option>').join('') + '</select></div></div><button class="btn btn-gold" style="margin-top:12px" id="acBtn" onclick="liberarAcesso()">Liberar</button></div>';
+  h += l.length ? '<div class="table-wrap"><table><thead><tr><th>E-mail</th><th>Papel</th><th>Posto</th><th></th></tr></thead><tbody>' + l.map(a => '<tr><td><b>' + esc(a.email) + '</b>' + (a.nome ? '<div class="meta">' + esc(a.nome) + '</div>' : '') + '</td><td><span class="pill ' + PAP[a.papel][1] + '">' + PAP[a.papel][0] + '</span></td><td>' + esc(a.posto ? nomePosto(a.posto) : 'Todos') + '</td><td>' + (a.userId === (Nuvem._uid || '') ? '<span class="meta">você</span>' : (a.papel === 'adm' && !isAdm()) ? '<span class="meta">só administrador altera</span>' : '<button class="btn btn-ghost" onclick="removerAcesso(\'' + a.userId + '\',\'' + esc(a.email) + '\')">Remover</button>') + '</td></tr>').join('') + '</tbody></table></div>' : '<div class="empty">Carregando...</div>';
+  M().innerHTML = h;
+}
+async function liberarAcesso() {
+  const btn = document.getElementById('acBtn'); btn.disabled = true;
+  try {
+    const papel = document.getElementById('acPapel').value;
+    await Nuvem.rpc('vincular_acesso', { p_email: document.getElementById('acEmail').value, p_papel: papel, p_posto: ['adm', 'rh', 'sup'].includes(papel) ? null : document.getElementById('acPosto').value, p_nome: document.getElementById('acNome').value.trim() || null });
+    toast('✅ Acesso liberado'); await Nuvem.carregar(); render();
+  } catch (e) { toast(e.message, true); }
+  btn.disabled = false;
+}
+function removerAcesso(uid, email) {
+  abrirModal('<h3>Remover acesso?</h3><p class="meta">' + esc(email) + ' deixa de ver os dados. O login continua existindo no Supabase até ser apagado lá.</p><div class="acts"><button class="btn btn-ghost" onclick="fecharModal()">Cancelar</button><button class="btn btn-red" onclick="DB.remove(\'acessos\',\'' + uid + '\');fecharModal();render()">Remover</button></div>');
+}
+
+// ===================== DENÚNCIAS =====================
+function rDenuncias() {
+  const l = DB.list('denuncias');
+  M().innerHTML = '<div class="card"><p>Visível somente para a administração da C&S. Os condomínios e os postos não têm acesso.</p></div>' + (l.length ? l.map(d => '<div class="card"><div style="display:flex;justify-content:space-between;gap:10px"><h4>' + esc(d.tipo) + '</h4><span class="pill ' + (d.anonima ? 'silver' : 'gold') + '">' + (d.anonima ? 'Anônima' : esc(nomePosto(d.posto))) + '</span></div><p style="color:var(--light);white-space:pre-wrap">' + esc(d.texto) + '</p><div class="meta">' + quando(d.criadoEm) + '</div></div>').join('') : '<div class="empty">Nenhuma denúncia recebida.</div>');
+}
+
+const RENDER = { visao: rVisao, postos: rPostos, ocorrencias: rOcorrencias, livro: rLivro, checklist: rChecklist, materiais: rMateriais, encomendas: rEncomendas, avisos: rAvisos, cobertura: rCobertura, colaboradores: rColaboradores, parametros: rParametros, acessos: rAcessos, denuncias: rDenuncias };
+
+// ===================== PÂNICO EM TEMPO REAL =====================
+function sirene() {
+  try { const ctx = sirene.ctx || (sirene.ctx = new (window.AudioContext || window.webkitAudioContext)());
+    for (let i = 0; i < 6; i++) { const o = ctx.createOscillator(), g = ctx.createGain(); o.type = 'square'; o.frequency.setValueAtTime(i % 2 ? 700 : 1000, ctx.currentTime + i * .3); o.connect(g); g.connect(ctx.destination); g.gain.value = .15; o.start(ctx.currentTime + i * .3); o.stop(ctx.currentTime + i * .3 + .28); } } catch (e) {}
+}
+let panicoAtual = null;
+function mostrarPanico(a) {
+  panicoAtual = a.id;
+  document.getElementById('panicoTit').textContent = 'PÂNICO — ' + nomePosto(a.posto);
+  document.getElementById('panicoTxt').textContent = 'Botão de pânico acionado às ' + fmtHora(new Date(a.criadoEm)) + '. Ligue para o posto.';
+  document.getElementById('panicoOv').classList.add('show'); sirene();
+  try { if ('Notification' in window && Notification.permission === 'granted') new Notification('🚨 Pânico — ' + nomePosto(a.posto), { body: 'Botão de pânico acionado', requireInteraction: true }); } catch (e) {}
+}
+function cientePanico() { document.getElementById('panicoOv').classList.remove('show'); if (panicoAtual && isGestor()) DB.update('alertas', panicoAtual, { visto: true }); panicoAtual = null; render(); montarNav(); }
+
+// ===================== INÍCIO =====================
+function abrirSistema() {
+  document.getElementById('login').classList.add('hide');
+  document.getElementById('who').innerHTML = isGestor() ? esc(A.nome || NOME_PAPEL[A.papel]) + '<span>' + NOME_PAPEL[A.papel] + ' · ' + esc(A.email) + '</span>' : esc(nomePosto(A.posto)) + '<span>Perfil do condomínio</span>';
+  Nuvem.sb.auth.getUser().then(r => { Nuvem._uid = r.data && r.data.user && r.data.user.id; });
+  if (isGestor() && 'Notification' in window && Notification.permission === 'default') document.addEventListener('click', () => Notification.requestPermission().catch(() => {}), { once: true });
+  if (!SECOES.find(s => s.id === secaoAtual && secaoVisivel(s))) secaoAtual = 'visao';
+  ir(secaoAtual);
+}
+function aoMudar(tabela, p) {
+  if (!A) return;
+  if (tabela === 'alertas' && p && p.eventType === 'INSERT' && p.new.tipo === 'panico') mostrarPanico(paraTela(p.new));
+  montarNav();
+  const ativo = document.activeElement;
+  if (modalAberto() || (ativo && /INPUT|TEXTAREA|SELECT/.test(ativo.tagName) && ativo.closest('#main'))) return; // não atrapalha quem está digitando
+  if (secaoAtual === 'rondas' || secaoAtual === 'relatorios') return;
+  setTitulo(); render();
+}
+function tick() { document.getElementById('clock').textContent = new Date().toLocaleString('pt-BR', { weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }); atualizarStatus(); }
+setInterval(() => { tick(); if (A && ['visao', 'postos'].includes(secaoAtual)) aoMudar('relogio'); }, 30000);
+
+(async function () {
+  tick();
+  if (!Nuvem.configurado()) { document.body.innerHTML = '<div class="erro-cfg"><img src="icons/logo.png" style="height:56px"><h2 style="font-family:var(--title);color:var(--gold);margin:16px 0">Sistema não configurado</h2><p style="color:var(--silver)">Preencha o arquivo config.js com a URL e a chave publicável do Supabase.</p></div>'; return; }
+  A = await Nuvem.iniciar({ aoMudar, aoStatus: atualizarStatus, aoErro: (op, err) => toast('Não foi possível salvar (' + op.tabela + '): ' + (err.message || ''), true) });
+  if (A && A.papel === 'posto') { await Nuvem.sair(); A = null; }
+  if (A) abrirSistema();
+})();
+if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
 </script>
-<div style="position:fixed;top:6px;left:50%;transform:translateX(-50%);z-index:9999;background:#B8860B;color:#0D0D0D;font:700 9px Montserrat,sans-serif;letter-spacing:1px;padding:2px 8px;border-radius:8px;pointer-events:none;opacity:.85">VERSÃO DE TESTE</div>
 </body>
 </html>
