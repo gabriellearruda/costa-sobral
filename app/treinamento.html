@@ -141,7 +141,7 @@ const TRILHAS = {
 let ALVOS = {}, trilha = null, i = 0, vozAuto = false;
 fetch('treino/alvos.json').then(r => r.json()).then(j => { ALVOS = j; if (trilha) desenhar(); }).catch(() => {});
 
-function mostrar(id) { document.querySelectorAll('.tela').forEach(t => t.classList.toggle('on', t.id === id)); window.scrollTo(0, 0); if (id !== 'passo') parar(); marcarFeitos(); }
+function mostrar(id) { parar(); document.querySelectorAll('.tela').forEach(t => t.classList.toggle('on', t.id === id)); window.scrollTo(0, 0); marcarFeitos(); }
 function comecar(t) { trilha = t; i = 0; vozAuto = true; mostrar('passo'); desenhar(); }
 function sairTreino() { mostrar('inicio'); }
 function desenhar() {
@@ -163,28 +163,54 @@ function desenhar() {
 function avancar() {
   const lista = TRILHAS[trilha];
   if (i < lista.length - 1) { i++; desenhar(); }
-  else { try { localStorage.setItem('cs_treino_' + trilha, new Date().toISOString()); } catch (e) {} mostrar('fim'); }
+  else { try { localStorage.setItem('cs_treino_' + trilha, new Date().toISOString()); } catch (e) {} mostrar('fim'); if (vozAuto) ouvir(); }
 }
 function voltar() { if (i > 0) { i--; desenhar(); } else mostrar('inicio'); }
 function marcarFeitos() { Object.keys(TRILHAS).forEach(t => { let v = null; try { v = localStorage.getItem('cs_treino_' + t); } catch (e) {} const el = document.getElementById('ok-' + t); if (el) el.textContent = v ? '✓ já fez' : ''; }); }
 
-// ---------- VOZ (lê o passo em voz alta) ----------
+// ---------- VOZ ----------
+// 1º tenta o áudio gravado (treino/audio/<passo>.mp3, gerado no ElevenLabs);
+// se não existir, usa a voz do celular, escolhendo sempre uma voz do BRASIL.
 const temVoz = 'speechSynthesis' in window;
+const semAudio = {};                 // passos sem arquivo de áudio
+const player = new Audio(); player.preload = 'auto';
+let vozBR = null;
+function escolherVoz() {
+  if (!temVoz) return;
+  const vs = speechSynthesis.getVoices();
+  const br = vs.filter(v => /pt[-_]BR/i.test(v.lang) || /brasil|brazil/i.test(v.name));
+  vozBR = br.find(v => /google/i.test(v.name)) || br.find(v => /luciana|francisca|thalita|antonio|daniel|maria/i.test(v.name)) || br[0] || null;
+}
+if (temVoz) { escolherVoz(); speechSynthesis.onvoiceschanged = escolherVoz; }
+function idAtual() { return document.getElementById('fim').classList.contains('on') ? 'fim' : TRILHAS[trilha][i]; }
 function textoFalado() {
   const d = document.createElement('div'); d.innerHTML = document.getElementById('titulo').innerHTML + '. ' + document.getElementById('texto').innerHTML;
-  return d.textContent.replace(/−/g, 'menos').replace(/\+/g, 'mais').replace(/→/g, ', depois ').replace(/\bX\b/g, 'xis').replace(/12B/g, '12 bê');
+  return d.textContent.replace(/\?\./g, '?').replace(/!\./g, '!').replace(/−/g, 'menos').replace(/\+/g, 'mais').replace(/→/g, ', depois em ').replace(/\bX\b/g, 'xis').replace(/12B/g, 'doze bê').replace(/ \/ /g, ' ou ')
+    .replace(/\b([A-ZÁÉÍÓÚÂÊÔÃÕÇ]{2,}(?:\s+[A-ZÁÉÍÓÚÂÊÔÃÕÇ]{2,})*)\b/g, m => m.toLowerCase());
 }
-function vozPt() { const vs = speechSynthesis.getVoices(); return vs.find(v => /pt[-_]BR/i.test(v.lang)) || vs.find(v => /^pt/i.test(v.lang)); }
+function estadoBotao(falando) { const b = document.getElementById('btnOuvir'); if (!b) return; b.classList.toggle('falando', falando); b.textContent = falando ? '🔊 Falando...' : '🔊 Ouvir de novo'; }
 function ouvir() {
-  if (!temVoz) { document.getElementById('btnOuvir').style.display = 'none'; return; }
   parar();
-  const u = new SpeechSynthesisUtterance(textoFalado()); u.lang = 'pt-BR'; u.rate = .95; const v = vozPt(); if (v) u.voice = v;
-  const b = document.getElementById('btnOuvir'); b.classList.add('falando'); b.textContent = '🔊 Falando...';
-  u.onend = u.onerror = () => { b.classList.remove('falando'); b.textContent = '🔊 Ouvir de novo'; };
+  const id = idAtual();
+  if (!semAudio[id]) {
+    player.src = 'treino/audio/' + id + '.mp3';
+    player.onended = () => estadoBotao(false);
+    player.onerror = () => { semAudio[id] = true; if (idAtual() === id) falarCelular(); };
+    estadoBotao(true);
+    player.play().catch(() => { /* erro tratado no onerror; bloqueio do navegador cai aqui */ if (player.error) return; estadoBotao(false); });
+    return;
+  }
+  falarCelular();
+}
+function falarCelular() {
+  if (!temVoz) { estadoBotao(false); return; }
+  if (!vozBR) escolherVoz();
+  const u = new SpeechSynthesisUtterance(document.getElementById('fim').classList.contains('on') ? 'Muito bem! Você terminou o treinamento. Qualquer dúvida, fale com a supervisão.' : textoFalado());
+  u.lang = 'pt-BR'; u.rate = .95; if (vozBR) u.voice = vozBR;
+  estadoBotao(true); u.onend = u.onerror = () => estadoBotao(false);
   speechSynthesis.speak(u);
 }
-function parar() { if (temVoz) speechSynthesis.cancel(); const b = document.getElementById('btnOuvir'); if (b) { b.classList.remove('falando'); b.textContent = '🔊 Ouvir'; } }
-if (temVoz) speechSynthesis.onvoiceschanged = () => {};
+function parar() { try { player.pause(); player.onended = player.onerror = null; } catch (e) {} if (temVoz) speechSynthesis.cancel(); const b = document.getElementById('btnOuvir'); if (b) { b.classList.remove('falando'); b.textContent = '🔊 Ouvir'; } }
 
 // arrastar para o lado também troca de passo
 let x0 = null;
