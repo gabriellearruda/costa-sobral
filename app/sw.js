@@ -1,6 +1,6 @@
 // C&S — service worker: guarda as telas do app para abrir mesmo sem internet.
 // Só cuida de arquivos do próprio site; os dados (Supabase) passam direto.
-const CACHE = 'cs-v3';
+const CACHE = 'cs-v4';
 const ARQUIVOS = ['./', './index.html', './painel.html', './dados.js', './config.js', './vendor/supabase.js',
   './manifest-posto.json', './manifest-painel.json', './icons/logo.png', './icons/icon-192.png', './icons/icon-512.png',
   './icons/maskable-512.png', './icons/apple-touch-icon.png'];

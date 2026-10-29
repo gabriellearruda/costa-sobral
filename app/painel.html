@@ -135,7 +135,7 @@ td.small{font-size:12px;color:var(--silver)}
 .disabled-module{text-align:center;padding:50px 20px;color:#666}
 .disabled-module svg{width:48px;height:48px;fill:#444;margin-bottom:12px}
 /* MODAL / TOAST */
-.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:300;align-items:center;justify-content:center;padding:16px}
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:650;align-items:center;justify-content:center;padding:16px}
 .modal.show{display:flex}
 .modal .sheet{background:var(--bg2);border:1px solid var(--gold-dark);border-radius:16px;width:100%;max-width:560px;max-height:90vh;overflow:auto;padding:22px}
 .modal h3{font-family:var(--title);color:var(--gold);font-size:20px;margin-bottom:6px}
@@ -205,6 +205,19 @@ td.small{font-size:12px;color:var(--silver)}
 .panico-ov.show{display:flex}
 .panico-ov h2{font-family:var(--title);font-size:30px;margin:10px 0}
 </style>
+<style>
+.semana{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px}
+.sem-col{background:var(--bg2);border:1px solid var(--bg3);border-radius:12px;padding:8px;min-height:140px}
+.sem-dia{font-size:12px;font-weight:700;color:var(--gold);letter-spacing:1px;text-align:center;padding:4px 0 8px;border-bottom:1px solid var(--bg3);margin-bottom:8px}
+.tar-chip{background:var(--bg3);border-left:3px solid var(--gold-dark);border-radius:8px;padding:8px;margin-bottom:6px;font-size:12px;cursor:pointer;line-height:1.35}
+.tar-chip b{display:block;font-size:12.5px;color:var(--light);margin-bottom:3px}
+.tar-chip span{display:block;color:var(--silver);font-size:11px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{padding:7px 12px;border-radius:16px;border:1px solid var(--bg4);background:var(--bg3);color:var(--silver);font-size:12.5px;font-weight:600;cursor:pointer}
+.chip.on{background:var(--gold);color:var(--bg);border-color:var(--gold)}
+@media(max-width:900px){.semana{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:520px){.semana{grid-template-columns:1fr}.sem-col{min-height:0}}
+</style>
 </head>
 <body>
 
@@ -219,6 +232,7 @@ td.small{font-size:12px;color:var(--silver)}
       <label>Senha</label><input id="lgSenha" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')entrar()">
       <button class="btn btn-gold btn-full" style="margin-top:14px" id="lgBtn" onclick="entrar()">ENTRAR</button>
       <div class="msg" id="lgMsg"></div>
+      <a href="#" onclick="event.preventDefault();esqueci()" style="display:block;text-align:center;color:var(--gold);font-size:13px;margin-top:6px">Esqueci minha senha</a>
     </div>
     <p class="meta" style="text-align:center">O acesso é liberado pela administração da C&S.</p>
   </div>
@@ -233,7 +247,7 @@ td.small{font-size:12px;color:var(--silver)}
 <aside class="sidebar" id="sidebar">
   <div class="brand"><img src="icons/logo.png" alt="C&S"><div class="who" id="who"></div></div>
   <nav class="nav" id="nav"></nav>
-  <div class="foot"><button class="btn btn-ghost" style="width:100%" onclick="sair()">Sair</button></div>
+  <div class="foot"><button class="btn btn-ghost" style="width:100%;margin-bottom:8px" onclick="modalSenha()">Alterar senha</button><button class="btn btn-ghost" style="width:100%" onclick="sair()">Sair</button></div>
 </aside>
 
 <div class="content">
@@ -270,6 +284,7 @@ const IC = {
   acessos: '<path d="M12.65 10A5.99 5.99 0 007 6c-3.31 0-6 2.69-6 6s2.69 6 6 6a5.99 5.99 0 005.65-4H17v4h4v-4h2v-4H12.65zM7 14c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/>',
   denuncias: '<path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-7 12h-2v-2h2v2zm0-4h-2V6h2v4z"/>',
   rondas: '<path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/>',
+  cronograma: '<path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11zm-8.5-2.5L7 14l1.4-1.4 2.1 2.1 4.6-4.6L16.5 11l-6 6.5z"/>',
   relatorios: '<path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/>'
 };
 const svg = k => '<svg viewBox="0 0 24 24">' + IC[k] + '</svg>';
@@ -282,6 +297,7 @@ const SECOES = [
   { id: 'checklist', nome: 'Checklist', perfis: ['adm', 'rh', 'sup', 'cond'], modulo: 'checklist' },
   { id: 'materiais', nome: 'Materiais', perfis: ['adm', 'rh', 'sup', 'cond'], modulo: 'materiais' },
   { id: 'encomendas', nome: 'Encomendas', perfis: ['adm', 'rh', 'sup', 'cond'], modulo: 'encomendas' },
+  { id: 'cronograma', nome: 'Cronograma', sub: 'Limpeza e conservação — montado com o síndico de cada condomínio', perfis: ['adm', 'rh', 'sup', 'cond'], modulo: 'cronograma' },
   { sep: 'Administração', perfis: ['adm', 'rh', 'sup'] },
   { id: 'avisos', nome: 'Avisos aos Postos', sub: 'Mensagens que chegam na hora nos celulares dos postos', perfis: ['adm', 'rh', 'sup'] },
   { id: 'cobertura', nome: 'Cobertura / Freelancers', sub: 'Contatos de emergência para cobrir faltas', perfis: ['adm', 'rh', 'sup'] },
@@ -318,6 +334,41 @@ async function entrar() {
   btn.disabled = false; btn.textContent = 'ENTRAR';
 }
 async function sair() { await Nuvem.sair(); location.reload(); }
+
+// ===================== SENHA =====================
+function campoSenha(id, label) { return '<label>' + label + '</label><input id="' + id + '" type="password" autocomplete="' + (id === 'psAtual' ? 'current-password' : 'new-password') + '">'; }
+function modalSenha(recuperacao) {
+  toggleMenu(false);
+  abrirModal('<h3>' + (recuperacao ? 'Criar nova senha' : 'Alterar senha') + '</h3><p class="meta">' + (recuperacao ? 'Escolha a nova senha da sua conta.' : 'Use pelo menos 8 caracteres, com letras e números.') + '</p><div class="form">' +
+    (recuperacao ? '' : campoSenha('psAtual', 'Senha atual')) + campoSenha('psNova', 'Nova senha') + campoSenha('psConf', 'Repita a nova senha') +
+    '<div class="msg" id="psMsg" style="color:var(--red);font-size:13px;margin-top:10px"></div></div><div class="acts">' + (recuperacao ? '' : '<button class="btn btn-ghost" onclick="fecharModal()">Cancelar</button>') + '<button class="btn btn-gold" id="psBtn" onclick="salvarSenha(' + (recuperacao ? 'true' : 'false') + ')">Salvar senha</button></div>');
+}
+async function salvarSenha(recuperacao) {
+  const msg = document.getElementById('psMsg'), btn = document.getElementById('psBtn');
+  const atual = recuperacao ? null : document.getElementById('psAtual').value, nova = document.getElementById('psNova').value, conf = document.getElementById('psConf').value;
+  msg.textContent = '';
+  if (!recuperacao && !atual) return msg.textContent = 'Digite a senha atual';
+  if (nova.length < 8 || !/[A-Za-z]/.test(nova) || !/\d/.test(nova)) return msg.textContent = 'A nova senha precisa ter pelo menos 8 caracteres, com letras e números';
+  if (nova !== conf) return msg.textContent = 'As duas senhas novas não são iguais';
+  btn.disabled = true; btn.textContent = 'Salvando...';
+  try {
+    await Nuvem.trocarSenha(atual, nova);
+    fecharModal(); toast('✅ Senha alterada');
+    if (recuperacao) { history.replaceState(null, '', location.pathname); if (!A) location.reload(); }
+  } catch (e) { msg.textContent = e.message; btn.disabled = false; btn.textContent = 'Salvar senha'; }
+}
+function esqueci() {
+  abrirModal('<h3>Esqueci minha senha</h3><p class="meta">Informe seu e-mail. Você vai receber um link para criar uma nova senha.</p><div class="form"><label>E-mail</label><input id="esEmail" type="email" value="' + esc(document.getElementById('lgEmail').value) + '"><div class="msg" id="esMsg" style="font-size:13px;margin-top:10px"></div></div><div class="acts"><button class="btn btn-ghost" onclick="fecharModal()">Fechar</button><button class="btn btn-gold" id="esBtn" onclick="enviarRecuperacao()">Enviar link</button></div>');
+}
+async function enviarRecuperacao() {
+  const e = document.getElementById('esEmail').value.trim(), msg = document.getElementById('esMsg'), btn = document.getElementById('esBtn');
+  if (!/\S+@\S+\.\S+/.test(e)) { msg.style.color = 'var(--red)'; msg.textContent = 'E-mail inválido'; return; }
+  btn.disabled = true;
+  try { await Nuvem.esqueciSenha(e, location.origin + location.pathname); msg.style.color = 'var(--green)'; msg.textContent = 'Se este e-mail tiver acesso, o link chega em alguns minutos. Confira também o spam.'; }
+  catch (err) { msg.style.color = 'var(--red)'; msg.textContent = err.message; btn.disabled = false; }
+}
+let emRecuperacao = /type=recovery/.test(location.hash);
+function aoAuth(ev) { if (ev === 'PASSWORD_RECOVERY') { emRecuperacao = true; setTimeout(() => modalSenha(true), 300); } }
 
 function atualizarStatus() {
   const n = document.getElementById('net'); if (!n) return;
@@ -671,7 +722,160 @@ function rDenuncias() {
   M().innerHTML = '<div class="card"><p>Visível somente para a administração da C&S. Os condomínios e os postos não têm acesso.</p></div>' + (l.length ? l.map(d => '<div class="card"><div style="display:flex;justify-content:space-between;gap:10px"><h4>' + esc(d.tipo) + '</h4><span class="pill ' + (d.anonima ? 'silver' : 'gold') + '">' + (d.anonima ? 'Anônima' : esc(nomePosto(d.posto))) + '</span></div><p style="color:var(--light);white-space:pre-wrap">' + esc(d.texto) + '</p><div class="meta">' + quando(d.criadoEm) + '</div></div>').join('') : '<div class="empty">Nenhuma denúncia recebida.</div>');
 }
 
-const RENDER = { visao: rVisao, postos: rPostos, ocorrencias: rOcorrencias, livro: rLivro, checklist: rChecklist, materiais: rMateriais, encomendas: rEncomendas, avisos: rAvisos, cobertura: rCobertura, colaboradores: rColaboradores, parametros: rParametros, acessos: rAcessos, denuncias: rDenuncias };
+// ===================== CRONOGRAMA DE LIMPEZA =====================
+let abaCron = 'execucao', semCron = null, cronEdit = null;
+const semanaAtual = () => isoDia(inicioSemana(new Date()));
+function statsSemana(pid, cron, segIso) {
+  const hoje = isoDia(new Date()); let prev = 0, feitas = 0, valid = 0, atras = 0, refazer = 0;
+  diasDaSemana(new Date(segIso + 'T12:00:00')).forEach(dia => {
+    if (dia > hoje) return;
+    DB.tarefasDoDia(cron.id, dia).forEach(t => {
+      prev++; const e = DB.execucao(t.id, dia);
+      if (e && e.validacao !== 'refazer') feitas++; if (e && e.validacao === 'ok') valid++; if (e && e.validacao === 'refazer') refazer++;
+      if (!e && dia < hoje) atras++;
+    });
+  });
+  return { prev, feitas, valid, atras, refazer };
+}
+function rCronograma() {
+  const pid = isGestor() ? (filtroPosto === 'todos' ? null : filtroPosto) : A.posto;
+  let h = '<div class="filters">' + filtroPostoHtml() + '</div>';
+  if (!pid) { // visão geral de todos os condomínios
+    h += '<p class="meta" style="margin:-4px 0 14px">Escolha um condomínio para montar o cronograma ou acompanhar a execução.</p><div class="postos-grid">' + postosVisiveis().filter(p => DB.params(p.id).cronograma).map(p => {
+      const c = DB.cronograma(p.id);
+      if (!c) return '<div class="pcard"><div class="ph"><b>' + esc(p.nome) + '</b><span class="pill silver">sem cronograma</span></div><div style="padding:12px 14px"><button class="btn btn-outline" onclick="filtroPosto=\'' + p.id + '\';abaCron=\'montar\';render()">' + (isAdmRh() ? 'Montar cronograma' : 'Ver') + '</button></div></div>';
+      const s = statsSemana(p.id, c, semanaAtual()), pct = s.prev ? Math.round(s.feitas / s.prev * 100) : 0;
+      return '<div class="pcard' + (s.atras || s.refazer ? ' alert' : '') + '"><div class="ph"><b>' + esc(p.nome) + '</b><span class="pill ' + (pct >= 90 ? 'green' : pct >= 60 ? 'orange' : 'red') + '">' + pct + '% feito na semana</span></div>' +
+        '<div class="prow"><span>Feitas até hoje</span><b>' + s.feitas + '/' + s.prev + '</b></div><div class="prow"><span>Validadas pela supervisão</span><b>' + s.valid + '</b></div><div class="prow"><span>Atrasadas</span><b style="color:' + (s.atras ? 'var(--red)' : 'inherit') + '">' + s.atras + '</b></div>' + (s.refazer ? '<div class="prow"><span>Para refazer</span><b style="color:var(--orange)">' + s.refazer + '</b></div>' : '') +
+        '<div style="padding:10px 14px"><button class="btn btn-gold" onclick="filtroPosto=\'' + p.id + '\';abaCron=\'execucao\';render()">Abrir</button></div></div>';
+    }).join('') + '</div>';
+    M().innerHTML = h; return;
+  }
+  const cron = DB.cronograma(pid), podeMontar = isAdmRh();
+  h += '<div class="tabs"><button class="tab' + (abaCron === 'execucao' ? ' active' : '') + '" onclick="abaCron=\'execucao\';render()">Execução da semana</button><button class="tab' + (abaCron === 'montar' ? ' active' : '') + '" onclick="abaCron=\'montar\';render()">' + (podeMontar ? 'Montar cronograma' : 'Cronograma') + '</button></div>';
+  if (!cron) {
+    h += '<div class="card"><h4>' + esc(nomePosto(pid)) + ' ainda não tem cronograma</h4><p>' + (podeMontar ? 'Monte do zero ou copie o de outro condomínio e ajuste.' : 'A administração ainda não montou o cronograma deste condomínio.') + '</p>' +
+      (podeMontar ? '<div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap"><button class="btn btn-gold" onclick="criarCronograma(\'' + pid + '\')">Criar cronograma</button>' + (DB.postos().some(p => p.id !== pid && DB.cronograma(p.id)) ? '<button class="btn btn-outline" onclick="copiarCronograma(\'' + pid + '\')">Copiar de outro condomínio</button>' : '') + '</div>' : '') + '</div>';
+    M().innerHTML = h; return;
+  }
+  h += abaCron === 'montar' ? htmlMontar(pid, cron, podeMontar) : htmlExecucaoCron(pid, cron);
+  M().innerHTML = h;
+}
+
+// ---------- execução ----------
+function htmlExecucaoCron(pid, cron) {
+  const seg = semCron || semanaAtual(), dias = diasDaSemana(new Date(seg + 'T12:00:00')), hoje = isoDia(new Date());
+  const s = statsSemana(pid, cron, seg);
+  const mover = n => { const d = new Date(seg + 'T12:00:00'); d.setDate(d.getDate() + n * 7); return isoDia(d); };
+  let h = '<div class="filters"><button class="btn btn-ghost" onclick="semCron=\'' + mover(-1) + '\';render()">◀</button><b style="font-size:14px">Semana de ' + fmtDiaMes(dias[0]) + ' a ' + fmtDiaMes(dias[6]) + '</b><button class="btn btn-ghost" onclick="semCron=\'' + mover(1) + '\';render()">▶</button>' + (seg !== semanaAtual() ? '<button class="btn btn-outline" onclick="semCron=null;render()">Esta semana</button>' : '') + '</div>';
+  h += '<div class="stats"><div class="stat"><div class="n">' + s.prev + '</div><div class="l">Previstas até hoje</div></div><div class="stat green"><div class="n">' + s.feitas + '</div><div class="l">Feitas</div></div><div class="stat blue"><div class="n">' + s.valid + '</div><div class="l">Validadas</div></div><div class="stat red"><div class="n">' + s.atras + '</div><div class="l">Atrasadas</div></div>' + (s.refazer ? '<div class="stat orange"><div class="n">' + s.refazer + '</div><div class="l">Para refazer</div></div>' : '') + '</div>';
+  dias.forEach(dia => {
+    const wd = new Date(dia + 'T12:00:00').getDay(), ts = DB.tarefasDoDia(cron.id, dia);
+    if (!ts.length) return;
+    h += '<div class="h2" style="font-size:15px">' + DIAS_NOME[wd] + ' · ' + fmtDiaMes(dia) + (dia === hoje ? ' <span class="pill gold">hoje</span>' : '') + '</div><div class="table-wrap"><table><thead><tr><th>Tarefa</th><th>Feito (assinatura)</th><th>Supervisão</th></tr></thead><tbody>' + ts.map(t => {
+      const e = DB.execucao(t.id, dia);
+      let feito, sup = '';
+      if (e) feito = '<span class="pill ' + (e.validacao === 'refazer' ? 'orange' : 'green') + '">' + (e.validacao === 'refazer' ? 'Devolvida' : 'Feito') + '</span><div class="meta">' + esc(e.feitoPor || '') + ' · ' + quando(e.feitoEm) + '</div>' + (e.obs ? '<div class="meta">“' + esc(e.obs) + '”</div>' : '') + (e.fotoPath ? '<div style="margin-top:4px">' + btnFoto(e.fotoPath, 'Foto ' + t.atividade) + '</div>' : '');
+      else feito = dia > hoje ? '<span class="meta">—</span>' : dia < hoje ? '<span class="pill red">Não feito</span>' : '<span class="pill silver">Pendente</span>';
+      if (e && e.validacao === 'ok') sup = '<span class="pill blue">✓ Validado</span><div class="meta">' + esc(e.validadoPor || '') + ' · ' + quando(e.validadoEm) + '</div>';
+      else if (e && e.validacao === 'refazer') sup = '<span class="pill orange">↺ Refazer</span><div class="meta">' + esc(e.validacaoObs || '') + '</div>';
+      if (isGestor()) {
+        if (e && e.validacao !== 'ok' && e.validacao !== 'refazer') sup += '<button class="btn btn-gold" onclick="validarExec(\'' + e.id + '\')">Validar</button> <button class="btn btn-ghost" onclick="refazerExec(\'' + e.id + '\')">Refazer</button>';
+        if (!e && dia <= hoje) sup += '<button class="btn btn-ghost" onclick="feitoPelaSupervisao(\'' + t.id + '\',\'' + dia + '\')">Conferido no local</button>';
+      }
+      return '<tr><td><b>' + esc(t.atividade) + '</b><div class="meta">' + descreverOnde(t) + ' · ' + esc(t.funcao) + '</div></td><td>' + feito + '</td><td>' + (sup || '<span class="meta">—</span>') + '</td></tr>';
+    }).join('') + '</tbody></table></div>';
+  });
+  if (!DB.tarefas(cron.id).length) h += '<div class="empty">O cronograma ainda não tem atividades.</div>';
+  return h;
+}
+const quemSou = () => A.nome || A.email;
+function validarExec(id) { DB.update('cronograma_execucoes', id, { validacao: 'ok', validadoPor: quemSou(), validadoEm: new Date().toISOString(), validacaoObs: null }); toast('✓ Validado'); render(); }
+function refazerExec(id) {
+  abrirModal('<h3>Devolver para refazer</h3><p class="meta">O posto recebe o aviso no celular e marca de novo quando terminar.</p><div class="form"><label>O que precisa ser refeito?</label><input id="rfObs" placeholder="Ex: faltou a calçada do bloco 3"></div><div class="acts"><button class="btn btn-ghost" onclick="fecharModal()">Cancelar</button><button class="btn btn-gold" onclick="confirmarRefazer(\'' + id + '\')">Devolver</button></div>');
+}
+function confirmarRefazer(id) {
+  const o = document.getElementById('rfObs').value.trim(); if (!o) return toast('Escreva o que precisa ser refeito', true);
+  DB.update('cronograma_execucoes', id, { validacao: 'refazer', validadoPor: quemSou(), validadoEm: new Date().toISOString(), validacaoObs: o }); fecharModal(); toast('Devolvido ao posto'); render();
+}
+function feitoPelaSupervisao(tid, dia) {
+  const t = DB.list('cronograma_tarefas').find(x => x.id === tid);
+  DB.push('cronograma_execucoes', { tarefaId: tid, posto: t.posto, data: dia, feitoPor: quemSou() + ' (supervisão)', feitoEm: new Date().toISOString(), validacao: 'ok', validadoPor: quemSou(), validadoEm: new Date().toISOString() });
+  toast('Registrado e validado'); render();
+}
+
+// ---------- montar ----------
+function htmlMontar(pid, cron, podeMontar) {
+  const bl = cron.blocos || [], seq = bl.length && bl.every((b, i) => b === String(i + 1));
+  let h = '';
+  if (podeMontar) h += '<div class="card form"><h4>Dados do cronograma</h4><div class="row"><div><label>Nome</label><input id="crNome" value="' + esc(cron.nome) + '"></div><div><label>Quantidade de blocos / torres</label><input id="crQtd" type="number" min="0" max="200" value="' + (seq ? bl.length : '') + '" placeholder="Ex: 15"></div></div><label>Ou escreva os nomes (separados por vírgula)</label><input id="crNomes" value="' + (seq ? '' : esc(bl.join(', '))) + '" placeholder="Ex: Torre A, Torre B, Torre C"><div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap"><button class="btn btn-gold" onclick="salvarCronograma(\'' + cron.id + '\')">Salvar dados</button><button class="btn btn-outline" onclick="editarTarefa(\'' + cron.id + '\')">+ Adicionar atividade</button></div><p class="meta">Blocos atuais: ' + (bl.length ? esc(compactarBlocos(bl)) : 'nenhum (só área comum)') + '</p></div>';
+  else h += '<p class="meta" style="margin-bottom:12px">' + esc(cron.nome) + ' · ' + (bl.length ? bl.length + ' blocos/torres' : 'sem blocos') + '. Alterações são feitas pela administração ou RH.</p>';
+  h += '<div class="semana">' + DIAS_ORDEM.map(wd => {
+    const ts = DB.tarefas(cron.id).filter(t => (t.dias || []).includes(wd));
+    return '<div class="sem-col"><div class="sem-dia">' + DIAS_CURTO[wd] + '</div>' + (ts.map(t => '<div class="tar-chip"' + (podeMontar ? ' onclick="editarTarefa(\'' + cron.id + '\',\'' + t.id + '\')"' : '') + '><b>' + esc(t.atividade) + '</b><span>' + descreverOnde(t) + '</span><span>' + esc(t.funcao) + '</span></div>').join('') || '<div class="meta" style="text-align:center;padding:8px">—</div>') + '</div>';
+  }).join('') + '</div>';
+  return h;
+}
+function criarCronograma(pid) { DB.push('cronogramas', { posto: pid, nome: 'Cronograma de Limpeza e Conservação', blocos: [], ativo: true }); abaCron = 'montar'; toast('Cronograma criado. Agora informe os blocos e as atividades.'); render(); }
+function copiarCronograma(pid) {
+  const fontes = DB.postos().filter(p => p.id !== pid && DB.cronograma(p.id));
+  abrirModal('<h3>Copiar cronograma</h3><p class="meta">Copia os blocos e todas as atividades. Depois é só ajustar.</p><div class="form"><label>Copiar de</label><select id="cpDe">' + fontes.map(p => '<option value="' + p.id + '">' + esc(p.nome) + ' (' + DB.tarefas(DB.cronograma(p.id).id).length + ' atividades)</option>').join('') + '</select></div><div class="acts"><button class="btn btn-ghost" onclick="fecharModal()">Cancelar</button><button class="btn btn-gold" onclick="executarCopia(\'' + pid + '\')">Copiar</button></div>');
+}
+function executarCopia(pid) {
+  const orig = DB.cronograma(document.getElementById('cpDe').value);
+  const novo = DB.push('cronogramas', { posto: pid, nome: orig.nome, blocos: orig.blocos || [], ativo: true });
+  DB.tarefas(orig.id).forEach(t => DB.push('cronograma_tarefas', { cronogramaId: novo.id, posto: pid, atividade: t.atividade, dias: t.dias, abrangencia: t.abrangencia, blocos: t.blocos || [], funcao: t.funcao, obs: t.obs, ordem: t.ordem, ativo: true }));
+  fecharModal(); abaCron = 'montar'; toast('Cronograma copiado — revise os blocos e dias'); render();
+}
+function salvarCronograma(id) {
+  const nomes = document.getElementById('crNomes').value.split(/[,;\n]/).map(x => x.trim()).filter(Boolean);
+  const qtd = parseInt(document.getElementById('crQtd').value, 10);
+  const blocos = nomes.length ? nomes : (qtd > 0 ? Array.from({ length: qtd }, (_, i) => String(i + 1)) : []);
+  DB.update('cronogramas', id, { nome: document.getElementById('crNome').value.trim() || 'Cronograma', blocos, atualizadoEm: new Date().toISOString() });
+  toast('Cronograma salvo'); render();
+}
+function editarTarefa(cronId, tid) {
+  const cron = DB.list('cronogramas').find(c => c.id === cronId);
+  const t = tid ? DB.list('cronograma_tarefas').find(x => x.id === tid) : { atividade: '', dias: [], abrangencia: 'comum', blocos: [], funcao: 'Aux. Limpeza', obs: '' };
+  const usadas = [...new Set(DB.list('cronograma_tarefas').map(x => x.atividade))];
+  const opcoes = [...new Set(ATIVIDADES_CATALOGO.concat(usadas))].sort((a, b) => a.localeCompare(b, 'pt'));
+  const outra = t.atividade && !opcoes.includes(t.atividade);
+  cronEdit = { cronId, tid, dias: new Set(t.dias || []), blocos: new Set(t.blocos || []), abr: t.abrangencia || 'comum' };
+  abrirModal('<h3>' + (tid ? 'Editar atividade' : 'Nova atividade') + '</h3><div class="form">' +
+    '<label>Atividade</label><select id="taSel" onchange="document.getElementById(\'taOutraBox\').style.display=this.value===\'__outra\'?\'\':\'none\'"><option value="">Escolha na lista...</option>' + opcoes.map(o => '<option' + (o === t.atividade ? ' selected' : '') + '>' + esc(o) + '</option>').join('') + '<option value="__outra"' + (outra ? ' selected' : '') + '>+ Outra atividade (escrever)</option></select>' +
+    '<div id="taOutraBox" style="display:' + (outra ? '' : 'none') + '"><label>Qual atividade?</label><input id="taOutra" value="' + (outra ? esc(t.atividade) : '') + '" placeholder="Ex: Limpeza da casa de máquinas"></div>' +
+    '<label>Dias da semana</label><div class="chips" id="taDias"></div><div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap"><button class="btn btn-ghost" onclick="diasRapido([1,2,3,4,5])">Seg a Sex</button><button class="btn btn-ghost" onclick="diasRapido([1,2,3,4,5,6])">Seg a Sáb</button><button class="btn btn-ghost" onclick="diasRapido([0,1,2,3,4,5,6])">Todos os dias</button><button class="btn btn-ghost" onclick="diasRapido([])">Limpar</button></div>' +
+    '<label>Onde</label><div class="chips" id="taAbr"></div><div class="chips" id="taBlocos" style="margin-top:8px"></div>' +
+    '<div class="row"><div><label>Quem faz</label><select id="taFun">' + FUNCOES.filter(f => f !== 'A definir').map(f => '<option' + (f === t.funcao ? ' selected' : '') + '>' + f + '</option>').join('') + '</select></div><div><label>Observação (opcional)</label><input id="taObs" value="' + esc(t.obs || '') + '"></div></div></div>' +
+    '<div class="acts">' + (tid ? '<button class="btn btn-red" style="margin-right:auto" onclick="removerTarefa(\'' + tid + '\')">Excluir</button>' : '') + '<button class="btn btn-ghost" onclick="fecharModal()">Cancelar</button><button class="btn btn-gold" onclick="salvarTarefa()">Salvar</button></div>');
+  desenharChips(cron);
+}
+function desenharChips(cron) {
+  cron = cron || DB.list('cronogramas').find(c => c.id === cronEdit.cronId);
+  document.getElementById('taDias').innerHTML = DIAS_ORDEM.map(d => '<button class="chip' + (cronEdit.dias.has(d) ? ' on' : '') + '" onclick="cronEdit.dias.has(' + d + ')?cronEdit.dias.delete(' + d + '):cronEdit.dias.add(' + d + ');desenharChips()">' + DIAS_CURTO[d] + '</button>').join('');
+  const temBlocos = (cron.blocos || []).length > 0;
+  document.getElementById('taAbr').innerHTML = [['comum', 'Área comum'], ['todos', 'Todos os blocos'], ['alguns', 'Escolher blocos']].filter(o => temBlocos || o[0] === 'comum').map(o => '<button class="chip' + (cronEdit.abr === o[0] ? ' on' : '') + '" onclick="cronEdit.abr=\'' + o[0] + '\';desenharChips()">' + o[1] + '</button>').join('') + (temBlocos ? '' : '<span class="meta" style="align-self:center">Cadastre os blocos em "Dados do cronograma" para escolher blocos</span>');
+  document.getElementById('taBlocos').innerHTML = cronEdit.abr === 'alguns' ? cron.blocos.map((b, i) => '<button class="chip' + (cronEdit.blocos.has(b) ? ' on' : '') + '" onclick="alternarBloco(' + i + ')">' + esc(b) + '</button>').join('') : '';
+}
+function alternarBloco(i) {
+  const b = DB.list('cronogramas').find(c => c.id === cronEdit.cronId).blocos[i];
+  cronEdit.blocos.has(b) ? cronEdit.blocos.delete(b) : cronEdit.blocos.add(b); desenharChips();
+}
+function diasRapido(l) { cronEdit.dias = new Set(l); desenharChips(); }
+function salvarTarefa() {
+  const sel = document.getElementById('taSel').value, atividade = sel === '__outra' ? document.getElementById('taOutra').value.trim() : sel;
+  if (!atividade) return toast('Escolha ou escreva a atividade', true);
+  if (!cronEdit.dias.size) return toast('Escolha ao menos um dia', true);
+  if (cronEdit.abr === 'alguns' && !cronEdit.blocos.size) return toast('Escolha os blocos', true);
+  const cron = DB.list('cronogramas').find(c => c.id === cronEdit.cronId);
+  const dados = { atividade, dias: [...cronEdit.dias].sort(), abrangencia: cronEdit.abr, blocos: cronEdit.abr === 'alguns' ? [...cronEdit.blocos].sort((a, b) => String(a).localeCompare(String(b), 'pt', { numeric: true })) : [], funcao: document.getElementById('taFun').value, obs: document.getElementById('taObs').value.trim() };
+  if (cronEdit.tid) DB.update('cronograma_tarefas', cronEdit.tid, dados);
+  else DB.push('cronograma_tarefas', Object.assign({ cronogramaId: cron.id, posto: cron.posto, ordem: DB.tarefas(cron.id).length + 1, ativo: true }, dados));
+  fecharModal(); toast('Atividade salva'); render();
+}
+function removerTarefa(tid) { DB.update('cronograma_tarefas', tid, { ativo: false }); fecharModal(); toast('Atividade removida do cronograma'); render(); }
+
+const RENDER = { cronograma: rCronograma, visao: rVisao, postos: rPostos, ocorrencias: rOcorrencias, livro: rLivro, checklist: rChecklist, materiais: rMateriais, encomendas: rEncomendas, avisos: rAvisos, cobertura: rCobertura, colaboradores: rColaboradores, parametros: rParametros, acessos: rAcessos, denuncias: rDenuncias };
 
 // ===================== PÂNICO EM TEMPO REAL =====================
 function sirene() {
@@ -712,9 +916,10 @@ setInterval(() => { tick(); if (A && ['visao', 'postos'].includes(secaoAtual)) a
 (async function () {
   tick();
   if (!Nuvem.configurado()) { document.body.innerHTML = '<div class="erro-cfg"><img src="icons/logo.png" style="height:56px"><h2 style="font-family:var(--title);color:var(--gold);margin:16px 0">Sistema não configurado</h2><p style="color:var(--silver)">Preencha o arquivo config.js com a URL e a chave publicável do Supabase.</p></div>'; return; }
-  A = await Nuvem.iniciar({ aoMudar, aoStatus: atualizarStatus, aoErro: (op, err) => toast('Não foi possível salvar (' + op.tabela + '): ' + (err.message || ''), true) });
+  A = await Nuvem.iniciar({ aoMudar, aoAuth, aoStatus: atualizarStatus, aoErro: (op, err) => toast('Não foi possível salvar (' + op.tabela + '): ' + (err.message || ''), true) });
   if (A && A.papel === 'posto') { await Nuvem.sair(); A = null; }
   if (A) abrirSistema();
+  if (emRecuperacao && Nuvem.sb) { const { data } = await Nuvem.sb.auth.getSession(); if (data && data.session && !modalAberto()) modalSenha(true); }
 })();
 if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
 </script>

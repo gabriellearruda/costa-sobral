@@ -22,9 +22,10 @@ const MODULOS = [
   { id: 'checklist',   nome: 'Checklist' },
   { id: 'encomendas',  nome: 'Encomendas' },
   { id: 'denuncia',    nome: 'Canal de Denúncia' },
+  { id: 'cronograma',  nome: 'Cronograma de limpeza' },
   { id: 'ronda',       nome: 'Ronda (tags NFC)', bloqueado: true }
 ];
-const PARAM_PADRAO = { ocorrencias: true, livro: true, materiais: true, checklist: true, encomendas: true, denuncia: true, ronda: false };
+const PARAM_PADRAO = { ocorrencias: true, livro: true, materiais: true, checklist: true, encomendas: true, denuncia: true, cronograma: true, ronda: false };
 
 // Modos de encomenda. O controle interno (fotos + data/hora) vale SEMPRE.
 const MODOS_ENCOMENDA = {
@@ -60,6 +61,9 @@ const TABELAS = {
   freelancers:    { pk: ['id'], ordem: 'nome', asc: true, papeis: ['adm', 'rh', 'sup'], semTempoReal: true },
   acionamentos:   { pk: ['id'], limite: 100, papeis: ['adm', 'rh', 'sup'], semTempoReal: true },
   acessos:        { pk: ['user_id'], ordem: 'email', asc: true, papeis: ['adm', 'rh'], semTempoReal: true },
+  cronogramas:          { pk: ['id'], ordem: 'nome', asc: true },
+  cronograma_tarefas:   { pk: ['id'], ordem: 'ordem', asc: true },
+  cronograma_execucoes: { pk: ['id'], dias: 35, campoData: 'data', ordem: 'data' },
   integracoes:    { pk: ['posto_id'], ordem: 'posto_id', asc: true, papeis: ['adm'], semTempoReal: true }
 };
 const chaveDe = (tab, rowBanco) => TABELAS[tab].pk.map(k => rowBanco[k]).join('|');
@@ -109,6 +113,7 @@ const Nuvem = {
     Object.assign(this, opts || {});
     if (!this.configurado()) return null;
     this.sb = supabase.createClient(CS_CONFIG.url, CS_CONFIG.chave, { auth: { persistSession: true, autoRefreshToken: true, storageKey: PREFIXO + 'auth' } });
+    if (this.aoAuth) this.sb.auth.onAuthStateChange((ev, s) => setTimeout(() => this.aoAuth(ev, s), 0));
     this.cache = Store.get('cache', {});
     this.acesso = Store.get('acesso', null);
     const { data } = await this.sb.auth.getSession().catch(() => ({ data: {} }));
@@ -156,7 +161,7 @@ const Nuvem = {
     const resultados = await Promise.all(tabs.map(async t => {
       const c = TABELAS[t];
       let q = this.sb.from(t).select('*');
-      if (c.dias) q = q.gte(t === 'confirmacoes' ? 'data_turno' : 'criado_em', isoDia(new Date(Date.now() - c.dias * 86400000)));
+      if (c.dias) q = q.gte(c.campoData || (t === 'confirmacoes' ? 'data_turno' : 'criado_em'), isoDia(new Date(Date.now() - c.dias * 86400000)));
       q = q.order(c.ordem || 'criado_em', { ascending: !!c.asc });
       q = q.limit(c.limite || 5000);
       const { data, error } = await q;
@@ -272,6 +277,21 @@ const Nuvem = {
     return data.signedUrl;
   },
 
+  // ---------- SENHA ----------
+  async trocarSenha(atual, nova) {
+    const email = (this.acesso && this.acesso.email) || ((await this.sb.auth.getUser()).data.user || {}).email;
+    if (atual !== null) { // confirma a senha atual antes de trocar
+      const r = await this.sb.auth.signInWithPassword({ email, password: atual });
+      if (r.error) throw new Error('Senha atual incorreta');
+    }
+    const { error } = await this.sb.auth.updateUser({ password: nova });
+    if (error) throw new Error(/different/i.test(error.message) ? 'A nova senha precisa ser diferente da atual' : /weak|least|short/i.test(error.message) ? 'Senha fraca: use pelo menos 8 caracteres, com letras e números' : error.message);
+  },
+  async esqueciSenha(email, voltarPara) {
+    const { error } = await this.sb.auth.resetPasswordForEmail(email.trim(), { redirectTo: voltarPara });
+    if (error && /rate|seconds/i.test(error.message)) throw new Error('Muitas tentativas. Aguarde alguns minutos e tente de novo.');
+  },
+
   async rpc(nome, args) { const { data, error } = await this.sb.rpc(nome, args); if (error) throw new Error(error.message); return data; }
 };
 
@@ -331,6 +351,11 @@ const DB = {
     Nuvem.gravar({ tabela: 'confirmacoes', tipo: 'upsert', dados: row, conflito: 'colaborador_id,data_turno', ignorar: true });
   },
 
+  cronograma(postoId) { return linhas('cronogramas').find(c => c.posto === postoId && c.ativo !== false); },
+  tarefas(cronId) { return linhas('cronograma_tarefas').filter(t => t.cronogramaId === cronId && t.ativo !== false).sort((a, b) => (a.ordem || 0) - (b.ordem || 0)); },
+  // atividade só conta a partir do dia em que foi criada (não gera "atraso" retroativo)
+  tarefasDoDia(cronId, dataIso) { const wd = new Date(dataIso + 'T12:00:00').getDay(); return this.tarefas(cronId).filter(t => (t.dias || []).includes(wd) && (!t.criadoEm || isoDia(new Date(t.criadoEm)) <= dataIso)); },
+  execucao(tarefaId, dataIso) { return linhas('cronograma_execucoes').find(e => e.tarefaId === tarefaId && e.data === dataIso); },
   avisosDoPosto(postoId) { return this.list('avisos').filter(a => !a.destino || a.destino.includes(postoId)); },
   leitura(avisoId, postoId) { return linhas('avisos_leitura').find(l => l.avisoId === avisoId && l.posto === postoId); }
 };
@@ -536,3 +561,46 @@ function linkWhats(tel, msg) {
   let n = soDigitos(tel); if (n.length <= 11) n = '55' + n;
   return 'https://wa.me/' + n + '?text=' + encodeURIComponent(msg);
 }
+
+
+// ---------- CRONOGRAMA ----------
+const ATIVIDADES_CATALOGO = [
+  'Limpeza da portaria e catação na área externa',
+  'Lavagem da lixeira',
+  'Conservação dos blocos (varrer, corrimão e extintores)',
+  'Lavagem semi-seca dos blocos',
+  'Conservação dos térreos dos blocos',
+  'Limpeza das janelas e vidros dos blocos e salão',
+  'Limpeza do salão',
+  'Limpeza dos elevadores',
+  'Limpeza das escadas',
+  'Limpeza do hall de entrada',
+  'Limpeza da garagem',
+  'Lavagem das calçadas',
+  'Limpeza da academia',
+  'Limpeza da área da piscina',
+  'Limpeza do playground',
+  'Limpeza dos banheiros das áreas comuns',
+  'Retirada do lixo e coleta seletiva',
+  'Rega do jardim',
+  'Limpeza da churrasqueira',
+  'Limpeza dos vidros da portaria'
+];
+const DIAS_ORDEM = [1, 2, 3, 4, 5, 6, 0];
+const DIAS_NOME = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+const DIAS_CURTO = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
+function compactarBlocos(lista) {
+  const nums = lista.map(Number);
+  if (!lista.length || nums.some(isNaN)) return lista.join(', ');
+  const s = [...new Set(nums)].sort((a, b) => a - b), out = []; let ini = s[0], ant = s[0];
+  for (let i = 1; i <= s.length; i++) { if (s[i] === ant + 1) { ant = s[i]; continue; } out.push(ini === ant ? '' + ini : ini + ' a ' + ant); ini = ant = s[i]; }
+  return out.join(', ');
+}
+function descreverOnde(t) {
+  if (t.abrangencia === 'todos') return 'Todos os blocos';
+  if (t.abrangencia === 'alguns') { const bl = t.blocos || []; return bl.some(b => isNaN(Number(b))) ? bl.join(', ') : (bl.length === 1 ? 'Bloco ' : 'Blocos ') + compactarBlocos(bl); }
+  return 'Área comum';
+}
+function inicioSemana(d) { const x = new Date(d); x.setHours(12, 0, 0, 0); const wd = x.getDay(); x.setDate(x.getDate() - (wd === 0 ? 6 : wd - 1)); return x; }
+function diasDaSemana(seg) { return DIAS_ORDEM.map((_, i) => { const x = new Date(seg); x.setDate(x.getDate() + i); return isoDia(x); }); }
+const fmtDiaMes = iso => iso.split('-').reverse().slice(0, 2).join('/');

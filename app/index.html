@@ -333,6 +333,12 @@ details.outros[open] summary::before{content:'▾ '}
   </div>
 </div></div>
 
+<div class="page" id="pg-cronograma"><div class="main">
+  <div class="page-title"><svg viewBox="0 0 24 24"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11zm-8.5-2.5L7 14l1.4-1.4 2.1 2.1 4.6-4.6L16.5 11l-6 6.5z"/></svg>Cronograma</div>
+  <div class="tabs"><button class="tab active" id="crTabHoje" onclick="abaCr='hoje';renderCronograma()">Hoje</button><button class="tab" id="crTabSem" onclick="abaCr='semana';renderCronograma()">Semana</button></div>
+  <div id="crConteudo"></div>
+</div></div>
+
 <div class="page" id="pg-ronda"><div class="main">
   <div class="card" style="text-align:center;padding:36px 16px">
     <svg width="44" height="44" viewBox="0 0 24 24" fill="#555"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
@@ -366,10 +372,11 @@ const IC = {
   ronda: '<path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/>',
   visao: '<path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/>',
   mais: '<path d="M4 8h4V4H4v4zm6 12h4v-4h-4v4zm-6 0h4v-4H4v4zm0-6h4v-4H4v4zm6 0h4v-4h-4v4zm6-10v4h4V4h-4zm-6 4h4V4h-4v4zm6 6h4v-4h-4v4zm0 6h4v-4h-4v4z"/>',
+  cronograma: '<path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11zm-8.5-2.5L7 14l1.4-1.4 2.1 2.1 4.6-4.6L16.5 11l-6 6.5z"/>',
   sair: '<path d="M10.09 15.59L11.5 17l5-5-5-5-1.41 1.41L12.67 11H3v2h9.67l-2.58 2.59zM19 3H5c-1.11 0-2 .9-2 2v4h2V5h14v14H5v-4H3v4c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/>'
 };
 const svg = k => '<svg viewBox="0 0 24 24">' + IC[k] + '</svg>';
-const NOMES = { presenca: 'Presença', avisos: 'Avisos', ocorrencias: 'Ocorrência', livro: 'Livro Ata', materiais: 'Materiais', checklist: 'Checklist', encomendas: 'Encomendas', denuncia: 'Denúncia', ronda: 'Ronda' };
+const NOMES = { cronograma: 'Cronograma', presenca: 'Presença', avisos: 'Avisos', ocorrencias: 'Ocorrência', livro: 'Livro Ata', materiais: 'Materiais', checklist: 'Checklist', encomendas: 'Encomendas', denuncia: 'Denúncia', ronda: 'Ronda' };
 
 // ================= ESTADO =================
 let POSTO_ID = null, P = null, PARAM = null;
@@ -433,7 +440,7 @@ function trocarPosto() {
 async function desconectar() { if (Nuvem.pendentes() && !navigator.onLine) { toast('Conecte à internet antes, há registros a enviar', true); return; } await Nuvem.sair(); location.reload(); }
 
 // ================= NAVEGAÇÃO =================
-function modulosAtivos() { return ['ocorrencias', 'livro', 'materiais', 'checklist', 'encomendas', 'denuncia'].filter(m => PARAM[m]); }
+function modulosAtivos() { return ['cronograma', 'ocorrencias', 'livro', 'materiais', 'checklist', 'encomendas', 'denuncia'].filter(m => PARAM[m]); }
 function avisosNaoLidos() { return DB.avisosDoPosto(POSTO_ID).filter(a => !DB.leitura(a.id, POSTO_ID)); }
 function montarNav() {
   const ativos = modulosAtivos();
@@ -458,7 +465,7 @@ function ir(pg) {
 }
 function renderPagina(pg) {
   ({ presenca: renderPresenca, avisos: renderAvisos, ocorrencias: renderOcorrencias, livro: renderLivro, materiais: renderMateriais,
-     checklist: renderChecklist, encomendas: renderEncomendas }[pg] || (() => {}))();
+     checklist: renderChecklist, encomendas: renderEncomendas, cronograma: renderCronograma }[pg] || (() => {}))();
 }
 // não redesenha a tela enquanto a pessoa digita
 const digitando = () => { const a = document.activeElement; return a && /INPUT|TEXTAREA|SELECT/.test(a.tagName) && a.closest('.page'); };
@@ -740,6 +747,56 @@ function renderEncomendas() {
   document.getElementById('encRet').innerHTML = ret.map(e => '<div class="card"><p><b>' + esc(e.unidade) + '</b> · retirada por ' + esc(e.retiradoPor) + '</p><div class="meta">' + quando(e.retiradoEm) + (e.fotoRetirada ? ' · <a style="color:var(--gold)" onclick="verFoto(\'' + e.fotoRetirada + '\',\'Retirada ' + esc(e.unidade) + '\')">📷 foto</a>' : '') + '</div></div>').join('') || '<div class="empty">—</div>';
 }
 
+// ================= CRONOGRAMA =================
+let abaCr = 'hoje';
+function cartaoTarefa(t, dia) {
+  const hoje = isoDia(new Date()), e = DB.execucao(t.id, dia);
+  let status, acao = '';
+  if (e && e.validacao === 'refazer') { status = '<span class="pill orange">↺ Refazer</span><div class="meta" style="color:var(--orange)">Supervisão: ' + esc(e.validacaoObs || '') + '</div>'; acao = '<button class="btn btn-sm btn-gold" onclick="marcarFeito(\'' + t.id + '\',\'' + dia + '\')">FEITO DE NOVO</button>'; }
+  else if (e) status = '<span class="pill ' + (e.validacao === 'ok' ? 'blue' : 'green') + '">' + (e.validacao === 'ok' ? '✓ Validado' : '✅ Feito') + '</span><div class="meta">' + esc(e.feitoPor || '') + ' · ' + fmtHora(new Date(e.feitoEm)) + (e.validacao === 'ok' ? ' · validado por ' + esc(e.validadoPor || '') : '') + '</div>';
+  else if (dia > hoje) status = '<span class="pill silver">Agendado</span>';
+  else { status = '<span class="pill ' + (dia < hoje ? 'red' : 'silver') + '">' + (dia < hoje ? 'Não feito' : 'Pendente') + '</span>'; acao = '<button class="btn btn-sm btn-gold" onclick="marcarFeito(\'' + t.id + '\',\'' + dia + '\')">' + (dia < hoje ? 'FEITO (ATRASADO)' : 'FEITO') + '</button>'; }
+  return '<div class="card"' + (e && e.validacao === 'refazer' ? ' style="border-color:var(--orange)"' : '') + '><div class="enc"><div style="min-width:0"><h4 style="color:var(--light)">' + esc(t.atividade) + '</h4><p>' + descreverOnde(t) + ' · ' + esc(t.funcao) + (t.obs ? '<br>' + esc(t.obs) : '') + '</p><div style="margin-top:6px">' + status + '</div></div>' + (acao ? '<div class="acts">' + acao + '</div>' : '') + '</div></div>';
+}
+function renderCronograma() {
+  document.getElementById('crTabHoje').classList.toggle('active', abaCr === 'hoje');
+  document.getElementById('crTabSem').classList.toggle('active', abaCr === 'semana');
+  const c = DB.cronograma(POSTO_ID), box = document.getElementById('crConteudo');
+  if (!c) { box.innerHTML = '<div class="empty">Este posto ainda não tem cronograma.<br>A administração monta junto com o síndico.</div>'; return; }
+  const hoje = isoDia(new Date());
+  if (abaCr === 'hoje') {
+    const ts = DB.tarefasDoDia(c.id, hoje), feitas = ts.filter(t => { const e = DB.execucao(t.id, hoje); return e && e.validacao !== 'refazer'; }).length;
+    const wd = new Date().getDay();
+    box.innerHTML = '<div class="sub" style="margin-top:0">' + DIAS_NOME[wd] + ' · ' + fmtDiaMes(hoje) + ' <span class="pill ' + (feitas === ts.length && ts.length ? 'green' : 'gold') + '">' + feitas + '/' + ts.length + ' feitas</span></div>' +
+      (ts.length ? ts.map(t => cartaoTarefa(t, hoje)).join('') : '<div class="empty">Nenhuma atividade programada para hoje.</div>');
+    return;
+  }
+  box.innerHTML = diasDaSemana(inicioSemana(new Date())).map(dia => {
+    const ts = DB.tarefasDoDia(c.id, dia); if (!ts.length) return '';
+    const wd = new Date(dia + 'T12:00:00').getDay();
+    return '<div class="sub">' + DIAS_NOME[wd] + ' · ' + fmtDiaMes(dia) + (dia === hoje ? ' <span class="pill gold">hoje</span>' : '') + '</div>' + ts.map(t => cartaoTarefa(t, dia)).join('');
+  }).join('') || '<div class="empty">Cronograma sem atividades.</div>';
+}
+function marcarFeito(tid, dia) {
+  const t = DB.list('cronograma_tarefas').find(x => x.id === tid);
+  const pessoas = pessoasDoPosto(), pref = pessoas.filter(x => x.colab.funcao === t.funcao).concat(pessoas.filter(x => x.colab.funcao !== t.funcao));
+  abrirModal('<h3>' + esc(t.atividade) + '</h3><p class="hint">' + descreverOnde(t) + ' · ' + DIAS_NOME[new Date(dia + 'T12:00:00').getDay()] + ' ' + fmtDiaMes(dia) + '</p>' +
+    '<div class="form-group"><label>Quem fez</label><select id="cfQuem">' + pref.map(x => '<option>' + esc(x.colab.nome) + '</option>').join('') + '</select></div>' +
+    '<div class="form-group"><label>Observação (opcional)</label><input id="cfObs" autocomplete="off" placeholder="Ex: faltou produto, fiz só metade"></div>' +
+    '<label class="foto-campo" id="cfFotoBox"><span class="prev">📷</span><span><b>Foto (opcional)</b><small>Mostra o serviço feito</small></span><input type="file" accept="image/*" capture="environment" id="cfFoto" onchange="previaFoto(this,\'cfFotoBox\')"></label>' +
+    '<div class="row" style="margin-top:14px"><button class="btn btn-outline" onclick="fecharModal()">CANCELAR</button><button class="btn btn-gold" id="cfBtn" onclick="salvarFeito(\'' + tid + '\',\'' + dia + '\')">CONFIRMAR</button></div>');
+}
+async function salvarFeito(tid, dia) {
+  const btn = document.getElementById('cfBtn'); btn.disabled = true; btn.textContent = 'SALVANDO...';
+  let fotoPath = null; const f = document.getElementById('cfFoto').files[0];
+  if (f) { try { fotoPath = await salvarFoto(f, 'cronograma'); } catch (e) { toast('Não foi possível ler a foto', true); btn.disabled = false; btn.textContent = 'CONFIRMAR'; return; } }
+  const dados = { feitoPor: document.getElementById('cfQuem').value, feitoEm: new Date().toISOString(), obs: document.getElementById('cfObs').value.trim() || null, fotoPath };
+  const e = DB.execucao(tid, dia);
+  if (e) DB.update('cronograma_execucoes', e.id, Object.assign(dados, { validacao: null, validadoPor: null, validadoEm: null, validacaoObs: null }));
+  else DB.push('cronograma_execucoes', Object.assign({ tarefaId: tid, posto: POSTO_ID, data: dia }, dados));
+  fecharModal(); toast('✅ Registrado'); renderCronograma();
+}
+
 // ================= DENÚNCIA =================
 function enviarDenuncia() {
   const tipo = document.getElementById('dnTipo').value, txt = document.getElementById('dnTexto').value.trim();
@@ -795,6 +852,7 @@ function aoMudar(tabela, p) {
   }
   if (!P || tabela === 'postos' || tabela === '*') { const antes = !!P; iniciar(); if (!antes) return; }
   if (tabela === 'colaboradores' || tabela === 'confirmacoes') preencherAutores();
+  if (tabela === 'cronograma_execucoes' && p && p.eventType === 'UPDATE' && p.new.validacao === 'refazer' && (!p.old || p.old.validacao !== 'refazer')) { bip(false); toast('↺ A supervisão pediu para refazer uma atividade do cronograma', true); }
   if (tabela === 'avisos' || tabela === 'avisos_leitura' || tabela === '*') { montarNav(); verificarAvisos(tabela === 'avisos' && p && p.eventType === 'INSERT'); }
   if (!digitando() && !document.getElementById('modal').classList.contains('show')) renderPagina(paginaAtual);
 }
