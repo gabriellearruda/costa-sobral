@@ -175,6 +175,12 @@ details.outros[open] summary::before{content:'▾ '}
 .nav-btn{position:relative}
 .nav-btn .dotn{position:absolute;top:8px;right:calc(50% - 18px);width:9px;height:9px;border-radius:50%;background:var(--red)}
 .erro-cfg{max-width:420px;margin:60px auto;padding:20px;text-align:center}
+.faixa-gestor{display:none;align-items:center;justify-content:space-between;gap:8px;background:rgba(212,175,55,.12);border-bottom:1px solid var(--gold-dark);padding:8px 16px;font-size:12px;color:var(--gold-light)}
+.faixa-gestor.show{display:flex}
+.faixa-gestor a,.faixa-gestor button{background:var(--gold);color:var(--bg);border:none;border-radius:8px;padding:6px 10px;font-size:12px;font-weight:700;text-decoration:none;cursor:pointer;white-space:nowrap}
+.faixa-gestor .sec{background:transparent;color:var(--gold);border:1px solid var(--gold-dark)}
+.tile.sair svg{fill:var(--red)}
+.link-painel{display:block;text-align:center;margin-top:18px;color:var(--gold);font-size:13px}
 </style>
 </head>
 <body>
@@ -190,6 +196,7 @@ details.outros[open] summary::before{content:'▾ '}
     <div class="form-group" id="lgPostoBox" style="display:none"><label>Qual posto é este celular?</label><select id="lgPosto"></select></div>
     <button class="btn btn-gold" id="lgBtn" onclick="fazerLogin()">ENTRAR</button>
     <p class="meta" id="lgMsg" style="text-align:center;margin-top:14px;color:var(--red)"></p>
+    <a class="link-painel" href="painel.html">É administração, RH, supervisor ou condomínio? Acesse o painel de gestão →</a>
   </div>
 </div>
 
@@ -201,6 +208,8 @@ details.outros[open] summary::before{content:'▾ '}
     <span id="hdrData"></span>
   </div>
 </div>
+
+<div class="faixa-gestor" id="faixaGestor"><span id="faixaTxt">Você está no app do posto</span><span style="display:flex;gap:6px"><button class="sec" onclick="trocarPosto()">Trocar posto</button><a href="painel.html">Ir ao painel</a></span></div>
 
 <div class="toast" id="toast"></div>
 
@@ -355,6 +364,7 @@ const IC = {
   encomendas: '<path d="M20 6h-2.18c.11-.31.18-.65.18-1 0-1.66-1.34-3-3-3-1.05 0-1.96.54-2.5 1.35l-.5.67-.5-.68C10.96 2.54 10.05 2 9 2 7.34 2 6 3.34 6 5c0 .35.07.69.18 1H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2z"/>',
   denuncia: '<path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-7 12h-2v-2h2v2zm0-4h-2V6h2v4z"/>',
   ronda: '<path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/>',
+  visao: '<path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/>',
   mais: '<path d="M4 8h4V4H4v4zm6 12h4v-4h-4v4zm-6 0h4v-4H4v4zm0-6h4v-4H4v4zm6 0h4v-4h-4v4zm6-10v4h4V4h-4zm-6 4h4V4h-4v4zm6 6h4v-4h-4v4zm0 6h4v-4h-4v4z"/>',
   sair: '<path d="M10.09 15.59L11.5 17l5-5-5-5-1.41 1.41L12.67 11H3v2h9.67l-2.58 2.59zM19 3H5c-1.11 0-2 .9-2 2v4h2V5h14v14H5v-4H3v4c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/>'
 };
@@ -409,6 +419,17 @@ function abrirConfig() { // 5 toques na logo: sair deste celular
   if (toquesLogo < 5) return; toquesLogo = 0;
   abrirModal('<h3>Desconectar este celular?</h3><p class="hint">O posto vai precisar entrar de novo com e-mail e senha. Registros ainda não enviados: ' + Nuvem.pendentes() + '.</p><div class="row"><button class="btn btn-outline" onclick="fecharModal()">CANCELAR</button><button class="btn btn-gold" onclick="desconectar()">DESCONECTAR</button></div>');
 }
+const ehGestor = () => Nuvem.acesso && ['adm', 'rh', 'sup'].includes(Nuvem.acesso.papel);
+function pedirSair() {
+  const msg = ehGestor() ? 'Você vai sair da sua conta neste aparelho.' : 'O celular do posto vai precisar entrar de novo com e-mail e senha.';
+  abrirModal('<h3>Sair da conta?</h3><p class="hint">' + msg + (Nuvem.pendentes() ? ' Registros ainda não enviados: ' + Nuvem.pendentes() + '.' : '') + '</p><div class="row"><button class="btn btn-outline" onclick="fecharModal()">CANCELAR</button><button class="btn btn-gold" onclick="desconectar()">SAIR</button></div>');
+}
+function trocarPosto() {
+  Store.del('device_posto'); POSTO_ID = null; P = null;
+  document.getElementById('lgPosto').innerHTML = DB.postos().map(p => '<option value="' + p.id + '">' + esc(p.nome) + '</option>').join('');
+  document.getElementById('lgPostoBox').style.display = ''; document.getElementById('lgBtn').textContent = 'USAR ESTE POSTO';
+  abrirSetup();
+}
 async function desconectar() { if (Nuvem.pendentes() && !navigator.onLine) { toast('Conecte à internet antes, há registros a enviar', true); return; } await Nuvem.sair(); location.reload(); }
 
 // ================= NAVEGAÇÃO =================
@@ -422,7 +443,9 @@ function montarNav() {
   let html = principais.map(m => '<button class="nav-btn' + (m === paginaAtual ? ' active' : '') + '" onclick="ir(\'' + m + '\')" data-pg="' + m + '">' + svg(m) + (m === 'avisos' && nl ? '<i class="dotn"></i>' : '') + '<span>' + NOMES[m] + '</span></button>').join('');
   html += '<button class="nav-btn' + (!principais.includes(paginaAtual) ? ' active' : '') + '" onclick="ir(\'mais\')" data-pg="mais">' + svg('mais') + '<span>Mais</span></button>';
   document.getElementById('nav').innerHTML = html;
-  document.getElementById('maisGrid').innerHTML = resto.map(m => '<div class="tile' + (m === 'ronda' && !PARAM.ronda ? ' off' : '') + '" onclick="ir(\'' + m + '\')">' + svg(m) + NOMES[m] + '</div>').join('');
+  document.getElementById('maisGrid').innerHTML = resto.map(m => '<div class="tile' + (m === 'ronda' && !PARAM.ronda ? ' off' : '') + '" onclick="ir(\'' + m + '\')">' + svg(m) + NOMES[m] + '</div>').join('') +
+    (ehGestor() ? '<div class="tile" onclick="location.href=\'painel.html\'">' + svg('visao') + 'Painel de gestão</div><div class="tile" onclick="trocarPosto()">' + svg('presenca') + 'Trocar posto</div>' : '') +
+    '<div class="tile sair" onclick="pedirSair()">' + svg('sair') + 'Sair da conta</div>';
   montarNav.principais = principais;
 }
 function ir(pg) {
@@ -758,6 +781,9 @@ function iniciar() {
   }
   PARAM = DB.params(POSTO_ID);
   document.getElementById('hdrPosto').textContent = P.nome;
+  const fx = document.getElementById('faixaGestor');
+  fx.classList.toggle('show', ehGestor());
+  if (ehGestor()) document.getElementById('faixaTxt').textContent = 'App do posto · ' + P.nome + ' (' + ({ adm: 'administrador', rh: 'RH', sup: 'supervisor' }[Nuvem.acesso.papel]) + ')';
   document.title = 'C&S · ' + P.nome;
   if (!['presenca', 'avisos', 'ronda', 'mais'].includes(paginaAtual) && !PARAM[paginaAtual]) paginaAtual = 'presenca';
   montarNav(); preencherAutores(); if (!digitando()) ir(paginaAtual); verificarAvisos(false);
