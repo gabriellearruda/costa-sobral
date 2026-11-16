@@ -181,6 +181,28 @@ details.outros[open] summary::before{content:'▾ '}
 .faixa-gestor .sec{background:transparent;color:var(--gold);border:1px solid var(--gold-dark)}
 .tile.sair svg{fill:var(--red)}
 .link-painel{display:block;text-align:center;margin-top:18px;color:var(--gold);font-size:13px}
+/* ---- ocorrências com local na planta ---- */
+.prio-chips{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.prio-chips button{padding:11px 4px;border-radius:10px;border:1px solid var(--bg4);background:var(--bg2);color:var(--silver);font-size:12.5px;font-weight:700;cursor:pointer}
+.prio-chips button.on{color:#111;border-color:transparent}
+.emerg{background:rgba(248,81,73,.12);border:1px solid var(--red);border-radius:var(--radius);padding:12px;font-size:13px;line-height:1.5;margin-bottom:14px}
+.emerg b{color:var(--red)}
+.tels{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
+.tels a{display:block;text-align:center;background:var(--red);color:#fff;text-decoration:none;font-weight:700;border-radius:9px;padding:10px 4px;font-size:13px}
+.local-box{background:var(--bg2);border:1px solid var(--bg3);border-radius:var(--radius);padding:12px;display:flex;flex-direction:column;gap:10px}
+.local-box select,.local-box input{width:100%;padding:12px;border:1px solid var(--bg4);border-radius:10px;background:var(--bg);color:var(--light);font-size:16px}
+.local-esc{display:flex;align-items:center;gap:10px;font-size:14px}
+.local-esc .pin{font-size:22px}
+.local-esc small{display:block;color:var(--silver);font-size:12px}
+.oc-card{border-left:4px solid var(--bg4);cursor:pointer}
+.oc-card h4{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.tline{border-left:2px solid var(--bg4);margin:6px 0 4px 6px;padding-left:12px}
+.tline div{position:relative;font-size:13px;color:var(--light);padding:0 0 10px;line-height:1.45}
+.tline div::before{content:'';position:absolute;left:-18px;top:5px;width:10px;height:10px;border-radius:50%;background:var(--gold-dark)}
+.tline small{display:block;color:#888;font-size:11px}
+.oc-fatos{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}
+.oc-fatos div{background:var(--bg3);border-radius:9px;padding:8px 10px;font-size:13px}
+.oc-fatos small{display:block;color:#888;font-size:10.5px;text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px}
 </style>
 </head>
 <body>
@@ -253,17 +275,39 @@ details.outros[open] summary::before{content:'▾ '}
 
 <div class="page" id="pg-ocorrencias"><div class="main">
   <div class="page-title"><svg viewBox="0 0 24 24"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>Ocorrências</div>
-  <div class="form-group"><label>Quem está registrando</label><select id="ocAutor" class="selAutor"></select></div>
+  <!-- versão clássica (condomínios com "versão nova" desligada em Parâmetros) -->
+  <div id="ocClassica" style="display:none">
+  <div class="form-group"><label>Quem está registrando</label><select id="occAutor" class="selAutor"></select></div>
   <div class="form-group"><label>Categoria</label>
-    <select id="ocCat"><option value="">Selecione...</option><option>🔧 Manutenção</option><option>🔒 Segurança</option><option>🧹 Limpeza</option><option>👥 Morador / visitante</option><option>📋 Outro</option></select></div>
-  <div class="form-group"><label>O que aconteceu</label><textarea id="ocDesc" autocomplete="off" placeholder="Descreva a ocorrência..."></textarea></div>
+    <select id="occCat"><option value="">Selecione...</option><option>🔧 Manutenção</option><option>🔒 Segurança</option><option>🧹 Limpeza</option><option>👥 Morador / visitante</option><option>📋 Outro</option></select></div>
+  <div class="form-group"><label>O que aconteceu</label><textarea id="occDesc" autocomplete="off" placeholder="Descreva a ocorrência..."></textarea></div>
+  <div class="form-group">
+    <label class="foto-campo" id="occFotoBox"><span class="prev">📷</span><span><b>Foto (opcional)</b><small>Toque para fotografar</small></span><input type="file" accept="image/*" capture="environment" id="occFoto" onchange="previaFoto(this,'occFotoBox')"></label>
+  </div>
+  <button class="btn btn-gold" onclick="registrarOcorrenciaClassica()">REGISTRAR OCORRÊNCIA</button>
+  <div class="divider"></div>
+  <div class="sub">Últimas ocorrências</div>
+  <div id="occLista"></div>
+  </div>
+  <!-- versão nova -->
+  <div id="ocNova">
+  <div class="form-group"><label>Quem está registrando</label><select id="ocAutor" class="selAutor"></select></div>
+  <div class="form-group"><label>O que aconteceu</label><select id="ocCat" onchange="ocMudouCategoria()"></select></div>
+  <div class="form-group" id="ocOutroBox" style="display:none"><label>Escreva o que aconteceu</label><input id="ocOutro" autocomplete="off" placeholder="Ex.: Ralo entupido"></div>
+  <div class="form-group"><label>Prioridade</label><div class="prio-chips" id="ocPrio"></div></div>
+  <div class="emerg" id="ocEmerg" style="display:none"><b>Emergência:</b> a supervisão e o síndico veem na hora no painel. Havendo risco, ligue:<div class="tels"></div></div>
+  <div class="form-group"><label>Onde foi</label>
+    <div class="local-box" id="ocLocalBox"></div>
+  </div>
+  <div class="form-group"><label>Detalhes (opcional)</label><textarea id="ocDesc" autocomplete="off" placeholder="O que você viu? A área foi isolada?"></textarea></div>
   <div class="form-group">
     <label class="foto-campo" id="ocFotoBox"><span class="prev">📷</span><span><b>Foto (opcional)</b><small>Toque para fotografar</small></span><input type="file" accept="image/*" capture="environment" id="ocFoto" onchange="previaFoto(this,'ocFotoBox')"></label>
   </div>
-  <button class="btn btn-gold" onclick="registrarOcorrencia()">REGISTRAR OCORRÊNCIA</button>
+  <button class="btn btn-gold" id="ocBtn" onclick="registrarOcorrencia()">REGISTRAR OCORRÊNCIA</button>
   <div class="divider"></div>
-  <div class="sub">Últimas ocorrências</div>
+  <div class="tabs" id="ocFiltro"><button class="tab active" data-f="abertas" onclick="ocFiltrar('abertas')">Em aberto</button><button class="tab" data-f="resolvidas" onclick="ocFiltrar('resolvidas')">Resolvidas</button></div>
   <div id="ocLista"></div>
+  </div>
 </div></div>
 
 <div class="page" id="pg-livro"><div class="main">
@@ -584,20 +628,148 @@ function renderAvisos() {
 }
 
 // ================= OCORRÊNCIAS =================
+// local = { x, y, areaId, torre, andar, nome } (x, y em % da planta)
+let ocForm = { prio: null, prioManual: false, local: null, localTxt: '' }, ocFiltro = 'abertas', ocTmp = null;
+function ocMontarCategorias() {
+  const sel = document.getElementById('ocCat'); if (sel.options.length) return;
+  sel.innerHTML = '<option value="">Escolha...</option>' + Object.entries(OC_CATEGORIAS).map(([g, l]) => '<optgroup label="' + esc(g) + '">' + l.map(x => '<option value="' + esc(g + '|' + x) + '">' + esc(x) + '</option>').join('') + '</optgroup>').join('');
+}
+function ocMudouCategoria() {
+  const [g, item] = (document.getElementById('ocCat').value || '|').split('|');
+  document.getElementById('ocOutroBox').style.display = g === 'Outro' ? '' : 'none';
+  if (!ocForm.prioManual) ocForm.prio = g ? prioridadeSugerida(g, item) : null;
+  ocDesenharPrio();
+}
+function ocDesenharPrio() {
+  document.getElementById('ocPrio').innerHTML = Object.entries(OC_PRIORIDADES).map(([k, p]) => '<button type="button" class="' + (ocForm.prio === k ? 'on' : '') + '"' + (ocForm.prio === k ? ' style="background:' + p.cor + '"' : '') + ' onclick="ocEscolherPrio(\'' + k + '\')">' + p.nome + '</button>').join('');
+  const em = document.getElementById('ocEmerg'); em.style.display = ocForm.prio === 'emergencia' ? '' : 'none';
+  em.querySelector('.tels').innerHTML = OC_TELEFONES.map(([n, t]) => '<a href="tel:' + t + '">' + n + ' · ' + t + '</a>').join('');
+}
+function ocEscolherPrio(k) { ocForm.prio = k; ocForm.prioManual = true; ocDesenharPrio(); }
+const temPlanta = pid => !!(DB.mapa(pid) || {}).plantaPath;
+function opcoesAreas(pid, selId) {
+  const grupos = {}; DB.areas(pid).forEach(a => (grupos[a.grupo || 'Locais'] = grupos[a.grupo || 'Locais'] || []).push(a));
+  return Object.entries(grupos).map(([g, l]) => '<optgroup label="' + esc(g) + '">' + l.map(a => '<option value="' + a.id + '"' + (a.id === selId ? ' selected' : '') + '>' + esc(a.nome) + '</option>').join('') + '</optgroup>').join('');
+}
+function ocDesenharLocal() {
+  const box = document.getElementById('ocLocalBox'), planta = temPlanta(POSTO_ID), temAreas = DB.areas(POSTO_ID).length, L = ocForm.local;
+  const area = L && L.areaId ? DB.area(L.areaId) : null;
+  let h = '';
+  if (L && L.x != null) h += '<div class="local-esc"><span class="pin">📍</span><span><b>' + esc(L.nome || 'Ponto marcado na planta') + '</b><small>' + (L.nome ? 'Marcado na planta' : 'Fora dos locais cadastrados') + '</small></span><button type="button" class="btn btn-outline btn-sm" style="margin-left:auto" onclick="ocLimparLocal()">Limpar</button></div>';
+  if (planta) h += '<button type="button" class="btn btn-outline" onclick="ocAbrirPlanta()">' + (L && L.x != null ? '📍 MUDAR NA PLANTA' : '📍 MARCAR NA PLANTA') + '</button>';
+  if (temAreas) h += '<select id="ocArea" onchange="ocEscolherArea(this.value)"><option value="">' + (planta ? 'ou escolha o local na lista' : 'Escolha o local') + '</option>' + opcoesAreas(POSTO_ID, area && area.id) + '</select>';
+  if (area && area.tipo === 'torre') h += '<select id="ocAndar" onchange="ocForm.local.andar = this.value === \'\' ? null : +this.value"><option value="">Andar (se souber)</option>' + Array.from({ length: (area.andares || 0) + 1 }, (_, i) => '<option value="' + i + '"' + (L.andar === i ? ' selected' : '') + '>' + andarNome(i) + '</option>').join('') + '</select>';
+  h += '<input id="ocLocalTxt" autocomplete="off" oninput="ocForm.localTxt=this.value" placeholder="' + (temAreas || planta ? 'Detalhe do local (opcional)' : 'Local: ex. garagem, bloco 3, portão') + '" value="' + esc(ocForm.localTxt) + '">';
+  box.innerHTML = h;
+}
+function ocLimparLocal() { ocForm.local = null; ocDesenharLocal(); }
+function localDaArea(a) { return { x: a.x, y: a.y, areaId: a.id, torre: torreDaArea(a), andar: null, nome: a.nome }; }
+function ocEscolherArea(id) {
+  const a = id && DB.area(id);
+  ocForm.local = a ? localDaArea(a) : null;
+  ocDesenharLocal();
+}
+function ocAbrirPlanta() {
+  ocTmp = ocForm.local && ocForm.local.x != null ? Object.assign({}, ocForm.local) : null;
+  abrirModal('<h3>Toque onde aconteceu</h3><p class="hint" style="margin-bottom:8px">Arraste para ver o resto da planta. Use + e − para aproximar.</p><div id="ocPlanta"></div><div id="ocPlantaSel" class="local-esc" style="margin:12px 0"></div><div class="row"><button class="btn btn-outline" onclick="fecharModal()">CANCELAR</button><button class="btn btn-gold" id="ocPlantaOk" onclick="ocConfirmarPlanta()">CONFIRMAR</button></div>');
+  ocDesenharPlanta(true);
+}
+function ocDesenharPlanta(primeira) {
+  Planta.montar(document.getElementById('ocPlanta'), {
+    postoId: POSTO_ID, maxAltura: '52vh', foco: primeira && ocTmp ? { x: ocTmp.x, y: ocTmp.y } : null,
+    pinos: ocTmp ? [{ x: ocTmp.x, y: ocTmp.y, cor: '#D4AF37', novo: true }] : [],
+    aoTocar: (x, y, prop) => { const a = localMaisProximo(POSTO_ID, x, y, prop); ocTmp = { x, y, areaId: a ? a.id : null, torre: torreDaArea(a), andar: null, nome: a ? a.nome : null }; ocDesenharPlanta(false); }
+  });
+  document.getElementById('ocPlantaSel').innerHTML = ocTmp ? '<span class="pin">📍</span><span><b>' + esc(ocTmp.nome ? 'Perto de: ' + ocTmp.nome : 'Ponto marcado') + '</b><small>Toque de novo para mudar</small></span>' : '<span class="hint" style="margin:0">Nenhum ponto marcado ainda.</span>';
+  document.getElementById('ocPlantaOk').disabled = !ocTmp;
+}
+function ocConfirmarPlanta() { if (!ocTmp) return; ocForm.local = ocTmp; fecharModal(); ocDesenharLocal(); }
 async function registrarOcorrencia() {
-  const cat = document.getElementById('ocCat').value, desc = document.getElementById('ocDesc').value.trim();
-  if (!cat || !desc) { toast('Preencha categoria e descrição', true); return; }
+  const v = document.getElementById('ocCat').value;
+  if (!v) { toast('Escolha o que aconteceu', true); return; }
+  let [cat, titulo] = v.split('|');
+  if (cat === 'Outro') { titulo = document.getElementById('ocOutro').value.trim(); if (!titulo) { toast('Escreva o que aconteceu', true); return; } }
+  const desc = document.getElementById('ocDesc').value.trim(), autor = document.getElementById('ocAutor').value;
   const f = document.getElementById('ocFoto').files[0];
   let fotoPath = null;
   if (f) { try { fotoPath = await salvarFoto(f, 'ocorrencias'); } catch (e) { toast('Não foi possível ler a foto', true); return; } }
-  DB.push('ocorrencias', { posto: POSTO_ID, categoria: cat, descricao: desc, autor: document.getElementById('ocAutor').value, status: 'aberta', fotoPath });
-  document.getElementById('ocCat').value = ''; document.getElementById('ocDesc').value = ''; limparFoto('ocFoto', 'ocFotoBox', 'Toque para fotografar');
+  const L = ocForm.local || {}, detalhe = (ocForm.localTxt || '').trim();
+  const prio = ocForm.prio || prioridadeSugerida(cat, titulo);
+  DB.novaOcorrencia({
+    posto: POSTO_ID, categoria: cat, titulo, descricao: desc || titulo, autor, prioridade: prio, origem: 'posto', fotoPath,
+    localNome: [L.nome, detalhe].filter(Boolean).join(' · ') || null, areaId: L.areaId || null,
+    mapaX: L.x != null ? L.x : null, mapaY: L.y != null ? L.y : null, torre: L.torre || null, andar: L.andar != null ? L.andar : null
+  }, 'Registrada pela portaria' + (autor ? ' · ' + autor : ''));
+  document.getElementById('ocCat').value = ''; document.getElementById('ocDesc').value = ''; document.getElementById('ocOutro').value = '';
+  document.getElementById('ocOutroBox').style.display = 'none';
+  limparFoto('ocFoto', 'ocFotoBox', 'Toque para fotografar');
+  ocForm = { prio: null, prioManual: false, local: null, localTxt: '' };
+  ocFiltrar('abertas'); window.scrollTo(0, 0);
+  if (prio === 'emergencia') abrirModal('<h3 style="color:var(--red)">🚨 Emergência registrada</h3><p class="hint">A supervisão e o síndico já veem no painel. Havendo risco, ligue agora:</p><div class="tels" style="margin-bottom:14px">' + OC_TELEFONES.map(([n, t]) => '<a href="tel:' + t + '">' + n + ' · ' + t + '</a>').join('') + '</div><button class="btn btn-outline" onclick="fecharModal()">FECHAR</button>');
+  else toast('✅ Ocorrência registrada');
+}
+function ocFiltrar(f) { ocFiltro = f; document.querySelectorAll('#ocFiltro .tab').forEach(b => b.classList.toggle('active', b.dataset.f === f)); renderOcorrencias(); }
+function cartaoOcorrencia(o) {
+  const st = OC_STATUS[o.status] || OC_STATUS.aberta, local = ocLocal(o), n = DB.historico(o.id).length;
+  return '<div class="card oc-card" style="border-left-color:' + (o.status === 'resolvida' ? '#444' : ocPrioridade(o).cor) + '" onclick="ocAbrir(\'' + o.id + '\')"><h4><span>' + (o.prioridade === 'emergencia' && o.status !== 'resolvida' ? '🚨 ' : '') + esc(ocTitulo(o)) + '</span><span class="pill ' + st[1] + '">' + st[0] + '</span></h4>' +
+    (local ? '<p>📍 ' + esc(local) + '</p>' : '') + '<div class="meta">' + esc(o.autor || '') + ' · ' + quando(o.criadoEm) + (o.fotoPath ? ' · 📷' : '') + (n > 1 ? ' · ' + (n - 1) + (n > 2 ? ' atualizações' : ' atualização') : '') + '</div></div>';
+}
+// ---- versão clássica ----
+async function registrarOcorrenciaClassica() {
+  const cat = document.getElementById('occCat').value, desc = document.getElementById('occDesc').value.trim();
+  if (!cat || !desc) { toast('Preencha categoria e descrição', true); return; }
+  const f = document.getElementById('occFoto').files[0];
+  let fotoPath = null;
+  if (f) { try { fotoPath = await salvarFoto(f, 'ocorrencias'); } catch (e) { toast('Não foi possível ler a foto', true); return; } }
+  DB.push('ocorrencias', { posto: POSTO_ID, categoria: cat, descricao: desc, autor: document.getElementById('occAutor').value, status: 'aberta', fotoPath });
+  document.getElementById('occCat').value = ''; document.getElementById('occDesc').value = ''; limparFoto('occFoto', 'occFotoBox', 'Toque para fotografar');
   toast('✅ Ocorrência registrada'); renderOcorrencias();
 }
-function renderOcorrencias() {
+function renderOcorrenciasClassica() {
   const l = DB.list('ocorrencias').filter(o => o.posto === POSTO_ID).slice(0, 15);
-  const st = { aberta: ['Aberta', 'red'], andamento: ['Em andamento', 'orange'], resolvida: ['Resolvida', 'green'] };
-  document.getElementById('ocLista').innerHTML = l.length ? l.map(o => '<div class="card"><h4>' + esc(o.categoria) + ' <span class="pill ' + st[o.status][1] + '">' + st[o.status][0] + '</span></h4><p>' + esc(o.descricao) + '</p><div class="meta">' + esc(o.autor || '') + ' · ' + quando(o.criadoEm) + (o.fotoPath ? ' · <a style="color:var(--gold)" onclick="verFoto(\'' + o.fotoPath + '\',\'Foto da ocorrência\')">📷 ver foto</a>' : '') + '</div></div>').join('') : '<div class="empty">Nenhuma ocorrência registrada.</div>';
+  document.getElementById('occLista').innerHTML = l.length ? l.map(o => { const st = OC_STATUS[o.status] || OC_STATUS.aberta;
+    return '<div class="card"><h4>' + esc(o.categoria) + ' <span class="pill ' + st[1] + '">' + st[0] + '</span></h4><p>' + esc(o.descricao) + '</p><div class="meta">' + esc(o.autor || '') + ' · ' + quando(o.criadoEm) + (o.fotoPath ? ' · <a style="color:var(--gold)" onclick="verFoto(\'' + o.fotoPath + '\',\'Foto da ocorrência\')">📷 ver foto</a>' : '') + '</div></div>'; }).join('') : '<div class="empty">Nenhuma ocorrência registrada.</div>';
+}
+function renderOcorrencias() {
+  const nova = !!PARAM.ocnova;
+  document.getElementById('ocNova').style.display = nova ? '' : 'none';
+  document.getElementById('ocClassica').style.display = nova ? 'none' : '';
+  if (!nova) { renderOcorrenciasClassica(); return; }
+  ocMontarCategorias(); ocDesenharPrio();
+  if (!digitando()) ocDesenharLocal();
+  const todas = DB.list('ocorrencias').filter(o => o.posto === POSTO_ID);
+  const l = ocFiltro === 'abertas'
+    ? todas.filter(o => o.status !== 'resolvida').sort((a, b) => (a.prioridade === 'emergencia' ? 0 : 1) - (b.prioridade === 'emergencia' ? 0 : 1))
+    : todas.filter(o => o.status === 'resolvida').slice(0, 30);
+  document.getElementById('ocLista').innerHTML = l.length ? l.map(cartaoOcorrencia).join('') : '<div class="empty">' + (ocFiltro === 'abertas' ? 'Nenhuma ocorrência em aberto.' : 'Nenhuma ocorrência resolvida ainda.') + '</div>';
+}
+function ocAbrir(id) {
+  const o = DB.list('ocorrencias').find(x => x.id === id); if (!o) return;
+  const st = OC_STATUS[o.status] || OC_STATUS.aberta, pr = ocPrioridade(o), local = ocLocal(o), mini = o.mapaX != null && temPlanta(o.posto);
+  abrirModal('<h3>' + esc(ocTitulo(o)) + '</h3><div style="display:flex;gap:6px;flex-wrap:wrap"><span class="pill ' + pr.pill + '">' + pr.nome + '</span><span class="pill ' + st[1] + '">' + st[0] + '</span><span class="pill silver">' + esc(o.categoria || '') + '</span></div>' +
+    '<div class="oc-fatos"><div><small>Local</small>' + esc(local || '—') + '</div><div><small>Aberta</small>' + quando(o.criadoEm) + '</div><div><small>Registrada por</small>' + esc(o.autor || '—') + '</div><div><small>Responsável</small>' + esc(o.responsavel || 'A definir') + '</div></div>' +
+    (o.descricao && o.descricao !== o.titulo ? '<p style="font-size:14px;line-height:1.5;margin-bottom:10px;white-space:pre-wrap">' + esc(o.descricao) + '</p>' : '') +
+    (o.fotoPath ? '<div id="ocFotoDet" class="hint">Carregando foto...</div>' : '') +
+    (mini ? '<div id="ocMini" style="margin:10px 0"></div>' : '') +
+    '<div class="sub">Histórico</div><div class="tline">' + DB.historico(id).map(h => '<div>' + esc(h.texto) + '<small>' + quando(h.criadoEm) + (h.autor && h.texto.indexOf(h.autor) < 0 ? ' · ' + esc(h.autor) : '') + '</small></div>').join('') + '</div>' +
+    (o.status !== 'resolvida' ? '<div class="form-group" style="margin-top:10px"><label>Adicionar atualização</label><input id="ocUpd" autocomplete="off" placeholder="Ex.: Área isolada com cone"></div><button class="btn btn-gold" onclick="ocAtualizar(\'' + id + '\')">ADICIONAR</button><p class="hint" style="margin-top:12px">O atendimento e a conclusão são marcados pela supervisão no painel.</p>' : '') +
+    '<button class="btn btn-outline" style="margin-top:8px" onclick="fecharModal()">FECHAR</button>');
+  if (mini) Planta.montar(document.getElementById('ocMini'), { postoId: o.posto, maxAltura: '240px', foco: { x: +o.mapaX, y: +o.mapaY }, pinos: [{ x: o.mapaX, y: o.mapaY, cor: pr.cor, titulo: ocTitulo(o) }] });
+  if (o.fotoPath) (navigator.onLine ? Nuvem.urlFoto(o.fotoPath) : Promise.resolve(null)).then(u => { const el = document.getElementById('ocFotoDet'); if (el) el.innerHTML = u ? '<img src="' + u + '" style="width:100%;border-radius:12px;margin-bottom:6px" alt="Foto da ocorrência">' : 'A foto ainda está sendo enviada ou o celular está sem internet.'; });
+}
+function ocAtualizar(id) {
+  const t = document.getElementById('ocUpd').value.trim(); if (!t) { toast('Escreva a atualização', true); return; }
+  const o = DB.list('ocorrencias').find(x => x.id === id);
+  DB.push('ocorrencias_historico', { ocorrenciaId: id, posto: o.posto, texto: t, autor: document.getElementById('ocAutor').value || 'Portaria' });
+  toast('✅ Atualização registrada'); ocAbrir(id);
+}
+// ocorrência aberta pelo síndico ou pela supervisão chega na hora no posto
+function ocAlertaNova(o) {
+  const local = ocLocal(o);
+  if (o.prioridade === 'emergencia') {
+    bip(true);
+    abrirModal('<h3 style="color:var(--red)">🚨 Emergência registrada</h3><p style="font-size:17px;font-weight:700;margin-bottom:6px">' + esc(ocTitulo(o)) + '</p>' + (local ? '<p class="hint">📍 ' + esc(local) + '</p>' : '') + '<p class="hint">Aberta por ' + esc(o.autor || 'gestão') + '.</p><div class="row"><button class="btn btn-outline" onclick="fecharModal()">FECHAR</button><button class="btn btn-gold" onclick="fecharModal();ir(\'ocorrencias\');ocAbrir(\'' + o.id + '\')">VER</button></div>');
+  } else { bip(false); toast('Nova ocorrência: ' + ocTitulo(o) + (local ? ' · ' + local : '')); }
 }
 
 // ================= LIVRO ATA =================
@@ -685,7 +857,8 @@ function enviarChecklist() {
   const itens = cl.itens.map((it, i) => ({ item: it, ok: ckEstado[i].v === 'ok', obs: ckEstado[i].obs || '' }));
   DB.push('checklists', { posto: POSTO_ID, tipo: ckTipo, autor, itens });
   const probs = itens.filter(x => !x.ok);
-  probs.forEach(p => DB.push('ocorrencias', { posto: POSTO_ID, categoria: '📋 Checklist ' + cl.nome, descricao: p.item + (p.obs ? ' — ' + p.obs : ''), autor, status: 'aberta', origem: 'checklist' }));
+  if (!PARAM.ocnova) probs.forEach(p => DB.push('ocorrencias', { posto: POSTO_ID, categoria: '📋 Checklist ' + cl.nome, descricao: p.item + (p.obs ? ' — ' + p.obs : ''), autor, status: 'aberta', origem: 'checklist' }));
+  else probs.forEach(p => DB.novaOcorrencia({ posto: POSTO_ID, categoria: 'Checklist ' + cl.nome, titulo: p.item, descricao: p.item + (p.obs ? ' — ' + p.obs : ''), autor, prioridade: 'media', origem: 'checklist' }, 'Gerada pelo checklist' + (autor ? ' · ' + autor : '')));
   ckEstado = {}; renderChecklist();
   toast(probs.length ? '✅ Checklist enviado · ' + probs.length + ' ocorrência(s) criada(s)' : '✅ Checklist enviado — tudo OK');
 }
@@ -856,6 +1029,7 @@ function aoMudar(tabela, p) {
   if (!P || tabela === 'postos' || tabela === '*') { const antes = !!P; iniciar(); if (!antes) return; }
   if (tabela === 'colaboradores' || tabela === 'confirmacoes') preencherAutores();
   if (tabela === 'cronograma_execucoes' && p && p.eventType === 'UPDATE' && p.new.validacao === 'refazer' && (!p.old || p.old.validacao !== 'refazer')) { bip(false); toast('↺ A supervisão pediu para refazer uma atividade do cronograma', true); }
+  if (tabela === 'ocorrencias' && p && p.eventType === 'INSERT' && p.new && p.new.posto_id === POSTO_ID && p.new.origem === 'painel' && PARAM.ocorrencias && PARAM.ocnova) ocAlertaNova(paraTela(p.new));
   if (tabela === 'avisos' || tabela === 'avisos_leitura' || tabela === '*') { montarNav(); verificarAvisos(tabela === 'avisos' && p && p.eventType === 'INSERT'); }
   if (!digitando() && !document.getElementById('modal').classList.contains('show')) renderPagina(paginaAtual);
 }

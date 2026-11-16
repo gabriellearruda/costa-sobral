@@ -18,14 +18,15 @@ const Store = {
 const MODULOS = [
   { id: 'ocorrencias', nome: 'Ocorrências' },
   { id: 'livro',       nome: 'Livro Ata' },
-  { id: 'materiais',   nome: 'Materiais' },
+  { id: 'materiais',   nome: 'Materiais', dica: 'Desligue quando o material é do próprio condomínio (não é da C&S)' },
   { id: 'checklist',   nome: 'Checklist' },
   { id: 'encomendas',  nome: 'Encomendas' },
   { id: 'denuncia',    nome: 'Canal de Denúncia' },
   { id: 'cronograma',  nome: 'Cronograma de limpeza' },
   { id: 'ronda',       nome: 'Ronda (tags NFC)', bloqueado: true }
 ];
-const PARAM_PADRAO = { ocorrencias: true, livro: true, materiais: true, checklist: true, encomendas: true, denuncia: true, cronograma: true, ronda: false };
+// ocnova: ocorrências na versão nova (planta, prioridade, histórico e alertas). Desligado = tela clássica.
+const PARAM_PADRAO = { ocorrencias: true, ocnova: false, livro: true, materiais: true, checklist: true, encomendas: true, denuncia: true, cronograma: true, ronda: false };
 
 // Modos de encomenda. O controle interno (fotos + data/hora) vale SEMPRE.
 const MODOS_ENCOMENDA = {
@@ -64,6 +65,9 @@ const TABELAS = {
   cronogramas:          { pk: ['id'], ordem: 'nome', asc: true },
   cronograma_tarefas:   { pk: ['id'], ordem: 'ordem', asc: true },
   cronograma_execucoes: { pk: ['id'], dias: 35, campoData: 'data', ordem: 'data' },
+  ocorrencias_historico: { pk: ['id'], dias: 90, limite: 3000 },
+  condominio_mapa:      { pk: ['posto_id'], ordem: 'posto_id', asc: true },
+  areas:                { pk: ['id'], ordem: 'ordem', asc: true },
   integracoes:    { pk: ['posto_id'], ordem: 'posto_id', asc: true, papeis: ['adm'], semTempoReal: true }
 };
 const chaveDe = (tab, rowBanco) => TABELAS[tab].pk.map(k => rowBanco[k]).join('|');
@@ -227,10 +231,11 @@ const Nuvem = {
     this.aoStatus(); this.tentar();
   },
   async tentar() {
-    if (this._tentando || !this.sb || !navigator.onLine) return;
-    this._tentando = true;
+    if (this._tentando) { this._denovo = true; return; } // ocupado (ex.: enviando foto): roda de novo ao terminar
+    if (!this.sb || !navigator.onLine) return;
+    this._tentando = true; this._denovo = false;
     try {
-      let f = this._fila();
+      let f = this._fila(), adiadas = 0;
       while (f.length) {
         const op = f[0];
         let res;
@@ -242,6 +247,11 @@ const Nuvem = {
         if (res && res.error) {
           const msg = res.error.message || '';
           if (/fetch|network|Failed|timeout|Load failed/i.test(msg) || !navigator.onLine) break; // sem internet: tenta depois
+          if (/column|relation|schema cache|does not exist/i.test(msg) && /ocorrencias|areas|mapa|historico/.test(op.tabela)) {
+            // banco ainda sem a atualização (SQL 07): guarda no fim da fila e segue com o resto
+            f = this._fila(); if (adiadas >= f.length) break; // só restam as que esperam
+            f.push(f.shift()); Store.set('fila', f); adiadas++; continue;
+          }
           if (res.error.code === '23505') { /* já existe (ex.: confirmação repetida) */ }
           else { console.warn('gravar', op, res.error); this.aoErro(op, res.error); }
         }
@@ -249,7 +259,7 @@ const Nuvem = {
         this.aoStatus();
       }
       await this._enviarFotos();
-    } finally { this._tentando = false; this.aoStatus(); }
+    } finally { this._tentando = false; this.aoStatus(); if (this._denovo) { this._denovo = false; setTimeout(() => this.tentar(), 50); } }
   },
 
   // ---------- FOTOS ----------
@@ -604,3 +614,176 @@ function descreverOnde(t) {
 function inicioSemana(d) { const x = new Date(d); x.setHours(12, 0, 0, 0); const wd = x.getDay(); x.setDate(x.getDate() - (wd === 0 ? 6 : wd - 1)); return x; }
 function diasDaSemana(seg) { return DIAS_ORDEM.map((_, i) => { const x = new Date(seg); x.setDate(x.getDate() + i); return isoDia(x); }); }
 const fmtDiaMes = iso => iso.split('-').reverse().slice(0, 2).join('/');
+
+// =====================================================================
+//  OCORRÊNCIAS — categorias, prioridades e local na planta
+// =====================================================================
+const OC_CATEGORIAS = {
+  'Emergência': ['Vidro quebrado', 'Vazamento de água', 'Cheiro de gás', 'Fumaça ou princípio de incêndio', 'Pessoa ferida', 'Elevador com pessoa presa', 'Queda de energia'],
+  'Predial': ['Lâmpada queimada', 'Infiltração', 'Porta ou fechadura com defeito', 'Elevador parado', 'Interfone com defeito', 'Reboco solto ou rachadura'],
+  'Área comum': ['Equipamento quebrado', 'Sujeira ou limpeza', 'Portão com defeito', 'Iluminação externa', 'Poda ou jardinagem'],
+  'Convivência': ['Barulho', 'Uso indevido de área comum', 'Animal solto'],
+  'Controle de acesso': ['Portão aberto', 'Pessoa não identificada', 'Veículo em vaga indevida'],
+  'Outro': ['Outro (escrever)']
+};
+const OC_PRIORIDADES = {
+  emergencia: { nome: 'Emergência', cor: '#e5484d', pill: 'red' },
+  alta:       { nome: 'Alta',       cor: '#f08a3c', pill: 'orange' },
+  media:      { nome: 'Média',      cor: '#f0c43c', pill: 'gold' },
+  baixa:      { nome: 'Baixa',      cor: '#7fb0e8', pill: 'silver' }
+};
+const OC_STATUS = { aberta: ['Aberta', 'red'], andamento: ['Em atendimento', 'orange'], resolvida: ['Resolvida', 'green'] };
+const OC_TELEFONES = [['Bombeiros', '193'], ['SAMU', '192'], ['Polícia', '190'], ['Defesa Civil', '199']];
+const OC_RESPONSAVEIS = ['Zeladoria', 'Supervisão C&S', 'Portaria', 'Síndico', 'Empresa terceirizada'];
+function prioridadeSugerida(grupo, item) {
+  if (grupo === 'Emergência') return 'emergencia';
+  if (['Lâmpada queimada', 'Sujeira ou limpeza', 'Poda ou jardinagem', 'Barulho'].includes(item)) return 'baixa';
+  if (grupo === 'Controle de acesso') return 'alta';
+  return 'media';
+}
+const andarNome = a => a === 0 ? 'Térreo' : a + 'º andar';
+const ocTitulo = o => o.titulo || o.categoria || 'Ocorrência';
+function ocLocal(o) {
+  const partes = [];
+  if (o.localNome) partes.push(o.localNome);
+  else if (o.torre) partes.push('Torre ' + o.torre);
+  if (o.andar != null && o.andar !== '') partes.push(andarNome(+o.andar));
+  if (!partes.length && o.mapaX != null) partes.push('Ponto marcado na planta');
+  return partes.join(' · ');
+}
+const ocPrioridade = o => OC_PRIORIDADES[o.prioridade] || OC_PRIORIDADES.media;
+const torreDaArea = a => a && a.tipo === 'torre' ? (a.codigo || a.nome.replace(/^torre\s*/i, '')) : null;
+
+Object.assign(DB, {
+  mapa(postoId) { return linhas('condominio_mapa').find(m => m.posto === postoId) || null; },
+  areas(postoId) { return linhas('areas').filter(a => a.posto === postoId && a.ativo !== false).sort((a, b) => (a.ordem || 0) - (b.ordem || 0) || a.nome.localeCompare(b.nome)); },
+  area(id) { return linhas('areas').find(a => a.id === id); },
+  historico(ocId) { return linhas('ocorrencias_historico').filter(h => h.ocorrenciaId === ocId).sort((a, b) => String(a.criadoEm).localeCompare(String(b.criadoEm))); },
+  // registra a ocorrência e a primeira linha do histórico
+  novaOcorrencia(dados, textoHist) {
+    const o = this.push('ocorrencias', Object.assign({ status: 'aberta', prioridade: 'media' }, dados));
+    this.push('ocorrencias_historico', { ocorrenciaId: o.id, posto: o.posto, texto: textoHist || 'Registrada', autor: dados.autor || null });
+    return o;
+  },
+  // muda status / prioridade / responsável e anota no histórico
+  tratarOcorrencia(o, patch, texto, autor) {
+    if (patch && Object.keys(patch).length) {
+      if (patch.status === 'resolvida') patch.resolvidaEm = new Date().toISOString();
+      if (patch.status && patch.status !== 'resolvida') patch.resolvidaEm = null;
+      this.update('ocorrencias', o.id, patch);
+    }
+    this.push('ocorrencias_historico', { ocorrenciaId: o.id, posto: o.posto, texto, autor: autor || null, status: (patch && patch.status) || null });
+  }
+});
+
+// local cadastrado mais perto de um ponto tocado na planta (x, y em % da imagem)
+function localMaisProximo(postoId, x, y, proporcao) {
+  const k = proporcao || 1; let melhor = null, dist = Infinity;
+  DB.areas(postoId).forEach(a => {
+    if (a.x == null || a.y == null) return;
+    const d = Math.hypot(x - a.x, (y - a.y) * k);
+    if (d < dist) { dist = d; melhor = a; }
+  });
+  return dist <= (melhor && melhor.tipo === 'torre' ? 12 : 9) ? melhor : null;
+}
+
+// =====================================================================
+//  PLANTA — imagem do condomínio com pinos (app do posto e painel)
+// =====================================================================
+const Planta = {
+  _urls: {}, _mem: {},  // _mem: zoom, rolagem e foco por elemento (sobrevive ao redesenho da tela)
+  _css: `
+.planta{position:relative;border:1px solid #2e2e2e;border-radius:12px;background:#111;overflow:auto;max-height:62vh;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y}
+.planta.alta{max-height:72vh}
+.planta-in{position:relative;width:100%;margin:0 auto;line-height:0}
+.planta-in img{width:100%;display:block;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.planta.marcar .planta-in{cursor:crosshair}
+.planta-msg{padding:28px 16px;text-align:center;color:#888;font-size:13px;line-height:1.5}
+.pino{position:absolute;width:30px;height:40px;transform:translate(-50%,-100%);border:0;background:none;padding:0;cursor:pointer;z-index:2;filter:drop-shadow(0 2px 3px rgba(0,0,0,.6))}
+.pino svg{width:100%;height:100%;display:block}
+.pino.pisca{animation:pinoPisca 1s infinite}
+.pino.novo{z-index:3}
+.pino.novo::after{content:'';position:absolute;left:50%;bottom:-6px;width:22px;height:22px;margin-left:-11px;border-radius:50%;border:2px solid #D4AF37;animation:pinoOnda 1.4s infinite}
+.pino-area{position:absolute;width:12px;height:12px;border-radius:50%;transform:translate(-50%,-50%);background:#D4AF37;border:2px solid #111;z-index:1;cursor:pointer;padding:0}
+.pino-area.torre{width:16px;height:16px;background:#F5F5F0}
+.pino-area.sel{box-shadow:0 0 0 4px rgba(212,175,55,.5)}
+.pino-area span{position:absolute;left:14px;top:-4px;white-space:nowrap;font-size:11px;font-weight:700;color:#F5F5F0;background:rgba(0,0,0,.7);padding:1px 5px;border-radius:5px;line-height:1.5;pointer-events:none}
+.planta-box{position:relative}
+.planta-zoom{position:absolute;top:8px;right:8px;z-index:5;display:flex;flex-direction:column;gap:6px;line-height:1}
+.planta-zoom button{width:36px;height:36px;border-radius:9px;border:1px solid #B8860B;background:rgba(13,13,13,.9);color:#D4AF37;font-size:20px;font-weight:700;cursor:pointer}
+@keyframes pinoPisca{50%{opacity:.25}}
+@keyframes pinoOnda{0%{transform:scale(.4);opacity:1}100%{transform:scale(1.8);opacity:0}}`,
+  _estilo() { if (this._ok) return; this._ok = true; const st = document.createElement('style'); st.textContent = this._css; document.head.appendChild(st); },
+  pinoSvg(cor) { return '<svg viewBox="0 0 24 32"><path d="M12 0C5.4 0 0 5.4 0 12c0 9 12 20 12 20s12-11 12-20C24 5.4 18.6 0 12 0z" fill="' + cor + '" stroke="#111" stroke-width="1.5"/><circle cx="12" cy="12" r="4.5" fill="#111"/></svg>'; },
+
+  // imagem da planta: baixa do Storage e guarda no aparelho (funciona sem internet depois)
+  async url(mapa) {
+    if (!mapa || !mapa.plantaPath) return null;
+    const path = mapa.plantaPath;
+    if (this._urls[path]) return this._urls[path];
+    const chave = 'https://planta.cs.local/' + encodeURIComponent(path);
+    let cache = null; try { cache = await caches.open('cs-plantas'); } catch (e) {}
+    if (cache) { try { const r = await cache.match(chave); if (r) return this._urls[path] = URL.createObjectURL(await r.blob()); } catch (e) {} }
+    if (!navigator.onLine) return null;
+    const assinada = await Nuvem.urlFoto(path); if (!assinada) return null;
+    try {
+      const r = await fetch(assinada); if (!r.ok) return assinada;
+      const blob = await r.blob();
+      if (cache) { try { await cache.put(chave, new Response(blob, { headers: { 'Content-Type': blob.type || 'image/jpeg' } })); } catch (e) {} }
+      return this._urls[path] = URL.createObjectURL(blob);
+    } catch (e) { return assinada; }
+  },
+
+  // el: elemento; o: { postoId, pinos:[{id,x,y,cor,pisca,titulo,novo}], areas:true|false, areaSel, aoTocar(x,y,prop), aoPino(id), aoArea(id), alta, foco:{x,y} }
+  async montar(el, o) {
+    this._estilo();
+    const mapa = DB.mapa(o.postoId);
+    if (!mapa || !mapa.plantaPath) { el.innerHTML = '<div class="planta"><div class="planta-msg">Este condomínio ainda não tem planta cadastrada.' + (o.semPlantaMsg ? '<br>' + o.semPlantaMsg : '') + '</div></div>'; return false; }
+    const mem = this._mem[el.id || '_'] || (this._mem[el.id || '_'] = {}), z = mem.zoom || 1, rolagem = mem.rol || null;
+    // planta comprida (ex.: Flex) não estica na tela larga: largura base de até 520px
+    const alongada = mapa.largura && mapa.altura && mapa.altura / mapa.largura > 1.3, maxL = zz => alongada ? (520 * zz) + 'px' : 'none';
+    el.innerHTML = '<div class="planta-box"><div class="planta-zoom"><button type="button" data-z="1" aria-label="Aproximar">+</button><button type="button" data-z="-1" aria-label="Afastar">−</button></div><div class="planta' + (o.alta ? ' alta' : '') + (o.aoTocar ? ' marcar' : '') + '"' + (o.maxAltura ? ' style="max-height:' + o.maxAltura + '"' : '') + '><div class="planta-in" style="width:' + (z * 100) + '%;max-width:' + maxL(z) + '"><div class="planta-msg">Carregando a planta...</div></div></div></div>';
+    const caixa = el.querySelector('.planta'), dentro = caixa.querySelector('.planta-in');
+    const url = await this.url(mapa);
+    if (!url) { dentro.innerHTML = '<div class="planta-msg">A planta abre quando houver internet pela primeira vez neste aparelho.</div>'; return false; }
+    const img = new Image(); img.alt = 'Planta do condomínio'; img.draggable = false;
+    const prop = () => (img.naturalHeight || mapa.altura || 1) / (img.naturalWidth || mapa.largura || 1);
+    img.onload = () => {
+      const chave = o.foco ? o.foco.x + ',' + o.foco.y : null;
+      if (chave && mem.focou !== chave) { mem.focou = chave; const r = dentro.getBoundingClientRect(); caixa.scrollTop = Math.max(0, r.height * o.foco.y / 100 - caixa.clientHeight / 2); caixa.scrollLeft = Math.max(0, r.width * o.foco.x / 100 - caixa.clientWidth / 2); }
+      else if (rolagem) { caixa.scrollLeft = rolagem[0]; caixa.scrollTop = rolagem[1]; }
+    };
+    img.src = url;
+    let h = '';
+    if (o.areas) DB.areas(o.postoId).filter(a => a.x != null).forEach(a => {
+      h += '<button type="button" class="pino-area' + (a.tipo === 'torre' ? ' torre' : '') + (o.areaSel === a.id ? ' sel' : '') + '" data-area="' + a.id + '" style="left:' + a.x + '%;top:' + a.y + '%" title="' + esc(a.nome) + '">' + (o.rotulos ? '<span>' + esc(a.nome) + '</span>' : '') + '</button>';
+    });
+    (o.pinos || []).forEach(p => {
+      if (p.x == null || p.y == null) return;
+      h += '<button type="button" class="pino' + (p.pisca ? ' pisca' : '') + (p.novo ? ' novo' : '') + '" data-pino="' + (p.id || '') + '" style="left:' + p.x + '%;top:' + p.y + '%" title="' + esc(p.titulo || '') + '" aria-label="' + esc(p.titulo || 'Local marcado') + '">' + this.pinoSvg(p.cor || '#D4AF37') + '</button>';
+    });
+    dentro.innerHTML = ''; dentro.appendChild(img); dentro.insertAdjacentHTML('beforeend', h);
+    el.querySelectorAll('[data-z]').forEach(b => b.onclick = ev => {
+      ev.stopPropagation(); const zs = [1, 1.6, 2.4, 3.5]; const i = Math.max(0, Math.min(zs.length - 1, zs.indexOf(mem.zoom || 1) + +b.dataset.z));
+      const cx = (caixa.scrollLeft + caixa.clientWidth / 2) / dentro.offsetWidth, cy = (caixa.scrollTop + caixa.clientHeight / 2) / dentro.offsetHeight;
+      mem.zoom = zs[i]; dentro.style.width = (zs[i] * 100) + '%'; dentro.style.maxWidth = maxL(zs[i]);
+      caixa.scrollLeft = cx * dentro.offsetWidth - caixa.clientWidth / 2; caixa.scrollTop = cy * dentro.offsetHeight - caixa.clientHeight / 2;
+    });
+    caixa.onscroll = () => { mem.rol = [caixa.scrollLeft, caixa.scrollTop]; };
+    dentro.onclick = ev => {
+      const pino = ev.target.closest('[data-pino]'); if (pino && pino.dataset.pino && o.aoPino) { o.aoPino(pino.dataset.pino); return; }
+      const ar = ev.target.closest('[data-area]'); if (ar && o.aoArea) { o.aoArea(ar.dataset.area); return; }
+      if (!o.aoTocar) return;
+      const r = img.getBoundingClientRect(); if (!r.width) return;
+      const x = Math.round(Math.min(100, Math.max(0, (ev.clientX - r.left) / r.width * 100)) * 100) / 100;
+      const y = Math.round(Math.min(100, Math.max(0, (ev.clientY - r.top) / r.height * 100)) * 100) / 100;
+      o.aoTocar(x, y, prop());
+    };
+    return true;
+  }
+};
+
+// Lê largura e altura de uma imagem
+function dimensoesImagem(blob) {
+  return new Promise(ok => { const u = URL.createObjectURL(blob), i = new Image(); i.onload = () => { ok({ largura: i.naturalWidth, altura: i.naturalHeight }); URL.revokeObjectURL(u); }; i.onerror = () => ok({}); i.src = u; });
+}

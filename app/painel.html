@@ -129,6 +129,7 @@ td.small{font-size:12px;color:var(--silver)}
 .param-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-top:1px solid var(--bg3);font-size:13.5px}
 .param-row:first-child{border-top:none}
 .param-row small{display:block;color:#777;font-size:11px;margin-top:2px}
+.param-row.sub{padding-left:14px;border-top:1px dashed var(--bg3)}
 .tabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
 .tab{padding:9px 14px;border-radius:9px;border:1px solid var(--bg3);background:var(--bg2);color:var(--silver);font-size:13px;font-weight:600;cursor:pointer}
 .tab.active{border-color:var(--gold);color:var(--gold)}
@@ -215,6 +216,27 @@ td.small{font-size:12px;color:var(--silver)}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
 .chip{padding:7px 12px;border-radius:16px;border:1px solid var(--bg4);background:var(--bg3);color:var(--silver);font-size:12.5px;font-weight:600;cursor:pointer}
 .chip.on{background:var(--gold);color:var(--bg);border-color:var(--gold)}
+.oc-card{border-left:4px solid var(--bg4);cursor:pointer}
+.oc-card:hover{border-color:var(--gold-dark)}
+.oc-top{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:flex-start;margin-bottom:4px}
+.oc-fatos{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.oc-fatos div{background:var(--bg3);border-radius:9px;padding:8px 10px;font-size:13px}
+.oc-fatos small{display:block;color:#888;font-size:10.5px;text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px}
+.tline{border-left:2px solid var(--bg4);margin:6px 0 4px 6px;padding-left:14px}
+.tline div{position:relative;font-size:13px;color:var(--light);padding:0 0 10px;line-height:1.45}
+.tline div::before{content:'';position:absolute;left:-20px;top:5px;width:10px;height:10px;border-radius:50%;background:var(--gold-dark)}
+.tline small{display:block;color:#888;font-size:11px}
+.legenda{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--silver);margin-bottom:10px}
+.legenda i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+.loc-grid{display:grid;grid-template-columns:minmax(260px,1fr) minmax(0,1.3fr);gap:16px;align-items:start}
+.loc-lista{max-height:62vh;overflow:auto;border:1px solid var(--bg3);border-radius:var(--radius)}
+.loc-item{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid var(--bg3);cursor:pointer;font-size:13px}
+.loc-item.sel{background:rgba(212,175,55,.08)}
+.loc-item small{display:block;color:#888;font-size:11.5px;margin-top:2px}
+.loc-item .acts{display:flex;gap:6px;flex-shrink:0}
+.loc-item .btn{padding:6px 9px;font-size:11.5px}
+@media(max-width:900px){.loc-grid{grid-template-columns:1fr}}
+@media(max-width:520px){.oc-fatos{grid-template-columns:1fr}}
 @media(max-width:900px){.semana{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:520px){.semana{grid-template-columns:1fr}.sem-col{min-height:0}}
 </style>
@@ -240,6 +262,9 @@ td.small{font-size:12px;color:var(--silver)}
 
 <!-- ALERTA DE PÂNICO (tela cheia) -->
 <div class="panico-ov" id="panicoOv"><div style="font-size:60px">🚨</div><h2 id="panicoTit">PÂNICO</h2><p id="panicoTxt" style="font-size:17px;margin-bottom:22px"></p><button class="btn btn-ghost" style="font-size:15px;padding:14px 30px" onclick="cientePanico()">CIENTE</button></div>
+
+<!-- EMERGÊNCIA REGISTRADA (tela cheia) -->
+<div class="panico-ov" id="emergOv"><div style="font-size:56px">🚨</div><h2 id="emergTit">EMERGÊNCIA</h2><p id="emergTxt" style="font-size:17px;margin-bottom:22px;max-width:560px"></p><div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center"><button class="btn btn-ghost" style="font-size:15px;padding:14px 26px" onclick="fecharEmerg(false)">CIENTE</button><button class="btn btn-gold" style="font-size:15px;padding:14px 26px" onclick="fecharEmerg(true)">ABRIR OCORRÊNCIA</button></div></div>
 
 <button class="menu-btn" onclick="toggleMenu()">☰</button>
 <div class="overlay" id="overlay" onclick="toggleMenu(false)"></div>
@@ -445,6 +470,8 @@ function rVisao() {
   let h = '<div class="filters">' + filtroPostoHtml() + '</div>';
   h += '<div class="stats"><div class="stat"><div class="n">' + tot.esc + '</div><div class="l">Escalados agora</div></div><div class="stat green"><div class="n">' + tot.conf + '</div><div class="l">Confirmados</div></div><div class="stat orange"><div class="n">' + tot.pend + '</div><div class="l">Pendentes / aguardando</div></div><div class="stat red"><div class="n">' + alertas.length + '</div><div class="l">Alertas de presença</div></div><div class="stat blue"><div class="n">' + ocAb + '</div><div class="l">Ocorrências abertas</div></div><div class="stat"><div class="n">' + encAg + '</div><div class="l">Encomendas aguardando</div></div></div>';
   if (panicos.length) h += '<div class="h2">🚨 Botão de pânico</div>' + panicos.map(a => '<div class="alert-card"><div><b>' + esc(nomePosto(a.posto)) + '</b> — alerta de pânico<div class="meta">' + quando(a.criadoEm) + '</div></div><div class="acts">' + (isGestor() ? '<button class="btn btn-red" onclick="DB.update(\'alertas\',\'' + a.id + '\',{visto:true});render();montarNav()">Ciente</button>' : '') + '</div></div>').join('');
+  const emergs = DB.list('ocorrencias').filter(o => o.prioridade === 'emergencia' && o.status !== 'resolvida' && ps.some(p => p.id === o.posto) && ocNova(o.posto));
+  if (emergs.length) h += '<div class="h2">🚨 Emergências em aberto</div>' + emergs.map(o => '<div class="alert-card"><div><b>' + esc(nomePosto(o.posto)) + '</b> — ' + esc(ocTitulo(o)) + (ocLocal(o) ? ' · 📍 ' + esc(ocLocal(o)) : '') + '<div class="meta">' + quando(o.criadoEm) + ' · ' + (OC_STATUS[o.status] || OC_STATUS.aberta)[0] + (o.responsavel ? ' · ' + esc(o.responsavel) : '') + '</div></div><div class="acts"><button class="btn btn-red" onclick="ocDetalhe(\'' + o.id + '\')">Abrir</button></div></div>').join('');
   if (alertas.length) h += '<div class="h2">Alertas de presença</div>' + alertas.map(a => {
     const c = a.x.colab, s = a.x.sit;
     const quem = s.grupoNomes ? s.grupoNomes.map(esc).join(' ou ') : esc(c.nome);
@@ -485,15 +512,256 @@ function rPostos() {
 }
 
 // ===================== OCORRÊNCIAS =====================
-let filtroOc = 'abertas';
-function rOcorrencias() {
-  const st = { aberta: ['Aberta', 'red'], andamento: ['Em andamento', 'orange'], resolvida: ['Resolvida', 'green'] };
-  const l = DB.list('ocorrencias').filter(o => doFiltro(o.posto) && (filtroOc === 'todas' || (filtroOc === 'abertas' ? o.status !== 'resolvida' : o.status === 'resolvida')));
+let filtroOc = 'abertas', ocTab = 'lista', locSel = null, locPosicionar = false, noForm = null;
+const autorPainel = () => A.papel === 'cond' ? 'Síndico' + (A.nome ? ' · ' + A.nome : '') : (NOME_PAPEL[A.papel] || 'Gestão') + ' · ' + (A.nome || A.email);
+const podeAbrirOc = () => isGestor() ? postosVisiveis().some(p => ocNova(p.id)) : A.papel === 'cond' && ocNova(A.posto);
+const temPlanta = pid => !!(DB.mapa(pid) || {}).plantaPath;
+// condomínio usado na planta (planta é de um condomínio por vez)
+function postoDaPlanta() {
+  if (!isGestor()) return A.posto;
+  if (filtroPosto !== 'todos') return filtroPosto;
+  const ps = DB.postos(), c = ps.find(p => ocNova(p.id) && temPlanta(p.id)) || ps.find(p => temPlanta(p.id)) || ps.find(p => ocNova(p.id)) || ps[0];
+  return c && c.id;
+}
+function ocFiltroCasa(o) {
+  const f = filtroOc;
+  if (f === 'todas') return true;
+  if (f === 'resolvidas') return o.status === 'resolvida';
+  if (o.status === 'resolvida') return false;
+  if (f === 'abertas') return true;
+  if (f === 'emergencia') return o.prioridade === 'emergencia';
+  return o.categoria === f || (f === 'Outro' && !OC_CATEGORIAS[o.categoria]);
+}
+const ordemOc = (a, b) => (a.status === 'resolvida') - (b.status === 'resolvida') || (a.prioridade === 'emergencia' ? 0 : 1) - (b.prioridade === 'emergencia' ? 0 : 1) || String(b.criadoEm).localeCompare(String(a.criadoEm));
+const ocNova = pid => !!DB.params(pid).ocnova;
+function rOcorrenciasClassica() {
+  const l = DB.list('ocorrencias').filter(o => doFiltro(o.posto) && (filtroOc === 'todas' || (filtroOc === 'resolvidas' ? o.status === 'resolvida' : o.status !== 'resolvida')));
   let h = '<div class="filters">' + filtroPostoHtml() + '<select onchange="filtroOc=this.value;render()">' + [['abertas', 'Abertas'], ['resolvidas', 'Resolvidas'], ['todas', 'Todas']].map(o => '<option value="' + o[0] + '"' + (filtroOc === o[0] ? ' selected' : '') + '>' + o[1] + '</option>').join('') + '</select></div>';
-  h += l.length ? l.map(o => '<div class="card"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><h4>' + esc(o.categoria) + ' · ' + esc(nomePosto(o.posto)) + '</h4><span class="pill ' + st[o.status][1] + '">' + st[o.status][0] + '</span></div><p>' + esc(o.descricao) + '</p><div class="meta">' + esc(o.autor || '') + ' · ' + quando(o.criadoEm) + (o.origem === 'checklist' ? ' · gerada pelo checklist' : '') + '</div>' +
-    '<div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap">' + btnFoto(o.fotoPath, 'Foto da ocorrência') + (isGestor() && o.status !== 'resolvida' ? (o.status === 'aberta' ? '<button class="btn btn-outline" onclick="DB.update(\'ocorrencias\',\'' + o.id + '\',{status:\'andamento\'});render()">Em andamento</button>' : '') + '<button class="btn btn-green" onclick="DB.update(\'ocorrencias\',\'' + o.id + '\',{status:\'resolvida\',resolvidaEm:new Date().toISOString()});render();montarNav()">Resolvida</button>' : '') + '</div></div>').join('') : '<div class="empty">Nenhuma ocorrência.</div>';
+  h += l.length ? l.map(o => { const st = OC_STATUS[o.status] || OC_STATUS.aberta;
+    return '<div class="card"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><h4>' + esc(o.categoria) + ' · ' + esc(nomePosto(o.posto)) + '</h4><span class="pill ' + st[1] + '">' + st[0] + '</span></div><p>' + esc(o.descricao) + '</p><div class="meta">' + esc(o.autor || '') + ' · ' + quando(o.criadoEm) + (o.origem === 'checklist' ? ' · gerada pelo checklist' : '') + '</div><div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap">' + btnFoto(o.fotoPath, 'Foto da ocorrência') + '</div></div>'; }).join('') : '<div class="empty">Nenhuma ocorrência.</div>';
   M().innerHTML = h;
 }
+function rOcorrencias() {
+  if (!isGestor() && !ocNova(A.posto)) { if (!['abertas', 'resolvidas', 'todas'].includes(filtroOc)) filtroOc = 'abertas'; return rOcorrenciasClassica(); }
+  const base = DB.list('ocorrencias').filter(o => doFiltro(o.posto));
+  const ab = base.filter(o => o.status !== 'resolvida'), semana = Date.now() - 7 * 864e5;
+  const abas = [['lista', 'Lista'], ['planta', 'Planta']].concat(isAdmRh() ? [['locais', 'Planta e locais']] : []);
+  if (!abas.some(a => a[0] === ocTab)) ocTab = 'lista';
+  let h = '<div class="filters">' + filtroPostoHtml() + (podeAbrirOc() ? '<button class="btn btn-gold" onclick="novaOcorrencia()">+ Nova ocorrência</button>' : '') + '</div>';
+  h += '<div class="stats"><div class="stat red"><div class="n">' + ab.filter(o => o.status === 'aberta').length + '</div><div class="l">Abertas</div></div><div class="stat orange"><div class="n">' + ab.filter(o => o.status === 'andamento').length + '</div><div class="l">Em atendimento</div></div><div class="stat' + (ab.some(o => o.prioridade === 'emergencia') ? ' red' : '') + '"><div class="n">' + ab.filter(o => o.prioridade === 'emergencia').length + '</div><div class="l">Emergências em aberto</div></div><div class="stat green"><div class="n">' + base.filter(o => o.status === 'resolvida' && new Date(o.resolvidaEm || o.criadoEm) > semana).length + '</div><div class="l">Resolvidas em 7 dias</div></div></div>';
+  h += '<div class="tabs">' + abas.map(a => '<button class="tab' + (ocTab === a[0] ? ' active' : '') + '" onclick="ocTab=\'' + a[0] + '\';locPosicionar=false;render()">' + a[1] + '</button>').join('') + '</div>';
+  if (ocTab !== 'locais') {
+    const fs = [['abertas', 'Em aberto'], ['emergencia', 'Emergência']].concat(Object.keys(OC_CATEGORIAS).filter(c => c !== 'Emergência').map(c => [c, c])).concat([['resolvidas', 'Resolvidas'], ['todas', 'Todas']]);
+    h += '<div class="chips" style="margin-bottom:14px">' + fs.map(f => '<button class="chip' + (filtroOc === f[0] ? ' on' : '') + '" onclick="filtroOc=\'' + f[0] + '\';render()">' + f[1] + '</button>').join('') + '</div>';
+  }
+  if (ocTab === 'lista') {
+    const l = base.filter(ocFiltroCasa).sort(ordemOc).slice(0, 200);
+    h += l.length ? l.map(cartaoOc).join('') : '<div class="empty">Nenhuma ocorrência neste filtro.</div>';
+    M().innerHTML = h; return;
+  }
+  const pid = postoDaPlanta();
+  if (ocTab === 'planta') {
+    const l = base.filter(o => o.posto === pid && ocFiltroCasa(o));
+    const comLocal = l.filter(o => o.mapaX != null), semLocal = l.length - comLocal.length;
+    h += '<div class="h2">' + esc(nomePosto(pid)) + (isGestor() && filtroPosto === 'todos' ? ' <span class="meta" style="font-family:var(--font)">escolha outro condomínio no filtro acima</span>' : '') + '</div>';
+    if (!ocNova(pid)) h += '<div class="alert-card orange"><div>Este condomínio está na tela clássica de ocorrências: o posto não marca local na planta. Ligue "Ocorrências versão nova" em Parâmetros.</div></div>';
+    h += '<div class="legenda">' + Object.values(OC_PRIORIDADES).map(p => '<span><i style="background:' + p.cor + '"></i>' + p.nome + '</span>').join('') + '<span><i style="background:#666"></i>Resolvida</span></div>';
+    h += '<div id="ocPlanta"></div>';
+    h += '<p class="meta" style="margin-top:8px">' + comLocal.length + ' ocorrência(s) na planta' + (semLocal ? ' · ' + semLocal + ' sem local marcado (veja na Lista)' : '') + '. Clique no pino para abrir.</p>';
+    M().innerHTML = h;
+    const alvo = comLocal.find(o => o.prioridade === 'emergencia' && o.status !== 'resolvida') || comLocal[0];
+    Planta.montar(document.getElementById('ocPlanta'), { postoId: pid, alta: true, foco: alvo ? { x: +alvo.mapaX, y: +alvo.mapaY } : null, semPlantaMsg: isAdmRh() ? 'Envie a planta na aba "Planta e locais".' : 'A administração da C&S cadastra a planta.',
+      pinos: comLocal.sort((a, b) => (a.prioridade === 'emergencia') - (b.prioridade === 'emergencia')).map(o => ({ id: o.id, x: o.mapaX, y: o.mapaY, cor: o.status === 'resolvida' ? '#666' : ocPrioridade(o).cor, pisca: o.prioridade === 'emergencia' && o.status !== 'resolvida', titulo: ocTitulo(o) + ' · ' + ocLocal(o) })),
+      aoPino: id => ocDetalhe(id) });
+    return;
+  }
+  // ---- Planta e locais (administração e RH) ----
+  const mapa = DB.mapa(pid), areas = DB.areas(pid);
+  h += '<div class="h2">' + esc(nomePosto(pid)) + (isGestor() && filtroPosto === 'todos' ? ' <span class="meta" style="font-family:var(--font)">escolha outro condomínio no filtro acima</span>' : '') + '</div>';
+  h += '<div class="card"><h4>Imagem da planta</h4><p>' + (mapa && mapa.plantaPath ? 'Planta cadastrada' + (mapa.largura ? ' (' + mapa.largura + ' × ' + mapa.altura + ' px)' : '') + '. Enviar outra substitui a atual; os locais e os pinos continuam nas mesmas posições (em % da imagem).' : 'Ainda sem planta. Use uma imagem JPG ou PNG. Se a planta estiver em PDF, exporte a página como imagem.') + (mapa && mapa.tem3d ? ' <span class="pill gold">Maquete 3D</span>' : '') + '</p>' +
+    '<label class="btn btn-outline" style="display:inline-block;margin-top:10px">' + (mapa && mapa.plantaPath ? 'Enviar outra planta' : 'Enviar planta') + '<input type="file" accept="image/png,image/jpeg,image/webp" style="display:none" onchange="enviarPlanta(\'' + pid + '\',this)"></label></div>';
+  h += '<div class="loc-grid"><div><div class="h2" style="font-size:15px">Locais <button class="btn btn-gold" onclick="editarLocal(null)">+ Novo local</button></div>' +
+    (locPosicionar && locSel ? '<div class="alert-card orange"><div><b>Clique na planta onde fica: ' + esc((DB.area(locSel) || {}).nome || '') + '</b></div><div class="acts"><button class="btn btn-ghost" onclick="locPosicionar=false;render()">Cancelar</button></div></div>' : '') +
+    (areas.length ? '<div class="loc-lista">' + areas.map(a => '<div class="loc-item' + (locSel === a.id ? ' sel' : '') + '" onclick="locSel=\'' + a.id + '\';locPosicionar=false;render()"><div><b>' + esc(a.nome) + '</b><small>' + esc(a.grupo || '') + (a.tipo === 'torre' ? ' · torre, ' + (a.andares || 0) + ' andares + térreo' : '') + (a.x == null ? ' · <span style="color:var(--orange)">sem posição</span>' : '') + '</small></div><div class="acts"><button class="btn btn-ghost" onclick="event.stopPropagation();locSel=\'' + a.id + '\';locPosicionar=true;render()">Posicionar</button><button class="btn btn-ghost" onclick="event.stopPropagation();editarLocal(\'' + a.id + '\')">Editar</button></div></div>').join('') + '</div>' : '<div class="empty">Nenhum local cadastrado. Cadastre portaria, torres, salões, piscina...</div>') +
+    '</div><div id="locPlanta"></div></div>';
+  M().innerHTML = h;
+  Planta.montar(document.getElementById('locPlanta'), { postoId: pid, alta: true, areas: true, rotulos: true, areaSel: locSel, semPlantaMsg: 'Envie a imagem acima.',
+    aoArea: id => { locSel = id; locPosicionar = false; render(); },
+    aoTocar: locPosicionar && locSel ? (x, y) => { DB.update('areas', locSel, { x, y }); locPosicionar = false; toast('Posição salva'); render(); } : null });
+}
+function cartaoOc(o) {
+  const st = OC_STATUS[o.status] || OC_STATUS.aberta, pr = ocPrioridade(o), local = ocLocal(o), n = DB.historico(o.id).length;
+  return '<div class="card oc-card" style="border-left-color:' + (o.status === 'resolvida' ? '#444' : pr.cor) + '" onclick="ocDetalhe(\'' + o.id + '\')"><div class="oc-top"><h4>' + (o.prioridade === 'emergencia' && o.status !== 'resolvida' ? '🚨 ' : '') + esc(ocTitulo(o)) + '</h4><div style="display:flex;gap:6px;flex-wrap:wrap"><span class="pill ' + pr.pill + '">' + pr.nome + '</span><span class="pill ' + st[1] + '">' + st[0] + '</span></div></div>' +
+    '<p>' + (isGestor() ? '<b style="color:var(--gold)">' + esc(nomePosto(o.posto)) + '</b> · ' : '') + (local ? '📍 ' + esc(local) : 'Sem local marcado') + (o.responsavel ? ' · Resp.: ' + esc(o.responsavel) : '') + '</p>' + (o.descricao && o.descricao !== o.titulo ? '<p style="color:var(--light)">' + esc(o.descricao.length > 160 ? o.descricao.slice(0, 157) + '...' : o.descricao) + '</p>' : '') +
+    '<div class="meta">' + esc(o.autor || '') + ' · ' + quando(o.criadoEm) + (o.origem === 'checklist' ? ' · gerada pelo checklist' : '') + (o.fotoPath ? ' · 📷 foto' : '') + (n > 1 ? ' · ' + (n - 1) + (n > 2 ? ' atualizações' : ' atualização') : '') + '</div></div>';
+}
+function ocDetalhe(id) {
+  const o = DB.list('ocorrencias').find(x => x.id === id); if (!o) return;
+  const st = OC_STATUS[o.status] || OC_STATUS.aberta, pr = ocPrioridade(o), local = ocLocal(o), mini = o.mapaX != null && temPlanta(o.posto);
+  let h = '<h3>' + esc(ocTitulo(o)) + '</h3><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px"><span class="pill ' + pr.pill + '">' + pr.nome + '</span><span class="pill ' + st[1] + '">' + st[0] + '</span><span class="pill silver">' + esc(o.categoria || '') + '</span><span class="pill silver">' + esc(nomePosto(o.posto)) + '</span></div>';
+  h += '<div class="oc-fatos"><div><small>Local</small>' + esc(local || 'Sem local marcado') + '</div><div><small>Aberta</small>' + quando(o.criadoEm) + '</div><div><small>Registrada por</small>' + esc(o.autor || '—') + '</div><div><small>Responsável</small>' + esc(o.responsavel || 'A definir') + '</div></div>';
+  if (o.descricao && o.descricao !== o.titulo) h += '<p style="font-size:14px;line-height:1.5;white-space:pre-wrap;margin:10px 0">' + esc(o.descricao) + '</p>';
+  if (o.prioridade === 'emergencia' && o.status !== 'resolvida') h += '<div class="alert-card" style="display:block"><b>Contatos de emergência:</b> ' + OC_TELEFONES.map(([n, t]) => n + ' <a href="tel:' + t + '" style="color:var(--red);font-weight:700">' + t + '</a>').join(' · ') + '</div>';
+  if (o.fotoPath) h += '<div id="ocFotoDet" class="meta">Carregando foto...</div>';
+  if (mini) h += '<div id="ocMini" style="margin:10px 0"></div>';
+  h += '<div class="h2" style="font-size:15px;margin-top:14px">Histórico</div><div class="tline">' + DB.historico(id).map(x => '<div>' + esc(x.texto) + '<small>' + quando(x.criadoEm) + (x.autor && x.texto.indexOf(x.autor) < 0 ? ' · ' + esc(x.autor) : '') + '</small></div>').join('') + '</div>';
+  h += '<div class="form"><label>Adicionar atualização</label><div class="row"><input id="ocUpd" placeholder="Ex.: Encanador a caminho" onkeydown="if(event.key===\'Enter\')ocAtualizar(\'' + id + '\')"><button class="btn btn-ghost" style="flex:0 0 auto" onclick="ocAtualizar(\'' + id + '\')">Adicionar</button></div>';
+  if (isGestor()) h += '<div class="row" style="margin-top:4px"><div><label>Prioridade</label><select id="ocPri">' + Object.entries(OC_PRIORIDADES).map(([k, p]) => '<option value="' + k + '"' + (o.prioridade === k ? ' selected' : '') + '>' + p.nome + '</option>').join('') + '</select></div><div><label>Responsável</label><select id="ocResp"><option value="">A definir</option>' + OC_RESPONSAVEIS.concat(o.responsavel && !OC_RESPONSAVEIS.includes(o.responsavel) ? [o.responsavel] : []).map(r => '<option' + (o.responsavel === r ? ' selected' : '') + '>' + esc(r) + '</option>').join('') + '</select></div></div>';
+  h += '</div><div class="acts">';
+  if (isGestor()) {
+    h += '<button class="btn btn-ghost" onclick="ocSalvarDados(\'' + id + '\')">Salvar prioridade e responsável</button>';
+    if (o.status === 'aberta') h += '<button class="btn btn-outline" onclick="ocStatus(\'' + id + '\',\'andamento\')">Iniciar atendimento</button>';
+    if (o.status !== 'resolvida') h += '<button class="btn btn-green" onclick="ocStatus(\'' + id + '\',\'resolvida\')">Marcar como resolvida</button>';
+    else h += '<button class="btn btn-outline" onclick="ocStatus(\'' + id + '\',\'aberta\')">Reabrir</button>';
+  }
+  h += '<button class="btn btn-ghost" onclick="fecharModal()">Fechar</button></div>';
+  if (!isGestor() && o.status !== 'resolvida') h += '<p class="meta" style="margin-top:10px">O atendimento e a conclusão são marcados pela supervisão C&S. Use "Adicionar atualização" para informar o andamento.</p>';
+  abrirModal(h);
+  if (mini) Planta.montar(document.getElementById('ocMini'), { postoId: o.posto, maxAltura: '260px', foco: { x: +o.mapaX, y: +o.mapaY }, pinos: [{ x: o.mapaX, y: o.mapaY, cor: pr.cor, titulo: ocTitulo(o) }] });
+  if (o.fotoPath) Nuvem.urlFoto(o.fotoPath).then(u => { const el = document.getElementById('ocFotoDet'); if (el) el.innerHTML = u ? '<img src="' + u + '" style="width:100%;max-height:360px;object-fit:contain;border-radius:12px;background:#000" alt="Foto da ocorrência">' : 'Foto ainda não enviada pelo posto (pode estar sem internet).'; });
+}
+function ocAtualizar(id) {
+  const t = document.getElementById('ocUpd').value.trim(); if (!t) { toast('Escreva a atualização', true); return; }
+  const o = DB.list('ocorrencias').find(x => x.id === id);
+  DB.push('ocorrencias_historico', { ocorrenciaId: id, posto: o.posto, texto: t, autor: autorPainel() });
+  toast('Atualização registrada'); ocDetalhe(id);
+}
+function ocStatus(id, st) {
+  const o = DB.list('ocorrencias').find(x => x.id === id), nota = document.getElementById('ocUpd').value.trim();
+  const txt = { andamento: 'Atendimento iniciado', resolvida: 'Resolvida', aberta: 'Reaberta' }[st] + (nota ? ': ' + nota : '') + ' · ' + autorPainel();
+  DB.tratarOcorrencia(o, { status: st }, txt, autorPainel());
+  toast(st === 'resolvida' ? 'Ocorrência resolvida' : st === 'andamento' ? 'Atendimento iniciado' : 'Ocorrência reaberta');
+  ocDetalhe(id); render(); montarNav();
+}
+function ocSalvarDados(id) {
+  const o = DB.list('ocorrencias').find(x => x.id === id), pri = document.getElementById('ocPri').value, resp = document.getElementById('ocResp').value;
+  const patch = {}, mud = [];
+  if (pri !== (o.prioridade || 'media')) { patch.prioridade = pri; mud.push('prioridade: ' + OC_PRIORIDADES[pri].nome); }
+  if (resp !== (o.responsavel || '')) { patch.responsavel = resp || null; mud.push('responsável: ' + (resp || 'a definir')); }
+  if (!mud.length) { toast('Nada foi alterado', true); return; }
+  DB.tratarOcorrencia(o, patch, 'Alterado ' + mud.join(', ') + ' · ' + autorPainel(), autorPainel());
+  toast('Alteração salva'); ocDetalhe(id); render();
+}
+
+// ---- Nova ocorrência (gestão e síndico) ----
+function novaOcorrencia() {
+  const opcoes = postosVisiveis().filter(p => ocNova(p.id));
+  let pid = isGestor() ? (filtroPosto !== 'todos' ? filtroPosto : postoDaPlanta()) : A.posto;
+  if (isGestor() && !opcoes.some(p => p.id === pid)) pid = opcoes[0].id;
+  noForm = { posto: pid, prio: null, prioManual: false, local: null };
+  const cats = '<option value="">Escolha...</option>' + Object.entries(OC_CATEGORIAS).map(([g, l]) => '<optgroup label="' + esc(g) + '">' + l.map(x => '<option value="' + esc(g + '|' + x) + '">' + esc(x) + '</option>').join('') + '</optgroup>').join('');
+  abrirModal('<h3>Nova ocorrência</h3><div class="form">' +
+    (isGestor() ? '<label>Condomínio</label><select id="noPosto" onchange="noForm.posto=this.value;noForm.local=null;noLocal()">' + opcoes.map(p => '<option value="' + p.id + '"' + (p.id === pid ? ' selected' : '') + '>' + esc(p.nome) + '</option>').join('') + '</select>' : '') +
+    '<label>O que aconteceu</label><select id="noCat" onchange="noCategoria()">' + cats + '</select>' +
+    '<div id="noOutroBox" style="display:none"><label>Escreva o que aconteceu</label><input id="noOutro"></div>' +
+    '<div class="row"><div><label>Prioridade</label><select id="noPri" onchange="noForm.prioManual=true;noEmerg()">' + Object.entries(OC_PRIORIDADES).map(([k, p]) => '<option value="' + k + '"' + (k === 'media' ? ' selected' : '') + '>' + p.nome + '</option>').join('') + '</select></div>' +
+    (isGestor() ? '<div><label>Responsável</label><select id="noResp"><option value="">A definir</option>' + OC_RESPONSAVEIS.map(r => '<option>' + esc(r) + '</option>').join('') + '</select></div>' : '') + '</div>' +
+    '<div id="noEmerg"></div>' +
+    '<label>Onde foi</label><div id="noLocal"></div>' +
+    '<label>Detalhes</label><textarea id="noDesc" rows="3" placeholder="Descreva o que foi visto e se a área foi isolada"></textarea>' +
+    '<label>Foto (opcional)</label><input type="file" id="noFoto" accept="image/*">' +
+    '</div><div class="acts"><button class="btn btn-ghost" onclick="fecharModal()">Cancelar</button><button class="btn btn-gold" id="noBtn" onclick="salvarNovaOc()">Registrar ocorrência</button></div>');
+  noLocal(); noEmerg();
+}
+function noCategoria() {
+  const [g, item] = (document.getElementById('noCat').value || '|').split('|');
+  document.getElementById('noOutroBox').style.display = g === 'Outro' ? '' : 'none';
+  if (!noForm.prioManual && g) document.getElementById('noPri').value = prioridadeSugerida(g, item);
+  noEmerg();
+}
+function noEmerg() { document.getElementById('noEmerg').innerHTML = document.getElementById('noPri').value === 'emergencia' ? '<div class="alert-card" style="display:block;margin-top:10px"><b>Emergência:</b> o posto e a supervisão recebem alerta na hora. Havendo risco: ' + OC_TELEFONES.map(([n, t]) => n + ' <a href="tel:' + t + '" style="color:var(--red);font-weight:700">' + t + '</a>').join(' · ') + '</div>' : ''; }
+function noLocal() {
+  const pid = noForm.posto, L = noForm.local, areas = DB.areas(pid), area = L && L.areaId ? DB.area(L.areaId) : null;
+  const grupos = {}; areas.forEach(a => (grupos[a.grupo || 'Locais'] = grupos[a.grupo || 'Locais'] || []).push(a));
+  let h = '';
+  if (temPlanta(pid)) h += '<p class="meta" style="margin-bottom:6px">Clique na planta onde aconteceu' + (areas.length ? ' ou escolha na lista' : '') + '.</p><div id="noPlanta"></div>';
+  h += '<div id="noSel" class="meta" style="margin:8px 0;color:var(--light)">' + (L ? '📍 <b>' + esc(L.nome || 'Ponto marcado na planta') + '</b>' + (L.x != null ? ' · marcado na planta' : '') : '') + '</div>';
+  if (areas.length) h += '<select id="noArea" onchange="noArea(this.value)"><option value="">' + (temPlanta(pid) ? 'ou escolha o local na lista' : 'Escolha o local') + '</option>' + Object.entries(grupos).map(([g, l]) => '<optgroup label="' + esc(g) + '">' + l.map(a => '<option value="' + a.id + '"' + (area && area.id === a.id ? ' selected' : '') + '>' + esc(a.nome) + '</option>').join('') + '</optgroup>').join('') + '</select>';
+  if (area && area.tipo === 'torre') h += '<select id="noAndar" style="margin-top:8px" onchange="noForm.local.andar=this.value===\'\'?null:+this.value"><option value="">Andar (se souber)</option>' + Array.from({ length: (area.andares || 0) + 1 }, (_, i) => '<option value="' + i + '"' + (L.andar === i ? ' selected' : '') + '>' + andarNome(i) + '</option>').join('') + '</select>';
+  h += '<input id="noLocalTxt" style="margin-top:8px" placeholder="' + (areas.length || temPlanta(pid) ? 'Detalhe do local (opcional)' : 'Local: ex. garagem, bloco 3') + '">';
+  const antes = document.getElementById('noLocalTxt'), txt = antes ? antes.value : '';
+  const box = document.getElementById('noLocal'), plantaAntiga = document.getElementById('noPlanta');
+  // mantém a planta (e a rolagem) quando só muda a seleção
+  if (plantaAntiga && box.dataset.posto === pid) { const p = plantaAntiga; p.remove(); box.innerHTML = h; box.querySelector('#noPlanta').replaceWith(p); }
+  else box.innerHTML = h;
+  box.dataset.posto = pid;
+  document.getElementById('noLocalTxt').value = txt;
+  if (temPlanta(pid)) Planta.montar(document.getElementById('noPlanta'), { postoId: pid, maxAltura: '46vh', foco: L && L.deLista && L.x != null ? { x: L.x, y: L.y } : null, pinos: L && L.x != null ? [{ x: L.x, y: L.y, cor: '#D4AF37', novo: true }] : [],
+    aoTocar: (x, y, prop) => { const a = localMaisProximo(pid, x, y, prop); noForm.local = { x, y, areaId: a ? a.id : null, torre: torreDaArea(a), andar: null, nome: a ? a.nome : null }; noLocal(); } });
+}
+function noArea(id) { const a = id && DB.area(id); noForm.local = a ? { x: a.x, y: a.y, areaId: a.id, torre: torreDaArea(a), andar: null, nome: a.nome, deLista: true } : null; noLocal(); }
+async function salvarNovaOc() {
+  const v = document.getElementById('noCat').value; if (!v) { toast('Escolha o que aconteceu', true); return; }
+  let [cat, titulo] = v.split('|');
+  if (cat === 'Outro') { titulo = document.getElementById('noOutro').value.trim(); if (!titulo) { toast('Escreva o que aconteceu', true); return; } }
+  const pid = noForm.posto, L = noForm.local || {}, detalhe = document.getElementById('noLocalTxt').value.trim(), desc = document.getElementById('noDesc').value.trim();
+  const btn = document.getElementById('noBtn'); btn.disabled = true;
+  let fotoPath = null; const f = document.getElementById('noFoto').files[0];
+  if (f) { try { const blob = await comprimirFoto(f); fotoPath = pid + '/ocorrencias/' + isoDia(new Date()) + '/' + novoId() + '.jpg'; await Nuvem.guardarFoto(fotoPath, blob); } catch (e) { toast('Não foi possível ler a foto', true); btn.disabled = false; return; } }
+  const resp = isGestor() ? document.getElementById('noResp').value : '';
+  const o = DB.novaOcorrencia({ posto: pid, categoria: cat, titulo, descricao: desc || titulo, autor: autorPainel(), prioridade: document.getElementById('noPri').value, origem: 'painel', fotoPath, responsavel: resp || null, criadoPor: Nuvem._uid || undefined,
+    localNome: [L.nome, detalhe].filter(Boolean).join(' · ') || null, areaId: L.areaId || null, mapaX: L.x != null ? L.x : null, mapaY: L.y != null ? L.y : null, torre: L.torre || null, andar: L.andar != null ? L.andar : null },
+    'Registrada por ' + autorPainel() + (resp ? ' · responsável: ' + resp : ''));
+  fecharModal(); toast('Ocorrência registrada' + (o.prioridade === 'emergencia' ? ' · o posto foi alertado' : '')); render(); montarNav();
+}
+
+// ---- Planta e locais ----
+async function enviarPlanta(pid, inp) {
+  const f = inp.files && inp.files[0]; if (!f) return;
+  if (!/^image\//.test(f.type)) { toast('Use uma imagem JPG ou PNG', true); return; }
+  if (!navigator.onLine) { toast('Sem internet: envie a planta quando a conexão voltar', true); return; }
+  toast('Enviando a planta...');
+  try {
+    let blob = f;
+    if (f.size > 1500000 || !/png|jpe?g|webp/.test(f.type)) blob = await comprimirFoto(f, 2400, 0.85);
+    const dim = await dimensoesImagem(blob), ext = blob.type === 'image/png' ? 'png' : blob.type === 'image/webp' ? 'webp' : 'jpg';
+    const path = pid + '/mapa/planta-' + Date.now() + '.' + ext;
+    const { error } = await Nuvem.sb.storage.from('fotos').upload(path, blob, { contentType: blob.type || 'image/jpeg' });
+    if (error) throw error;
+    DB.upsert('condominio_mapa', { posto: pid, plantaPath: path, largura: dim.largura || null, altura: dim.altura || null }, 'posto_id');
+    toast('Planta enviada'); render();
+  } catch (e) { toast('Não foi possível enviar a planta: ' + (e.message || e), true); }
+}
+function editarLocal(id) {
+  const a = id ? DB.area(id) : null, pid = postoDaPlanta();
+  const grupos = [...new Set(DB.areas(pid).map(x => x.grupo).filter(Boolean).concat(['Acesso', 'Torres', 'Pátio', 'Clube', 'Esporte', 'Garagem']))];
+  abrirModal('<h3>' + (a ? 'Editar local' : 'Novo local') + '</h3><div class="form">' +
+    '<label>Nome</label><input id="lcNome" value="' + esc(a ? a.nome : '') + '" placeholder="Ex.: Salão de festas, Torre B, Portaria">' +
+    '<div class="row"><div><label>Grupo</label><input id="lcGrupo" list="lcGrupos" value="' + esc(a ? a.grupo || '' : '') + '"><datalist id="lcGrupos">' + grupos.map(g => '<option value="' + esc(g) + '">').join('') + '</datalist></div>' +
+    '<div><label>Tipo</label><select id="lcTipo" onchange="document.getElementById(\'lcAndBox\').style.display=this.value===\'torre\'?\'\':\'none\'"><option value="area">Área</option><option value="torre"' + (a && a.tipo === 'torre' ? ' selected' : '') + '>Torre / bloco</option></select></div></div>' +
+    '<div id="lcAndBox" style="display:' + (a && a.tipo === 'torre' ? '' : 'none') + '"><label>Andares acima do térreo</label><input id="lcAnd" type="number" min="0" max="60" value="' + (a && a.andares != null ? a.andares : 7) + '"></div>' +
+    '</div><div class="acts">' + (a ? '<button class="btn btn-red" style="margin-right:auto" onclick="removerLocal(\'' + a.id + '\')">Remover</button>' : '') + '<button class="btn btn-ghost" onclick="fecharModal()">Cancelar</button><button class="btn btn-gold" onclick="salvarLocal(' + (a ? '\'' + a.id + '\'' : 'null') + ')">' + (a ? 'Salvar' : 'Salvar e posicionar na planta') + '</button></div>');
+}
+function salvarLocal(id) {
+  const nome = document.getElementById('lcNome').value.trim(); if (!nome) { toast('Informe o nome', true); return; }
+  const tipo = document.getElementById('lcTipo').value;
+  const dados = { nome, grupo: document.getElementById('lcGrupo').value.trim() || null, tipo, andares: tipo === 'torre' ? Math.max(0, +document.getElementById('lcAnd').value || 0) : null };
+  if (id) DB.update('areas', id, dados);
+  else { const pid = postoDaPlanta(); const n = DB.push('areas', Object.assign({ posto: pid, ordem: DB.areas(pid).length + 1, ativo: true }, dados)); locSel = n.id; locPosicionar = temPlanta(pid); }
+  fecharModal(); toast(id ? 'Local salvo' : locPosicionar ? 'Agora clique na planta onde ele fica' : 'Local salvo'); render();
+}
+function removerLocal(id) { DB.update('areas', id, { ativo: false }); if (locSel === id) locSel = null; fecharModal(); toast('Local removido'); render(); }
+
+// ---- Alerta de ocorrência em tempo real ----
+function bipCurto() {
+  try { const ctx = sirene.ctx || (sirene.ctx = new (window.AudioContext || window.webkitAudioContext)()); const o = ctx.createOscillator(), g = ctx.createGain(); o.frequency.value = 880; o.connect(g); g.connect(ctx.destination); g.gain.value = .12; o.start(); o.stop(ctx.currentTime + .25); } catch (e) {}
+}
+let emergAtual = null;
+function alertaOcorrencia(o) {
+  const pr = DB.params(o.posto); if (!pr.ocorrencias || !pr.ocnova) return;
+  const local = ocLocal(o);
+  if (o.prioridade === 'emergencia') {
+    emergAtual = o.id;
+    document.getElementById('emergTit').textContent = '🚨 EMERGÊNCIA — ' + nomePosto(o.posto);
+    document.getElementById('emergTxt').textContent = ocTitulo(o) + (local ? ' · ' + local : '') + ' · ' + fmtHora(new Date(o.criadoEm)) + (o.autor ? ' · ' + o.autor : '');
+    document.getElementById('emergOv').classList.add('show'); sirene();
+    try { if ('Notification' in window && Notification.permission === 'granted') new Notification('🚨 Emergência — ' + nomePosto(o.posto), { body: ocTitulo(o) + (local ? ' · ' + local : ''), requireInteraction: true }); } catch (e) {}
+  } else {
+    if (o.prioridade === 'alta') bipCurto();
+    toast('Nova ocorrência · ' + nomePosto(o.posto) + ': ' + ocTitulo(o), o.prioridade === 'alta');
+  }
+}
+function fecharEmerg(abrir) { document.getElementById('emergOv').classList.remove('show'); const id = emergAtual; emergAtual = null; if (abrir && id) { if (secaoAtual !== 'ocorrencias') ir('ocorrencias'); ocDetalhe(id); } }
 
 // ===================== LIVRO ATA =====================
 function rLivro() {
@@ -517,12 +785,20 @@ function verChecklist(id) {
 // ===================== MATERIAIS =====================
 const ETAPAS = [['solicitado', 'Solicitado', 'Aprovar'], ['aprovado', 'Aprovado', 'Marcar entregue'], ['entregue', 'Entregue (aguardando posto)', null], ['noposto', 'No posto', null]];
 function rMateriais() {
-  const l = DB.list('solicitacoes').filter(s => doFiltro(s.posto));
-  let h = '<div class="filters">' + filtroPostoHtml() + '</div><div class="h2">Reposições</div><div class="kanban">';
+  // condomínio com Materiais desligado em Parâmetros = material próprio do condomínio, fora do controle da C&S
+  const comCS = pid => !!DB.params(pid).materiais;
+  const proprios = postosVisiveis().filter(p => !comCS(p.id));
+  let h = '<div class="filters">' + filtroPostoHtml() + '</div>';
+  if (filtroPosto !== 'todos' && !comCS(filtroPosto)) {
+    M().innerHTML = h + '<div class="empty">O material do ' + esc(nomePosto(filtroPosto)) + ' é do próprio condomínio, fora do controle da C&S.' + (isAdm() ? '<br>Para controlar pela C&S, ligue Materiais em Parâmetros.' : '') + '</div>'; return;
+  }
+  if (proprios.length) h += '<p class="meta" style="margin:-4px 0 14px">Material próprio do condomínio (fora do controle): ' + proprios.map(p => esc(p.nome)).join(', ') + '.</p>';
+  const l = DB.list('solicitacoes').filter(s => doFiltro(s.posto) && comCS(s.posto));
+  h += '<div class="h2">Reposições</div><div class="kanban">';
   h += ETAPAS.map((e, i) => { const it = l.filter(s => s.etapa === e[0]);
     return '<div class="kcol"><h4>' + e[1] + ' (' + it.length + ')</h4>' + (it.map(s => '<div class="kcard' + (s.urgencia === 'urgente' ? ' urg' : '') + '"><b>' + esc(s.material) + '</b> · ' + s.qtd + ' un<div class="meta">' + esc(nomePosto(s.posto)) + ' · ' + quando(s.criadoEm) + (s.urgencia === 'urgente' ? ' · urgente' : '') + '</div>' + (isGestor() && e[2] ? '<button class="btn btn-gold" onclick="avancar(\'' + s.id + '\',\'' + ETAPAS[i + 1][0] + '\')">' + e[2] + '</button>' : '') + (e[0] === 'entregue' ? '<div class="meta">O posto confirma o recebimento no app</div>' : '') + '</div>').join('') || '<div class="empty">—</div>') + '</div>'; }).join('');
   h += '</div><div class="h2" style="margin-top:22px">Estoque nos postos</div>';
-  postosVisiveis().filter(p => doFiltro(p.id)).forEach(p => {
+  postosVisiveis().filter(p => doFiltro(p.id) && comCS(p.id)).forEach(p => {
     const est = DB.estoque(p.id);
     h += '<div class="table-wrap"><table><thead><tr><th>' + esc(p.nome) + '</th><th>Qtd</th><th>Mínimo</th><th>Status</th></tr></thead><tbody>' + MATERIAIS_CATALOGO.map(m => { const q = est[m.id], min = DB.minimo(p.id, m.id), s = statusEstoque(q, min);
       return '<tr><td>' + esc(m.nome) + '</td><td>' + (q == null ? '—' : q + ' ' + m.un) + '</td><td>' + (isAdmRh() ? '<button class="btn btn-ghost" onclick="editarMinimo(\'' + p.id + '\',\'' + m.id + '\')">' + min + '</button>' : min) + '</td><td><span class="pill ' + { ok: 'green', low: 'orange', out: 'red', none: 'silver' }[s.id] + '">' + s.label + '</span></td></tr>'; }).join('') + '</tbody></table></div>';
@@ -676,7 +952,8 @@ function rParametros() {
   let h = '<p class="meta" style="margin:0 0 14px;font-size:12px">O que ficar desligado some do app do posto e do painel do condomínio. As mudanças chegam na hora nos celulares.</p><div class="postos-grid">';
   h += DB.postos().map(p => { const pr = DB.params(p.id), modo = DB.modoEncomenda(p.id);
     return '<div class="pcard"><div class="ph"><b>' + esc(p.nome) + '</b><select onchange="DB.update(\'postos\',\'' + p.id + '\',{prioridade:this.value});toast(\'Prioridade salva\')" style="background:var(--bg3);color:var(--light);border:1px solid var(--bg4);border-radius:8px;padding:5px">' + ['critico', 'alto', 'normal'].map(x => '<option value="' + x + '"' + (p.prioridade === x ? ' selected' : '') + '>Prioridade ' + x + '</option>').join('') + '</select></div><div style="padding:6px 14px 12px">' +
-      MODULOS.map(m => '<div class="param-row"><span>' + m.nome + (m.bloqueado ? '<small>em preparação</small>' : '') + '</span><label class="toggle"><input type="checkbox"' + (pr[m.id] ? ' checked' : '') + (m.bloqueado ? ' disabled' : '') + ' onchange="DB.setParam(\'' + p.id + '\',\'' + m.id + '\',this.checked);render();toast(\'Parâmetro salvo\')"><span></span></label></div>').join('') +
+      MODULOS.map(m => '<div class="param-row"><span>' + m.nome + (m.bloqueado ? '<small>em preparação</small>' : m.dica ? '<small>' + m.dica + '</small>' : '') + '</span><label class="toggle"><input type="checkbox"' + (pr[m.id] ? ' checked' : '') + (m.bloqueado ? ' disabled' : '') + ' onchange="DB.setParam(\'' + p.id + '\',\'' + m.id + '\',this.checked);render();toast(\'Parâmetro salvo\')"><span></span></label></div>' +
+        (m.id === 'ocorrencias' && pr.ocorrencias ? '<div class="param-row sub"><span>↳ Ocorrências versão nova<small>Planta, prioridade, histórico e alertas em tempo real. Desligado: tela clássica.</small></span><label class="toggle"><input type="checkbox"' + (pr.ocnova ? ' checked' : '') + ' onchange="DB.setParam(\'' + p.id + '\',\'ocnova\',this.checked);render();toast(\'Parâmetro salvo\')"><span></span></label></div>' : '')).join('') +
       (pr.encomendas ? '<div style="margin-top:10px"><div class="meta" style="margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">Modo de encomendas</div>' + ['interno', 'parceria', 'api'].map(k => { const md = MODOS_ENCOMENDA[k];
         return '<div class="modo-card' + (modo === k ? ' on' : '') + '" onclick="trocarModo(\'' + p.id + '\',\'' + k + '\')"><span class="l">' + md.letra + '</span><span><b>' + md.nome + '</b><small>' + md.desc + '</small></span></div>'; }).join('') + (modo === 'api' ? htmlIntegracao(p.id) : '') + '</div>' : '') +
       '</div></div>'; }).join('') + '</div>';
@@ -904,6 +1181,7 @@ function abrirSistema() {
 function aoMudar(tabela, p) {
   if (!A) return;
   if (tabela === 'alertas' && p && p.eventType === 'INSERT' && p.new.tipo === 'panico') mostrarPanico(paraTela(p.new));
+  if (tabela === 'ocorrencias' && p && p.eventType === 'INSERT' && p.new && !(p.new.criado_por && p.new.criado_por === Nuvem._uid) && !(p.new.origem === 'painel' && !p.new.criado_por && p.new.autor === autorPainel())) alertaOcorrencia(paraTela(p.new));
   montarNav();
   const ativo = document.activeElement;
   if (modalAberto() || (ativo && /INPUT|TEXTAREA|SELECT/.test(ativo.tagName) && ativo.closest('#main'))) return; // não atrapalha quem está digitando
