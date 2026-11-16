@@ -64,6 +64,7 @@ const TABELAS = {
   acessos:        { pk: ['user_id'], ordem: 'email', asc: true, papeis: ['adm', 'rh'], semTempoReal: true },
   cronogramas:          { pk: ['id'], ordem: 'nome', asc: true },
   cronograma_tarefas:   { pk: ['id'], ordem: 'ordem', asc: true },
+  cronograma_equipes:   { pk: ['id'], ordem: 'ordem', asc: true },
   cronograma_execucoes: { pk: ['id'], dias: 35, campoData: 'data', ordem: 'data' },
   ocorrencias_historico: { pk: ['id'], dias: 90, limite: 3000 },
   condominio_mapa:      { pk: ['posto_id'], ordem: 'posto_id', asc: true },
@@ -362,9 +363,16 @@ const DB = {
   },
 
   cronograma(postoId) { return linhas('cronogramas').find(c => c.posto === postoId && c.ativo !== false); },
-  tarefas(cronId) { return linhas('cronograma_tarefas').filter(t => t.cronogramaId === cronId && t.ativo !== false).sort((a, b) => (a.ordem || 0) - (b.ordem || 0)); },
+  // atividades em ordem de horário; dist: só as da distribuição informada (as sem equipe valem em todas)
+  tarefas(cronId, dist) {
+    return linhas('cronograma_tarefas').filter(t => t.cronogramaId === cronId && t.ativo !== false && (dist === undefined || !t.equipeId || ((this.equipe(t.equipeId) || {}).distribuicao === dist && (this.equipe(t.equipeId) || {}).ativo !== false)))
+      .sort((a, b) => String(a.horaIni || '99').localeCompare(String(b.horaIni || '99')) || (a.ordem || 0) - (b.ordem || 0));
+  },
+  equipe(id) { return linhas('cronograma_equipes').find(e => e.id === id); },
+  equipes(cronId, dist) { return linhas('cronograma_equipes').filter(e => e.cronogramaId === cronId && e.ativo !== false && (dist === undefined || e.distribuicao === dist)).sort((a, b) => (a.ordem || 0) - (b.ordem || 0) || a.nome.localeCompare(b.nome)); },
+  distribuicoes(cronId) { return [...new Set(this.equipes(cronId).map(e => e.distribuicao))].sort((a, b) => a.localeCompare(b, 'pt', { numeric: true })); },
   // atividade só conta a partir do dia em que foi criada (não gera "atraso" retroativo)
-  tarefasDoDia(cronId, dataIso) { const wd = new Date(dataIso + 'T12:00:00').getDay(); return this.tarefas(cronId).filter(t => (t.dias || []).includes(wd) && (!t.criadoEm || isoDia(new Date(t.criadoEm)) <= dataIso)); },
+  tarefasDoDia(cronId, dataIso) { const wd = new Date(dataIso + 'T12:00:00').getDay(), c = linhas('cronogramas').find(x => x.id === cronId) || {}; return this.tarefas(cronId, c.distribuicao || null).filter(t => (t.dias || []).includes(wd) && (!t.criadoEm || isoDia(new Date(t.criadoEm)) <= dataIso)); },
   execucao(tarefaId, dataIso) { return linhas('cronograma_execucoes').find(e => e.tarefaId === tarefaId && e.data === dataIso); },
   avisosDoPosto(postoId) { return this.list('avisos').filter(a => !a.destino || a.destino.includes(postoId)); },
   leitura(avisoId, postoId) { return linhas('avisos_leitura').find(l => l.avisoId === avisoId && l.posto === postoId); }
@@ -606,11 +614,22 @@ function compactarBlocos(lista) {
   for (let i = 1; i <= s.length; i++) { if (s[i] === ant + 1) { ant = s[i]; continue; } out.push(ini === ant ? '' + ini : ini + ' a ' + ant); ini = ant = s[i]; }
   return out.join(', ');
 }
+// torres com letra: "Torres A, B e C"; blocos numerados: "Blocos 1 a 8"
+function descreverBlocos(bl) {
+  bl = bl || [];
+  if (!bl.length) return 'sem torres';
+  if (bl.every(b => /^[A-Z]$/i.test(b))) return (bl.length === 1 ? 'Torre ' : 'Torres ') + (bl.length > 1 ? bl.slice(0, -1).join(', ') + ' e ' + bl[bl.length - 1] : bl[0]);
+  return bl.some(b => isNaN(Number(b))) ? bl.join(', ') : (bl.length === 1 ? 'Bloco ' : 'Blocos ') + compactarBlocos(bl);
+}
 function descreverOnde(t) {
+  const eq = t.equipeId && DB.equipe(t.equipeId);
+  if (eq) return eq.nome + ' · ' + descreverBlocos(eq.blocos);
   if (t.abrangencia === 'todos') return 'Todos os blocos';
-  if (t.abrangencia === 'alguns') { const bl = t.blocos || []; return bl.some(b => isNaN(Number(b))) ? bl.join(', ') : (bl.length === 1 ? 'Bloco ' : 'Blocos ') + compactarBlocos(bl); }
+  if (t.abrangencia === 'alguns') return descreverBlocos(t.blocos);
   return 'Área comum';
 }
+const hm = v => v ? String(v).slice(0, 5) : '';
+const horarioTarefa = t => t.horaIni ? hm(t.horaIni) + (t.horaFim ? '–' + hm(t.horaFim) : '') : '';
 function inicioSemana(d) { const x = new Date(d); x.setHours(12, 0, 0, 0); const wd = x.getDay(); x.setDate(x.getDate() - (wd === 0 ? 6 : wd - 1)); return x; }
 function diasDaSemana(seg) { return DIAS_ORDEM.map((_, i) => { const x = new Date(seg); x.setDate(x.getDate() + i); return isoDia(x); }); }
 const fmtDiaMes = iso => iso.split('-').reverse().slice(0, 2).join('/');

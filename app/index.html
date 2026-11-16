@@ -181,6 +181,9 @@ details.outros[open] summary::before{content:'▾ '}
 .faixa-gestor .sec{background:transparent;color:var(--gold);border:1px solid var(--gold-dark)}
 .tile.sair svg{fill:var(--red)}
 .link-painel{display:block;text-align:center;margin-top:18px;color:var(--gold);font-size:13px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{padding:9px 13px;border-radius:18px;border:1px solid var(--bg4);background:var(--bg2);color:var(--silver);font-size:13px;font-weight:700;cursor:pointer}
+.chip.on{background:var(--gold);color:#111;border-color:var(--gold)}
 /* ---- ocorrências com local na planta ---- */
 .prio-chips{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
 .prio-chips button{padding:11px 4px;border-radius:10px;border:1px solid var(--bg4);background:var(--bg2);color:var(--silver);font-size:12.5px;font-weight:700;cursor:pointer}
@@ -924,40 +927,54 @@ function renderEncomendas() {
 }
 
 // ================= CRONOGRAMA =================
-let abaCr = 'hoje';
+let abaCr = 'hoje', crEquipe = Store.get('crEquipe', 'todas');
+const agoraHm = () => { const d = new Date(); return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); };
 function cartaoTarefa(t, dia) {
-  const hoje = isoDia(new Date()), e = DB.execucao(t.id, dia);
+  const hoje = isoDia(new Date()), e = DB.execucao(t.id, dia), hr = horarioTarefa(t), agora = agoraHm();
+  const passou = dia < hoje || (dia === hoje && t.horaFim && hm(t.horaFim) <= agora), emCurso = dia === hoje && t.horaIni && hm(t.horaIni) <= agora && !passou;
   let status, acao = '';
   if (e && e.validacao === 'refazer') { status = '<span class="pill orange">↺ Refazer</span><div class="meta" style="color:var(--orange)">Supervisão: ' + esc(e.validacaoObs || '') + '</div>'; acao = '<button class="btn btn-sm btn-gold" onclick="marcarFeito(\'' + t.id + '\',\'' + dia + '\')">FEITO DE NOVO</button>'; }
   else if (e) status = '<span class="pill ' + (e.validacao === 'ok' ? 'blue' : 'green') + '">' + (e.validacao === 'ok' ? '✓ Validado' : '✅ Feito') + '</span><div class="meta">' + esc(e.feitoPor || '') + ' · ' + fmtHora(new Date(e.feitoEm)) + (e.validacao === 'ok' ? ' · validado por ' + esc(e.validadoPor || '') : '') + '</div>';
   else if (dia > hoje) status = '<span class="pill silver">Agendado</span>';
-  else { status = '<span class="pill ' + (dia < hoje ? 'red' : 'silver') + '">' + (dia < hoje ? 'Não feito' : 'Pendente') + '</span>'; acao = '<button class="btn btn-sm btn-gold" onclick="marcarFeito(\'' + t.id + '\',\'' + dia + '\')">' + (dia < hoje ? 'FEITO (ATRASADO)' : 'FEITO') + '</button>'; }
-  return '<div class="card"' + (e && e.validacao === 'refazer' ? ' style="border-color:var(--orange)"' : '') + '><div class="enc"><div style="min-width:0"><h4 style="color:var(--light)">' + esc(t.atividade) + '</h4><p>' + descreverOnde(t) + ' · ' + esc(t.funcao) + (t.obs ? '<br>' + esc(t.obs) : '') + '</p><div style="margin-top:6px">' + status + '</div></div>' + (acao ? '<div class="acts">' + acao + '</div>' : '') + '</div></div>';
+  else { status = '<span class="pill ' + (passou ? 'red' : emCurso ? 'gold' : 'silver') + '">' + (dia < hoje ? 'Não feito' : passou ? 'Atrasada' : emCurso ? 'Agora' : 'Pendente') + '</span>'; acao = '<button class="btn btn-sm btn-gold" onclick="marcarFeito(\'' + t.id + '\',\'' + dia + '\')">' + (passou ? 'FEITO (ATRASADO)' : 'FEITO') + '</button>'; }
+  return '<div class="card"' + (e && e.validacao === 'refazer' ? ' style="border-color:var(--orange)"' : !e && passou ? ' style="border-color:rgba(248,81,73,.5)"' : '') + '><div class="enc"><div style="min-width:0">' + (hr ? '<div class="meta" style="color:var(--gold);font-weight:700;margin-bottom:2px">🕘 ' + hr + '</div>' : '') + '<h4 style="color:var(--light)">' + esc(t.atividade) + '</h4><p>' + esc(descreverOnde(t)) + ' · ' + esc(t.funcao) + (t.obs ? '<br>' + esc(t.obs) : '') + '</p><div style="margin-top:6px">' + status + '</div></div>' + (acao ? '<div class="acts">' + acao + '</div>' : '') + '</div></div>';
 }
+function crFiltrar(v) { crEquipe = v; Store.set('crEquipe', v); renderCronograma(); }
 function renderCronograma() {
   document.getElementById('crTabHoje').classList.toggle('active', abaCr === 'hoje');
   document.getElementById('crTabSem').classList.toggle('active', abaCr === 'semana');
   const c = DB.cronograma(POSTO_ID), box = document.getElementById('crConteudo');
   if (!c) { box.innerHTML = '<div class="empty">Este posto ainda não tem cronograma.<br>A administração monta junto com o síndico.</div>'; return; }
-  const hoje = isoDia(new Date());
+  const hoje = isoDia(new Date()), eqs = c.distribuicao ? DB.equipes(c.id, c.distribuicao) : [];
+  if (crEquipe !== 'todas' && crEquipe !== 'comum' && !eqs.some(e => e.id === crEquipe)) crEquipe = 'todas';
+  const casa = t => crEquipe === 'todas' || (crEquipe === 'comum' ? !t.equipeId : t.equipeId === crEquipe);
+  // escolha da equipe: cada operária vê só o dela
+  const chips = eqs.length ? '<div class="chips" style="margin-bottom:12px">' + [['todas', 'Todas']].concat(eqs.map(e => [e.id, e.nome + ' · ' + e.blocos.join('')])).concat([['comum', 'Áreas comuns']]).map(o => '<button class="chip' + (crEquipe === o[0] ? ' on' : '') + '" onclick="crFiltrar(\'' + o[0] + '\')">' + esc(o[1]) + '</button>').join('') + '</div>' : '';
   if (abaCr === 'hoje') {
-    const ts = DB.tarefasDoDia(c.id, hoje), feitas = ts.filter(t => { const e = DB.execucao(t.id, hoje); return e && e.validacao !== 'refazer'; }).length;
+    const ts = DB.tarefasDoDia(c.id, hoje).filter(casa), feitas = ts.filter(t => { const e = DB.execucao(t.id, hoje); return e && e.validacao !== 'refazer'; }).length;
     const wd = new Date().getDay();
-    box.innerHTML = '<div class="sub" style="margin-top:0">' + DIAS_NOME[wd] + ' · ' + fmtDiaMes(hoje) + ' <span class="pill ' + (feitas === ts.length && ts.length ? 'green' : 'gold') + '">' + feitas + '/' + ts.length + ' feitas</span></div>' +
-      (ts.length ? ts.map(t => cartaoTarefa(t, hoje)).join('') : '<div class="empty">Nenhuma atividade programada para hoje.</div>');
+    let corpo = '';
+    if (eqs.length && crEquipe === 'todas') {
+      eqs.forEach(eq => { const l = ts.filter(t => t.equipeId === eq.id); if (l.length) corpo += '<div class="sub">' + esc(eq.nome) + ' · ' + esc(descreverBlocos(eq.blocos)) + (eq.operaria ? ' · ' + esc(eq.operaria) : '') + '</div>' + l.map(t => cartaoTarefa(t, hoje)).join(''); });
+      const l = ts.filter(t => !t.equipeId); if (l.length) corpo += '<div class="sub">Áreas comuns e apoio</div>' + l.map(t => cartaoTarefa(t, hoje)).join('');
+    } else corpo = ts.map(t => cartaoTarefa(t, hoje)).join('');
+    box.innerHTML = chips + '<div class="sub" style="margin-top:0">' + DIAS_NOME[wd] + ' · ' + fmtDiaMes(hoje) + ' <span class="pill ' + (feitas === ts.length && ts.length ? 'green' : 'gold') + '">' + feitas + '/' + ts.length + ' feitas</span></div>' +
+      (ts.length ? corpo : '<div class="empty">Nenhuma atividade programada para hoje.</div>');
     return;
   }
-  box.innerHTML = diasDaSemana(inicioSemana(new Date())).map(dia => {
-    const ts = DB.tarefasDoDia(c.id, dia); if (!ts.length) return '';
+  box.innerHTML = chips + (diasDaSemana(inicioSemana(new Date())).map(dia => {
+    const ts = DB.tarefasDoDia(c.id, dia).filter(casa); if (!ts.length) return '';
     const wd = new Date(dia + 'T12:00:00').getDay();
     return '<div class="sub">' + DIAS_NOME[wd] + ' · ' + fmtDiaMes(dia) + (dia === hoje ? ' <span class="pill gold">hoje</span>' : '') + '</div>' + ts.map(t => cartaoTarefa(t, dia)).join('');
-  }).join('') || '<div class="empty">Cronograma sem atividades.</div>';
+  }).join('') || '<div class="empty">Cronograma sem atividades.</div>');
 }
 function marcarFeito(tid, dia) {
   const t = DB.list('cronograma_tarefas').find(x => x.id === tid);
   const pessoas = pessoasDoPosto(), pref = pessoas.filter(x => x.colab.funcao === t.funcao).concat(pessoas.filter(x => x.colab.funcao !== t.funcao));
-  abrirModal('<h3>' + esc(t.atividade) + '</h3><p class="hint">' + descreverOnde(t) + ' · ' + DIAS_NOME[new Date(dia + 'T12:00:00').getDay()] + ' ' + fmtDiaMes(dia) + '</p>' +
-    '<div class="form-group"><label>Quem fez</label><select id="cfQuem">' + pref.map(x => '<option>' + esc(x.colab.nome) + '</option>').join('') + '</select></div>' +
+  const eq = t.equipeId && DB.equipe(t.equipeId), sug = eq && eq.operaria;
+  const nomes = pref.map(x => x.colab.nome); if (sug && !nomes.includes(sug)) nomes.unshift(sug);
+  abrirModal('<h3>' + esc(t.atividade) + '</h3><p class="hint">' + esc(descreverOnde(t)) + (horarioTarefa(t) ? ' · ' + horarioTarefa(t) : '') + ' · ' + DIAS_NOME[new Date(dia + 'T12:00:00').getDay()] + ' ' + fmtDiaMes(dia) + '</p>' +
+    '<div class="form-group"><label>Quem fez</label><select id="cfQuem">' + nomes.map(n => '<option' + (n === sug ? ' selected' : '') + '>' + esc(n) + '</option>').join('') + '</select></div>' +
     '<div class="form-group"><label>Observação (opcional)</label><input id="cfObs" autocomplete="off" placeholder="Ex: faltou produto, fiz só metade"></div>' +
     '<label class="foto-campo" id="cfFotoBox"><span class="prev">📷</span><span><b>Foto (opcional)</b><small>Mostra o serviço feito</small></span><input type="file" accept="image/*" capture="environment" id="cfFoto" onchange="previaFoto(this,\'cfFotoBox\')"></label>' +
     '<div class="row" style="margin-top:14px"><button class="btn btn-outline" onclick="fecharModal()">CANCELAR</button><button class="btn btn-gold" id="cfBtn" onclick="salvarFeito(\'' + tid + '\',\'' + dia + '\')">CONFIRMAR</button></div>');
