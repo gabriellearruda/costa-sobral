@@ -83,6 +83,7 @@ button,input,select,textarea{font-family:var(--font)}
 .btn:active{transform:scale(.97)}
 .btn-gold{background:linear-gradient(135deg,var(--gold),var(--gold-dark));color:var(--bg)}
 .btn-outline{background:transparent;border:1px solid var(--gold-dark);color:var(--gold)}
+a.btn{text-decoration:none;display:inline-block}
 .btn-ghost{background:var(--bg3);color:var(--light)}
 .btn-red{background:var(--red);color:#fff}
 .btn-green{background:var(--green);color:#fff}
@@ -516,6 +517,8 @@ let filtroOc = 'abertas', ocTab = 'lista', locSel = null, locPosicionar = false,
 const autorPainel = () => A.papel === 'cond' ? 'Síndico' + (A.nome ? ' · ' + A.nome : '') : (NOME_PAPEL[A.papel] || 'Gestão') + ' · ' + (A.nome || A.email);
 const podeAbrirOc = () => isGestor() ? postosVisiveis().some(p => ocNova(p.id)) : A.papel === 'cond' && ocNova(A.posto);
 const temPlanta = pid => !!(DB.mapa(pid) || {}).plantaPath;
+const temMaquete = pid => !!(DB.mapa(pid) || {}).tem_3d;
+const btnMaquete = pid => temMaquete(pid) ? '<a class="btn btn-outline" style="font-family:var(--font);font-size:12.5px" href="maquete.html?posto=' + encodeURIComponent(pid) + '" target="_blank" rel="noopener">Ver maquete 3D</a>' : '';
 // condomínio usado na planta (planta é de um condomínio por vez)
 function postoDaPlanta() {
   if (!isGestor()) return A.posto;
@@ -563,7 +566,7 @@ function rOcorrencias() {
   if (ocTab === 'planta') {
     const l = base.filter(o => o.posto === pid && ocFiltroCasa(o));
     const comLocal = l.filter(o => o.mapaX != null), semLocal = l.length - comLocal.length;
-    h += '<div class="h2">' + esc(nomePosto(pid)) + (isGestor() && filtroPosto === 'todos' ? ' <span class="meta" style="font-family:var(--font)">escolha outro condomínio no filtro acima</span>' : '') + '</div>';
+    h += '<div class="h2" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">' + esc(nomePosto(pid)) + (isGestor() && filtroPosto === 'todos' ? ' <span class="meta" style="font-family:var(--font)">escolha outro condomínio no filtro acima</span>' : '') + btnMaquete(pid) + '</div>';
     if (!ocNova(pid)) h += '<div class="alert-card orange"><div>Este condomínio está na tela clássica de ocorrências: o posto não marca local na planta. Ligue "Ocorrências versão nova" em Parâmetros.</div></div>';
     h += '<div class="legenda">' + Object.values(OC_PRIORIDADES).map(p => '<span><i style="background:' + p.cor + '"></i>' + p.nome + '</span>').join('') + '<span><i style="background:#666"></i>Resolvida</span></div>';
     h += '<div id="ocPlanta"></div>';
@@ -578,7 +581,7 @@ function rOcorrencias() {
   // ---- Planta e locais (administração e RH) ----
   const mapa = DB.mapa(pid), areas = DB.areas(pid);
   h += '<div class="h2">' + esc(nomePosto(pid)) + (isGestor() && filtroPosto === 'todos' ? ' <span class="meta" style="font-family:var(--font)">escolha outro condomínio no filtro acima</span>' : '') + '</div>';
-  h += '<div class="card"><h4>Imagem da planta</h4><p>' + (mapa && mapa.plantaPath ? 'Planta cadastrada' + (mapa.largura ? ' (' + mapa.largura + ' × ' + mapa.altura + ' px)' : '') + '. Enviar outra substitui a atual; os locais e os pinos continuam nas mesmas posições (em % da imagem).' : 'Ainda sem planta. Use uma imagem JPG ou PNG. Se a planta estiver em PDF, exporte a página como imagem.') + (mapa && mapa.tem3d ? ' <span class="pill gold">Maquete 3D</span>' : '') + '</p>' +
+  h += '<div class="card"><h4>Imagem da planta</h4><p>' + (mapa && mapa.plantaPath ? 'Planta cadastrada' + (mapa.largura ? ' (' + mapa.largura + ' × ' + mapa.altura + ' px)' : '') + '. Enviar outra substitui a atual; os locais e os pinos continuam nas mesmas posições (em % da imagem).' : 'Ainda sem planta. Use uma imagem JPG ou PNG. Se a planta estiver em PDF, exporte a página como imagem.') + (mapa && mapa.tem_3d ? ' <span class="pill gold">Maquete 3D</span>' : '') + '</p>' +
     '<label class="btn btn-outline" style="display:inline-block;margin-top:10px">' + (mapa && mapa.plantaPath ? 'Enviar outra planta' : 'Enviar planta') + '<input type="file" accept="image/png,image/jpeg,image/webp" style="display:none" onchange="enviarPlanta(\'' + pid + '\',this)"></label></div>';
   h += '<div class="loc-grid"><div><div class="h2" style="font-size:15px">Locais <button class="btn btn-gold" onclick="editarLocal(null)">+ Novo local</button></div>' +
     (locPosicionar && locSel ? '<div class="alert-card orange"><div><b>Clique na planta onde fica: ' + esc((DB.area(locSel) || {}).nome || '') + '</b></div><div class="acts"><button class="btn btn-ghost" onclick="locPosicionar=false;render()">Cancelar</button></div></div>' : '') +
@@ -1045,7 +1048,7 @@ function htmlExecucaoCron(pid, cron) {
   const seg = semCron || semanaAtual(), dias = diasDaSemana(new Date(seg + 'T12:00:00')), hoje = isoDia(new Date());
   const s = statsSemana(pid, cron, seg);
   const mover = n => { const d = new Date(seg + 'T12:00:00'); d.setDate(d.getDate() + n * 7); return isoDia(d); };
-  let h = '<div class="filters"><button class="btn btn-ghost" onclick="semCron=\'' + mover(-1) + '\';render()">◀</button><b style="font-size:14px">Semana de ' + fmtDiaMes(dias[0]) + ' a ' + fmtDiaMes(dias[6]) + '</b><button class="btn btn-ghost" onclick="semCron=\'' + mover(1) + '\';render()">▶</button>' + (seg !== semanaAtual() ? '<button class="btn btn-outline" onclick="semCron=null;render()">Esta semana</button>' : '') + '</div>';
+  let h = '<div class="filters"><button class="btn btn-ghost" onclick="semCron=\'' + mover(-1) + '\';render()">◀</button><b style="font-size:14px">Semana de ' + fmtDiaMes(dias[0]) + ' a ' + fmtDiaMes(dias[6]) + '</b><button class="btn btn-ghost" onclick="semCron=\'' + mover(1) + '\';render()">▶</button>' + (seg !== semanaAtual() ? '<button class="btn btn-outline" onclick="semCron=null;render()">Esta semana</button>' : '') + btnMaquete(pid) + '</div>';
   h += '<div class="stats"><div class="stat"><div class="n">' + s.prev + '</div><div class="l">Previstas até hoje</div></div><div class="stat green"><div class="n">' + s.feitas + '</div><div class="l">Feitas</div></div><div class="stat blue"><div class="n">' + s.valid + '</div><div class="l">Validadas</div></div><div class="stat red"><div class="n">' + s.atras + '</div><div class="l">Atrasadas</div></div>' + (s.refazer ? '<div class="stat orange"><div class="n">' + s.refazer + '</div><div class="l">Para refazer</div></div>' : '') + '</div>';
   const eqs = cron.distribuicao ? DB.equipes(cron.id, cron.distribuicao) : [];
   if (eqExec !== 'todas' && eqExec !== 'comum' && !eqs.some(e => e.id === eqExec)) eqExec = 'todas';
