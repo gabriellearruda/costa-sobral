@@ -1,0 +1,1291 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="C&S Painel">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="theme-color" content="#0D0D0D">
+<link rel="manifest" href="manifest-painel.json">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<title>C&S — Painel</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --gold:#D4AF37;--gold-dark:#B8860B;--gold-light:#F4DD9A;--silver:#C0C0C0;
+  --bg:#0D0D0D;--bg2:#1A1A1A;--bg3:#242424;--bg4:#2E2E2E;--light:#F5F5F0;
+  --green:#3fb950;--red:#f85149;--orange:#d29922;--blue:#58a6ff;
+  --font:'Montserrat',sans-serif;--title:'Playfair Display',serif;--radius:12px;--sidebar-w:244px;
+  --safe-b:env(safe-area-inset-bottom,0px);--safe-t:env(safe-area-inset-top,0px);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--font);background:var(--bg);color:var(--light);min-height:100vh;-webkit-tap-highlight-color:transparent}
+button,input,select,textarea{font-family:var(--font)}
+.pattern-bg{position:relative}
+.pattern-bg::before{content:'';position:fixed;inset:0;pointer-events:none;opacity:.02;background:repeating-linear-gradient(45deg,var(--gold) 0 1px,transparent 1px 22px),repeating-linear-gradient(-45deg,var(--gold) 0 1px,transparent 1px 22px)}
+/* LOGIN */
+.login{position:fixed;inset:0;z-index:600;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:20px;overflow:auto}
+.login.hide{display:none}
+.login .box{width:100%;max-width:420px}
+.login img{height:64px;display:block;margin:0 auto 14px}
+.login h1{font-family:var(--title);color:var(--gold);text-align:center;font-size:24px;margin-bottom:4px}
+.login .sub{text-align:center;color:var(--silver);font-size:13px;margin-bottom:22px}
+.perfil{background:var(--bg2);border:1px solid var(--bg3);border-radius:var(--radius);padding:16px;margin-bottom:12px}
+.perfil h3{font-size:15px;color:var(--gold);margin-bottom:4px}
+.perfil p{font-size:12px;color:var(--silver);margin-bottom:12px}
+/* SIDEBAR */
+.sidebar{position:fixed;left:0;top:0;bottom:0;width:var(--sidebar-w);background:var(--bg2);border-right:1px solid var(--bg3);display:flex;flex-direction:column;z-index:100;transition:transform .3s}
+.sidebar .brand{padding:16px;border-bottom:1px solid var(--bg3);padding-top:max(16px,var(--safe-t))}
+.sidebar .brand img{height:38px;display:block}
+.sidebar .brand .who{margin-top:10px;font-size:12px;color:var(--gold);font-weight:600}
+.sidebar .brand .who span{display:block;color:var(--silver);font-weight:400;font-size:11px;margin-top:2px}
+.nav{flex:1;overflow:auto;padding:8px 0}
+.nav-item{display:flex;align-items:center;gap:12px;padding:11px 18px;color:var(--silver);font-size:13.5px;cursor:pointer;border-left:3px solid transparent}
+.nav-item:hover{background:rgba(212,175,55,.05)}
+.nav-item.active{color:var(--gold);background:rgba(212,175,55,.08);border-left-color:var(--gold)}
+.nav-item.disabled{opacity:.35;cursor:default}
+.nav-item svg{width:19px;height:19px;fill:currentColor;flex-shrink:0}
+.nav-item .badge{margin-left:auto;background:var(--red);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px}
+.nav-sep{font-size:10px;color:#666;text-transform:uppercase;letter-spacing:1px;padding:14px 18px 6px}
+.sidebar .foot{padding:12px 16px;border-top:1px solid var(--bg3);padding-bottom:calc(12px + var(--safe-b))}
+.content{margin-left:var(--sidebar-w);min-height:100vh;min-width:0;overflow-x:hidden}
+.topbar{background:var(--bg2);border-bottom:1px solid var(--bg3);padding:14px 24px;padding-top:max(14px,var(--safe-t));display:flex;align-items:center;justify-content:space-between;gap:12px;position:sticky;top:0;z-index:50}
+.topbar h1{font-family:var(--title);font-size:20px;color:var(--gold)}
+.topbar .meta{font-size:12px;color:var(--silver);margin-top:2px}
+.topbar .right{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--silver)}
+.test-badge{background:var(--gold-dark);color:var(--bg);font-size:9px;font-weight:700;letter-spacing:1px;padding:3px 8px;border-radius:8px;white-space:nowrap}
+.menu-btn{display:none;position:fixed;top:max(12px,var(--safe-t));left:12px;z-index:110;background:var(--bg3);border:1px solid var(--bg4);border-radius:8px;width:38px;height:38px;color:var(--gold);font-size:20px;cursor:pointer}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:99}
+.overlay.show{display:block}
+.main{padding:22px 24px 60px}
+.section{display:none}.section.active{display:block;animation:fade .25s}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+/* COMPONENTES */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:22px}
+.stat{background:var(--bg2);border:1px solid var(--bg3);border-top:3px solid var(--gold);border-radius:var(--radius);padding:16px}
+.stat .n{font-size:28px;font-weight:700}
+.stat .l{font-size:12px;color:var(--silver);margin-top:4px}
+.stat.green{border-top-color:var(--green)}.stat.orange{border-top-color:var(--orange)}.stat.red{border-top-color:var(--red)}.stat.blue{border-top-color:var(--blue)}
+.h2{font-family:var(--title);color:var(--gold);font-size:17px;margin:6px 0 12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.card{background:var(--bg2);border:1px solid var(--bg3);border-radius:var(--radius);padding:16px;margin-bottom:12px}
+.card h4{font-size:14px;color:var(--light);margin-bottom:4px}
+.card p{font-size:13px;color:var(--silver);line-height:1.5}
+.meta{font-size:11px;color:#777;margin-top:6px}
+.empty{color:#666;font-size:13px;text-align:center;padding:18px}
+.pill{display:inline-block;font-size:11px;padding:3px 9px;border-radius:10px;font-weight:700;white-space:nowrap}
+.pill.green{background:rgba(63,185,80,.15);color:var(--green)}.pill.orange{background:rgba(210,153,34,.15);color:var(--orange)}
+.pill.red{background:rgba(248,81,73,.15);color:var(--red)}.pill.silver{background:var(--bg3);color:var(--silver)}
+.pill.gold{background:rgba(212,175,55,.15);color:var(--gold)}.pill.blue{background:rgba(88,166,255,.15);color:var(--blue)}
+.tag{font-size:11px;padding:3px 8px;border-radius:8px;background:var(--bg3);color:var(--silver);white-space:nowrap}
+.btn{padding:9px 14px;border:none;border-radius:9px;font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap}
+.btn:active{transform:scale(.97)}
+.btn-gold{background:linear-gradient(135deg,var(--gold),var(--gold-dark));color:var(--bg)}
+.btn-outline{background:transparent;border:1px solid var(--gold-dark);color:var(--gold)}
+a.btn{text-decoration:none;display:inline-block}
+.btn-ghost{background:var(--bg3);color:var(--light)}
+.btn-red{background:var(--red);color:#fff}
+.btn-green{background:var(--green);color:#fff}
+.btn-full{width:100%;padding:13px;font-size:14px}
+.filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;align-items:center}
+.filters select,.filters input,.form input,.form select,.form textarea{background:var(--bg3);color:var(--light);border:1px solid var(--bg4);padding:10px 12px;border-radius:9px;font-size:14px;outline:none}
+.form label{display:block;font-size:12px;color:var(--silver);margin:10px 0 5px}
+.form input,.form select,.form textarea{width:100%}
+.form .row{display:flex;gap:10px}.form .row>*{flex:1;min-width:0}
+.table-wrap{background:var(--bg2);border:1px solid var(--bg3);border-radius:var(--radius);overflow-x:auto;margin-bottom:18px}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;font-size:11px;color:var(--silver);text-transform:uppercase;letter-spacing:.5px;padding:11px 14px;background:var(--bg3);white-space:nowrap}
+td{padding:11px 14px;font-size:13px;border-top:1px solid var(--bg3);vertical-align:middle}
+td.small{font-size:12px;color:var(--silver)}
+/* POSTO CARDS */
+.postos-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:14px}
+.pcard{background:var(--bg2);border:1px solid var(--bg3);border-radius:var(--radius);overflow:hidden}
+.pcard.alert{border-color:rgba(248,81,73,.5)}
+.pcard .ph{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--bg3)}
+.pcard .ph b{font-family:var(--title);color:var(--gold);font-size:16px}
+.prow{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:9px 14px;border-top:1px solid var(--bg3);font-size:13px}
+.prow:first-of-type{border-top:none}
+.prow .nm{font-weight:600}
+.prow .ds{font-size:11px;color:var(--silver);margin-top:2px}
+.alert-card{background:rgba(248,81,73,.06);border:1px solid rgba(248,81,73,.3);border-radius:var(--radius);padding:12px 14px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.alert-card.orange{background:rgba(210,153,34,.06);border-color:rgba(210,153,34,.3)}
+.alert-card .acts{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+/* KANBAN */
+.kanban{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.kcol{background:var(--bg2);border:1px solid var(--bg3);border-radius:var(--radius);padding:12px;min-height:160px}
+.kcol h4{font-size:12px;color:var(--silver);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--bg3)}
+.kcard{background:var(--bg3);border-radius:9px;padding:10px;margin-bottom:8px;font-size:13px}
+.kcard.urg{border-left:3px solid var(--red)}
+.kcard .meta{margin-top:4px}
+.kcard .btn{margin-top:8px;padding:6px 10px;font-size:11px}
+/* TOGGLES */
+.toggle{position:relative;width:44px;height:24px;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0}
+.toggle span{position:absolute;inset:0;background:var(--bg4);border-radius:24px;cursor:pointer;transition:.2s}
+.toggle span::before{content:'';position:absolute;width:18px;height:18px;left:3px;top:3px;background:#888;border-radius:50%;transition:.2s}
+.toggle input:checked+span{background:var(--gold-dark)}
+.toggle input:checked+span::before{transform:translateX(20px);background:var(--light)}
+.toggle input:disabled+span{opacity:.35;cursor:not-allowed}
+.param-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-top:1px solid var(--bg3);font-size:13.5px}
+.param-row:first-child{border-top:none}
+.param-row small{display:block;color:#777;font-size:11px;margin-top:2px}
+.param-row.sub{padding-left:14px;border-top:1px dashed var(--bg3)}
+.tabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+.tab{padding:9px 14px;border-radius:9px;border:1px solid var(--bg3);background:var(--bg2);color:var(--silver);font-size:13px;font-weight:600;cursor:pointer}
+.tab.active{border-color:var(--gold);color:var(--gold)}
+.disabled-module{text-align:center;padding:50px 20px;color:#666}
+.disabled-module svg{width:48px;height:48px;fill:#444;margin-bottom:12px}
+/* MODAL / TOAST */
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:650;align-items:center;justify-content:center;padding:16px}
+.modal.show{display:flex}
+.modal .sheet{background:var(--bg2);border:1px solid var(--gold-dark);border-radius:16px;width:100%;max-width:560px;max-height:90vh;overflow:auto;padding:22px}
+.modal h3{font-family:var(--title);color:var(--gold);font-size:20px;margin-bottom:6px}
+.modal .acts{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap}
+.toast{position:fixed;bottom:calc(24px + var(--safe-b));left:50%;transform:translateX(-50%) translateY(120px);background:var(--green);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;font-size:14px;z-index:700;transition:.3s;opacity:0;max-width:90vw;text-align:center}
+.toast.show{transform:translateX(-50%);opacity:1}
+.toast.warn{background:var(--orange)}
+.dias{display:flex;gap:6px;flex-wrap:wrap}
+.dia{display:flex;flex-direction:column;gap:4px;background:var(--bg3);border-radius:8px;padding:8px;font-size:11px;color:var(--silver);width:calc(25% - 5px);min-width:110px}
+.dia input[type=time]{padding:6px;font-size:13px}
+.dia label{margin:0;display:flex;align-items:center;gap:6px;color:var(--light);font-weight:600}
+.dia label input{width:auto}
+/* RESPONSIVO */
+@media(max-width:860px){
+  .kanban{grid-template-columns:1fr 1fr}
+}
+@media(max-width:768px){
+  .sidebar{transform:translateX(-100%)}
+  .sidebar.open{transform:none}
+  .content{margin-left:0}
+  .menu-btn{display:block}
+  .topbar{padding:12px 14px;padding-left:60px;padding-top:max(12px,var(--safe-t))}
+  .topbar h1{font-size:17px}
+  .topbar .meta,.topbar .right .clock{display:none}
+  .main{padding:16px 14px 60px}
+  .stats{grid-template-columns:1fr 1fr}
+  .stat .n{font-size:24px}
+  .postos-grid{grid-template-columns:1fr}
+  .alert-card{flex-direction:column;align-items:stretch}
+  .alert-card .acts{justify-content:flex-start}
+  .filters>*{flex:1;min-width:140px}
+  .kanban{grid-template-columns:1fr}
+  .kcol{min-height:0}
+  .hide-m{display:none}
+  .dia{width:calc(50% - 3px)}
+  .filters .btn{white-space:normal}
+  /* Tabelas viram cartões no celular */
+  .table-wrap{overflow:visible;background:transparent;border:none}
+  .table-wrap table,.table-wrap tbody,.table-wrap tr,.table-wrap td{display:block;width:100%}
+  .table-wrap thead{display:none}
+  .table-wrap tr{background:var(--bg2);border:1px solid var(--bg3);border-radius:var(--radius);padding:8px 0;margin-bottom:10px}
+  .table-wrap td,.table-wrap td.hide-m{display:flex;justify-content:space-between;align-items:center;gap:12px;border:none;padding:6px 14px;text-align:right}
+  .table-wrap td::before{content:attr(data-label);font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.4px;text-align:left;flex-shrink:0;margin-right:auto}
+  .table-wrap td>.meta{margin:0}
+  .table-wrap td:first-child{font-size:15px;border-bottom:1px solid var(--bg3);padding-bottom:10px;margin-bottom:4px;justify-content:flex-start;text-align:left}
+  .table-wrap td:first-child::before{display:none}
+  .table-wrap td:first-child>div{margin-left:auto}
+  .table-wrap td[data-label=""]::before{display:none}
+  .table-wrap td[data-label=""]{justify-content:flex-end}
+}
+</style>
+<style>
+/* ---- v3 ---- */
+.net{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;padding:4px 10px;border-radius:9px;background:var(--bg3);color:var(--silver);white-space:nowrap}
+.net::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--green)}
+.net.off::before{background:var(--red)}.net.sync::before{background:var(--orange)}
+.modo-card{display:flex;gap:12px;align-items:flex-start;padding:12px;border:1px solid var(--bg3);border-radius:10px;margin-bottom:8px;cursor:pointer}
+.modo-card.on{border-color:var(--gold);background:rgba(212,175,55,.06)}
+.modo-card .l{width:30px;height:30px;border-radius:50%;background:var(--bg3);color:var(--gold);font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.modo-card.on .l{background:var(--gold);color:var(--bg)}
+.modo-card b{font-size:13.5px}.modo-card small{display:block;color:var(--silver);font-size:12px;margin-top:3px;line-height:1.4}
+.foto-btn{background:var(--bg3);border:1px solid var(--bg4);color:var(--gold);border-radius:8px;padding:5px 9px;font-size:11.5px;font-weight:700;cursor:pointer;white-space:nowrap}
+.leitura{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.erro-cfg{max-width:460px;margin:80px auto;padding:20px;text-align:center}
+.login .msg{color:var(--red);font-size:13px;text-align:center;margin-top:10px;min-height:18px}
+.panico-ov{display:none;position:fixed;inset:0;z-index:800;background:rgba(160,20,20,.95);align-items:center;justify-content:center;text-align:center;padding:24px;flex-direction:column}
+.panico-ov.show{display:flex}
+.panico-ov h2{font-family:var(--title);font-size:30px;margin:10px 0}
+</style>
+<style>
+.semana{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px}
+.sem-col{background:var(--bg2);border:1px solid var(--bg3);border-radius:12px;padding:8px;min-height:140px}
+.sem-dia{font-size:12px;font-weight:700;color:var(--gold);letter-spacing:1px;text-align:center;padding:4px 0 8px;border-bottom:1px solid var(--bg3);margin-bottom:8px}
+.tar-chip{background:var(--bg3);border-left:3px solid var(--gold-dark);border-radius:8px;padding:8px;margin-bottom:6px;font-size:12px;cursor:pointer;line-height:1.35}
+.tar-chip b{display:block;font-size:12.5px;color:var(--light);margin-bottom:3px}
+.tar-chip span{display:block;color:var(--silver);font-size:11px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{padding:7px 12px;border-radius:16px;border:1px solid var(--bg4);background:var(--bg3);color:var(--silver);font-size:12.5px;font-weight:600;cursor:pointer}
+.chip.on{background:var(--gold);color:var(--bg);border-color:var(--gold)}
+.oc-card{border-left:4px solid var(--bg4);cursor:pointer}
+.oc-card:hover{border-color:var(--gold-dark)}
+.oc-top{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:flex-start;margin-bottom:4px}
+.oc-fatos{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.oc-fatos div{background:var(--bg3);border-radius:9px;padding:8px 10px;font-size:13px}
+.oc-fatos small{display:block;color:#888;font-size:10.5px;text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px}
+.tline{border-left:2px solid var(--bg4);margin:6px 0 4px 6px;padding-left:14px}
+.tline div{position:relative;font-size:13px;color:var(--light);padding:0 0 10px;line-height:1.45}
+.tline div::before{content:'';position:absolute;left:-20px;top:5px;width:10px;height:10px;border-radius:50%;background:var(--gold-dark)}
+.tline small{display:block;color:#888;font-size:11px}
+.legenda{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--silver);margin-bottom:10px}
+.legenda i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+.loc-grid{display:grid;grid-template-columns:minmax(260px,1fr) minmax(0,1.3fr);gap:16px;align-items:start}
+.loc-lista{max-height:62vh;overflow:auto;border:1px solid var(--bg3);border-radius:var(--radius)}
+.loc-item{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid var(--bg3);cursor:pointer;font-size:13px}
+.loc-item.sel{background:rgba(212,175,55,.08)}
+.loc-item small{display:block;color:#888;font-size:11.5px;margin-top:2px}
+.loc-item .acts{display:flex;gap:6px;flex-shrink:0}
+.loc-item .btn{padding:6px 9px;font-size:11.5px}
+@media(max-width:900px){.loc-grid{grid-template-columns:1fr}}
+@media(max-width:520px){.oc-fatos{grid-template-columns:1fr}}
+@media(max-width:900px){.semana{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:520px){.semana{grid-template-columns:1fr}.sem-col{min-height:0}}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login" id="login">
+  <div class="box">
+    <img src="icons/logo.png" alt="C&S">
+    <h1>Sistema Operacional</h1>
+    <div class="sub">Acesso da administração e dos condomínios</div>
+    <div class="perfil form">
+      <label>E-mail</label><input id="lgEmail" type="email" autocomplete="username">
+      <label>Senha</label><input id="lgSenha" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')entrar()">
+      <button class="btn btn-gold btn-full" style="margin-top:14px" id="lgBtn" onclick="entrar()">ENTRAR</button>
+      <div class="msg" id="lgMsg"></div>
+      <a href="#" onclick="event.preventDefault();esqueci()" style="display:block;text-align:center;color:var(--gold);font-size:13px;margin-top:6px">Esqueci minha senha</a>
+    </div>
+    <p class="meta" style="text-align:center">O acesso é liberado pela administração da C&S.</p>
+  </div>
+</div>
+
+<!-- ALERTA DE PÂNICO (tela cheia) -->
+<div class="panico-ov" id="panicoOv"><div style="font-size:60px">🚨</div><h2 id="panicoTit">PÂNICO</h2><p id="panicoTxt" style="font-size:17px;margin-bottom:22px"></p><button class="btn btn-ghost" style="font-size:15px;padding:14px 30px" onclick="cientePanico()">CIENTE</button></div>
+
+<!-- EMERGÊNCIA REGISTRADA (tela cheia) -->
+<div class="panico-ov" id="emergOv"><div style="font-size:56px">🚨</div><h2 id="emergTit">EMERGÊNCIA</h2><p id="emergTxt" style="font-size:17px;margin-bottom:22px;max-width:560px"></p><div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center"><button class="btn btn-ghost" style="font-size:15px;padding:14px 26px" onclick="fecharEmerg(false)">CIENTE</button><button class="btn btn-gold" style="font-size:15px;padding:14px 26px" onclick="fecharEmerg(true)">ABRIR OCORRÊNCIA</button></div></div>
+
+<button class="menu-btn" onclick="toggleMenu()">☰</button>
+<div class="overlay" id="overlay" onclick="toggleMenu(false)"></div>
+
+<aside class="sidebar" id="sidebar">
+  <div class="brand"><img src="icons/logo.png" alt="C&S"><div class="who" id="who"></div></div>
+  <nav class="nav" id="nav"></nav>
+  <div class="foot"><button class="btn btn-ghost" style="width:100%;margin-bottom:8px" onclick="modalSenha()">Alterar senha</button><button class="btn btn-ghost" style="width:100%" onclick="sair()">Sair</button></div>
+</aside>
+
+<div class="content">
+  <div class="topbar">
+    <div><h1 id="pgTitle">Visão Geral</h1><div class="meta" id="pgSub"></div></div>
+    <div class="right"><span class="net" id="net">ONLINE</span><span class="clock" id="clock"></span></div>
+  </div>
+  <div class="main pattern-bg" id="main"></div>
+</div>
+
+<div class="modal" id="modal" onclick="if(event.target===this)fecharModal()"><div class="sheet" id="modalBody"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>window.CS_APP = 'painel';</script>
+<script src="vendor/supabase.js"></script>
+<script src="config.js"></script>
+<script src="dados.js"></script>
+<script>
+let A = null; // acesso: {papel, posto, email, nome}
+let secaoAtual = 'visao', filtroPosto = 'todos';
+
+const IC = {
+  visao: '<path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/>',
+  postos: '<path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>',
+  ocorrencias: '<path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>',
+  livro: '<path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 4h5v8l-2.5-1.5L6 12V4z"/>',
+  checklist: '<path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>',
+  materiais: '<path d="M20 2H4c-1 0-2 .9-2 2v3.01c0 .72.43 1.34 1 1.69V20c0 1.1 1.1 2 2 2h14c.9 0 2-.9 2-2V8.7c.57-.35 1-.97 1-1.69V4c0-1.1-1-2-2-2zm-5 12H9v-2h6v2zm5-7H4V4h16v3z"/>',
+  encomendas: '<path d="M20 6h-2.18c.11-.31.18-.65.18-1 0-1.66-1.34-3-3-3-1.05 0-1.96.54-2.5 1.35l-.5.67-.5-.68C10.96 2.54 10.05 2 9 2 7.34 2 6 3.34 6 5c0 .35.07.69.18 1H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2z"/>',
+  avisos: '<path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/>',
+  cobertura: '<path d="M20 15.5c-1.25 0-2.45-.2-3.57-.57a1.02 1.02 0 00-1.02.24l-2.2 2.2a15.045 15.045 0 01-6.59-6.59l2.2-2.21a.96.96 0 00.25-1A11.36 11.36 0 018.5 4c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1 0 9.39 7.61 17 17 17 .55 0 1-.45 1-1v-3.5c0-.55-.45-1-1-1z"/>',
+  colaboradores: '<path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>',
+  parametros: '<path d="M3 17v2h6v-2H3zM3 5v2h10V5H3zm10 16v-2h8v-2h-8v-2h-2v6h2zM7 9v2H3v2h4v2h2V9H7zm14 4v-2H11v2h10zm-6-4h2V7h4V5h-4V3h-2v6z"/>',
+  acessos: '<path d="M12.65 10A5.99 5.99 0 007 6c-3.31 0-6 2.69-6 6s2.69 6 6 6a5.99 5.99 0 005.65-4H17v4h4v-4h2v-4H12.65zM7 14c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/>',
+  denuncias: '<path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-7 12h-2v-2h2v2zm0-4h-2V6h2v4z"/>',
+  rondas: '<path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/>',
+  cronograma: '<path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11zm-8.5-2.5L7 14l1.4-1.4 2.1 2.1 4.6-4.6L16.5 11l-6 6.5z"/>',
+  relatorios: '<path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/>'
+};
+const svg = k => '<svg viewBox="0 0 24 24">' + IC[k] + '</svg>';
+
+const SECOES = [
+  { id: 'visao', nome: 'Visão Geral', sub: 'Confirmações de todos os postos agora', perfis: ['adm', 'rh', 'sup', 'cond'] },
+  { id: 'postos', nome: 'Escala do Dia', sub: 'Quem trabalha hoje em cada posto', perfis: ['adm', 'rh', 'sup', 'cond'] },
+  { id: 'ocorrencias', nome: 'Ocorrências', perfis: ['adm', 'rh', 'sup', 'cond'], modulo: 'ocorrencias' },
+  { id: 'livro', nome: 'Livro Ata', perfis: ['adm', 'rh', 'sup', 'cond'], modulo: 'livro' },
+  { id: 'checklist', nome: 'Checklist', perfis: ['adm', 'rh', 'sup', 'cond'], modulo: 'checklist' },
+  { id: 'materiais', nome: 'Materiais', perfis: ['adm', 'rh', 'sup', 'cond'], modulo: 'materiais' },
+  { id: 'encomendas', nome: 'Encomendas', perfis: ['adm', 'rh', 'sup', 'cond'], modulo: 'encomendas' },
+  { id: 'cronograma', nome: 'Cronograma', sub: 'Limpeza e conservação — montado com o síndico de cada condomínio', perfis: ['adm', 'rh', 'sup', 'cond'], modulo: 'cronograma' },
+  { sep: 'Administração', perfis: ['adm', 'rh', 'sup'] },
+  { id: 'avisos', nome: 'Avisos aos Postos', sub: 'Mensagens que chegam na hora nos celulares dos postos', perfis: ['adm', 'rh', 'sup'] },
+  { id: 'cobertura', nome: 'Cobertura / Freelancers', sub: 'Contatos de emergência para cobrir faltas', perfis: ['adm', 'rh', 'sup'] },
+  { id: 'colaboradores', nome: 'Colaboradores e Escala', sub: 'Cadastro e escala de cada posto', perfis: ['adm', 'rh', 'sup'] },
+  { id: 'parametros', nome: 'Parâmetros', sub: 'Módulos e modo de encomendas por condomínio', perfis: ['adm'] },
+  { id: 'acessos', nome: 'Acessos', sub: 'Quem entra no painel e nos celulares dos postos', perfis: ['adm', 'rh'] },
+  { id: 'denuncias', nome: 'Denúncias', sub: 'Canal confidencial — administração e RH', perfis: ['adm', 'rh'] },
+  { id: 'rondas', nome: 'Rondas', perfis: ['adm', 'rh', 'sup'], off: true },
+  { id: 'relatorios', nome: 'Relatórios', perfis: ['adm', 'rh', 'sup', 'cond'], off: true }
+];
+
+const isAdm = () => A && A.papel === 'adm';
+const isGestor = () => A && ['adm', 'rh', 'sup'].includes(A.papel); // vê e opera todos os postos
+const isAdmRh = () => A && ['adm', 'rh'].includes(A.papel);  // cadastros: escala, freelancers, acessos, denúncias
+const NOME_PAPEL = { adm: 'Administrador', rh: 'RH', sup: 'Supervisor' };
+const postosVisiveis = () => isGestor() ? DB.postos() : DB.postos().filter(p => p.id === A.posto);
+const nomePosto = id => (DB.posto(id) || {}).nome || id || '—';
+const quando = iso => { if (!iso) return ''; const d = new Date(iso); return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) + ' ' + fmtHora(d); };
+function toast(m, warn) { const t = document.getElementById('toast'); t.textContent = m; t.className = 'toast show' + (warn ? ' warn' : ''); clearTimeout(t._t); t._t = setTimeout(() => t.className = 'toast', 3000); }
+function abrirModal(h) { document.getElementById('modalBody').innerHTML = h; document.getElementById('modal').classList.add('show'); }
+function fecharModal() { document.getElementById('modal').classList.remove('show'); }
+const modalAberto = () => document.getElementById('modal').classList.contains('show');
+function toggleMenu(f) { const s = document.getElementById('sidebar'), o = document.getElementById('overlay'); const open = f === undefined ? !s.classList.contains('open') : f; s.classList.toggle('open', open); o.classList.toggle('show', open); }
+
+// ===================== LOGIN =====================
+async function entrar() {
+  const msg = document.getElementById('lgMsg'), btn = document.getElementById('lgBtn');
+  msg.textContent = ''; btn.disabled = true; btn.textContent = 'ENTRANDO...';
+  try {
+    const a = await Nuvem.entrar(document.getElementById('lgEmail').value, document.getElementById('lgSenha').value);
+    if (a.papel === 'posto') { await Nuvem.sair(); throw new Error('Este é o login de um celular de posto. Use o app do posto.'); }
+    A = a; abrirSistema();
+  } catch (e) { msg.textContent = e.message; }
+  btn.disabled = false; btn.textContent = 'ENTRAR';
+}
+async function sair() { await Nuvem.sair(); location.reload(); }
+
+// ===================== SENHA =====================
+function campoSenha(id, label) { return '<label>' + label + '</label><input id="' + id + '" type="password" autocomplete="' + (id === 'psAtual' ? 'current-password' : 'new-password') + '">'; }
+function modalSenha(recuperacao) {
+  toggleMenu(false);
+  abrirModal('<h3>' + (recuperacao ? 'Criar nova senha' : 'Alterar senha') + '</h3><p class="meta">' + (recuperacao ? 'Escolha a nova senha da sua conta.' : 'Use pelo menos 8 caracteres, com letras e números.') + '</p><div class="form">' +
+    (recuperacao ? '' : campoSenha('psAtual', 'Senha atual')) + campoSenha('psNova', 'Nova senha') + campoSenha('psConf', 'Repita a nova senha') +
+    '<div class="msg" id="psMsg" style="color:var(--red);font-size:13px;margin-top:10px"></div></div><div class="acts">' + (recuperacao ? '' : '<button class="btn btn-ghost" onclick="fecharModal()">Cancelar</button>') + '<button class="btn btn-gold" id="psBtn" onclick="salvarSenha(' + (recuperacao ? 'true' : 'false') + ')">Salvar senha</button></div>');
+}
+async function salvarSenha(recuperacao) {
+  const msg = document.getElementById('psMsg'), btn = document.getElementById('psBtn');
+  const atual = recuperacao ? null : document.getElementById('psAtual').value, nova = document.getElementById('psNova').value, conf = document.getElementById('psConf').value;
+  msg.textContent = '';
+  if (!recuperacao && !atual) return msg.textContent = 'Digite a senha atual';
+  if (nova.length < 8 || !/[A-Za-z]/.test(nova) || !/\d/.test(nova)) return msg.textContent = 'A nova senha precisa ter pelo menos 8 caracteres, com letras e números';
+  if (nova !== conf) return msg.textContent = 'As duas senhas novas não são iguais';
+  btn.disabled = true; btn.textContent = 'Salvando...';
+  try {
+    await Nuvem.trocarSenha(atual, nova);
+    fecharModal(); toast('✅ Senha alterada');
+    if (recuperacao) { history.replaceState(null, '', location.pathname); if (!A) location.reload(); }
+  } catch (e) { msg.textContent = e.message; btn.disabled = false; btn.textContent = 'Salvar senha'; }
+}
+function esqueci() {
+  abrirModal('<h3>Esqueci minha senha</h3><p class="meta">Informe seu e-mail. Você vai receber um link para criar uma nova senha.</p><div class="form"><label>E-mail</label><input id="esEmail" type="email" value="' + esc(document.getElementById('lgEmail').value) + '"><div class="msg" id="esMsg" style="font-size:13px;margin-top:10px"></div></div><div class="acts"><button class="btn btn-ghost" onclick="fecharModal()">Fechar</button><button class="btn btn-gold" id="esBtn" onclick="enviarRecuperacao()">Enviar link</button></div>');
+}
+async function enviarRecuperacao() {
+  const e = document.getElementById('esEmail').value.trim(), msg = document.getElementById('esMsg'), btn = document.getElementById('esBtn');
+  if (!/\S+@\S+\.\S+/.test(e)) { msg.style.color = 'var(--red)'; msg.textContent = 'E-mail inválido'; return; }
+  btn.disabled = true;
+  try { await Nuvem.esqueciSenha(e, location.origin + location.pathname); msg.style.color = 'var(--green)'; msg.textContent = 'Se este e-mail tiver acesso, o link chega em alguns minutos. Confira também o spam.'; }
+  catch (err) { msg.style.color = 'var(--red)'; msg.textContent = err.message; btn.disabled = false; }
+}
+let emRecuperacao = /type=recovery/.test(location.hash);
+function aoAuth(ev) { if (ev === 'PASSWORD_RECOVERY') { emRecuperacao = true; setTimeout(() => modalSenha(true), 300); } }
+
+function atualizarStatus() {
+  const n = document.getElementById('net'); if (!n) return;
+  const pend = Nuvem.pendentes();
+  if (!navigator.onLine) { n.className = 'net off'; n.textContent = 'Sem internet'; }
+  else if (pend) { n.className = 'net sync'; n.textContent = 'Enviando ' + pend; }
+  else if (!Nuvem.conectado) { n.className = 'net sync'; n.textContent = 'Conectando'; }
+  else { n.className = 'net'; n.textContent = 'Tempo real'; }
+}
+
+// ===================== NAVEGAÇÃO =====================
+function secaoVisivel(s) {
+  if (!s.perfis.includes(A.papel)) return false;
+  if (!isGestor() && s.modulo && !DB.params(A.posto)[s.modulo]) return false;
+  return true;
+}
+function montarNav() {
+  const al = contarAlertas();
+  const ocAb = DB.list('ocorrencias').filter(o => o.status !== 'resolvida').length;
+  document.getElementById('nav').innerHTML = SECOES.filter(secaoVisivel).map(s => {
+    if (s.sep) return '<div class="nav-sep">' + s.sep + '</div>';
+    const n = s.id === 'visao' ? al : s.id === 'ocorrencias' ? ocAb : 0;
+    return '<div class="nav-item' + (s.off ? ' disabled' : '') + (s.id === secaoAtual ? ' active' : '') + '" onclick="' + (s.off ? 'irOff(\'' + s.id + '\')' : 'ir(\'' + s.id + '\')') + '">' + svg(s.id) + s.nome + (n ? '<span class="badge">' + n + '</span>' : '') + '</div>';
+  }).join('');
+}
+function irOff(id) { secaoAtual = id; montarNav(); setTitulo(); document.getElementById('main').innerHTML = '<div class="disabled-module">' + svg(id) + '<h3 style="color:#666">Módulo em preparação</h3><p style="font-size:13px;margin-top:6px">' + (id === 'rondas' ? 'Preparado para tags NFC — será liberado quando houver ronda nos postos.' : 'Relatórios mensais por condomínio — próxima etapa.') + '</p></div>'; toggleMenu(false); }
+function setTitulo() { const s = SECOES.find(x => x.id === secaoAtual); document.getElementById('pgTitle').textContent = s.nome; document.getElementById('pgSub').textContent = s.sub || (isGestor() ? 'Todos os postos' : nomePosto(A.posto)); }
+function ir(id) { secaoAtual = id; montarNav(); setTitulo(); render(); toggleMenu(false); window.scrollTo(0, 0); }
+const M = () => document.getElementById('main');
+function rotularTabelas() {
+  document.querySelectorAll('#main table').forEach(t => {
+    const ths = [...t.querySelectorAll('thead th')].map(th => th.textContent.trim());
+    t.querySelectorAll('tbody tr').forEach(tr => [...tr.children].forEach((td, i) => td.setAttribute('data-label', ths[i] || '')));
+  });
+}
+function render() { const f = RENDER[secaoAtual]; if (f) f(); rotularTabelas(); }
+function filtroPostoHtml() {
+  if (!isGestor()) return '';
+  return '<select onchange="filtroPosto=this.value;render()"><option value="todos">Todos os postos</option>' + DB.postos().map(p => '<option value="' + p.id + '"' + (filtroPosto === p.id ? ' selected' : '') + '>' + esc(p.nome) + '</option>').join('') + '</select>';
+}
+const doFiltro = pid => isGestor() ? (filtroPosto === 'todos' || filtroPosto === pid) : pid === A.posto;
+async function verFoto(path, titulo) {
+  abrirModal('<h3>' + esc(titulo) + '</h3><p class="meta">Carregando...</p>');
+  const url = await Nuvem.urlFoto(path);
+  abrirModal('<h3>' + esc(titulo) + '</h3>' + (url ? '<img src="' + url + '" style="width:100%;border-radius:12px;margin-top:10px">' : '<p class="meta">Foto ainda não enviada pelo posto (pode estar sem internet).</p>') + '<div class="acts"><button class="btn btn-ghost" onclick="fecharModal()">Fechar</button></div>');
+}
+const btnFoto = (path, tit) => path ? '<button class="foto-btn" onclick="verFoto(\'' + path + '\',\'' + esc(tit).replace(/'/g, '') + '\')">📷 ' + esc(tit.split(' ')[0]) + '</button>' : '';
+
+// ===================== VISÃO GERAL =====================
+function alertasPresenca(ps) {
+  const out = [], vistos = {};
+  ps.forEach(p => situacoesPosto(p.id).forEach(x => {
+    if (!x.sit.emTurno || (x.sit.status !== 'ausente' && x.sit.status !== 'verificar')) return;
+    if (x.sit.grupoKey) { if (vistos[x.sit.grupoKey]) return; vistos[x.sit.grupoKey] = 1; }
+    out.push({ p, x });
+  }));
+  return out;
+}
+function contarAlertas() { if (!A) return 0; const ps = postosVisiveis(); return alertasPresenca(ps).length + DB.list('alertas').filter(a => !a.visto && ps.some(p => p.id === a.posto)).length; }
+function linhaPessoa(x) {
+  const s = x.sit, info = STATUS_INFO[s.status], c = x.colab, h = s.turno && s.turno.ini ? s.turno.ini + '–' + s.turno.fim : '';
+  return '<div class="prow"><div><div class="nm">' + esc(c.nome) + (s.cobertura ? ' <span class="pill blue">cobertura</span>' : '') + '</div><div class="ds">' + esc(c.funcao) + (h ? ' · ' + h : '') + (s.status === 'confirmado' ? ' · confirmou ' + s.horaConf : '') + '</div></div><span class="pill ' + info.cor + '">' + info.label + '</span></div>';
+}
+function rVisao() {
+  const ps = postosVisiveis().filter(p => doFiltro(p.id));
+  const tot = { esc: 0, conf: 0, pend: 0 };
+  const dados = ps.map(p => { const l = situacoesPosto(p.id), turno = l.filter(x => x.sit.emTurno);
+    turno.forEach(x => { tot.esc++; if (x.sit.status === 'confirmado') tot.conf++; else if (x.sit.status !== 'ausente' && x.sit.status !== 'verificar') tot.pend++; });
+    return { p, turno }; });
+  const alertas = alertasPresenca(ps);
+  const ocAb = DB.list('ocorrencias').filter(o => o.status !== 'resolvida' && ps.some(p => p.id === o.posto)).length;
+  const encAg = DB.list('encomendas').filter(e => e.status === 'aguardando' && ps.some(p => p.id === e.posto)).length;
+  const panicos = DB.list('alertas').filter(a => !a.visto && ps.some(p => p.id === a.posto));
+  let h = '<div class="filters">' + filtroPostoHtml() + '</div>';
+  h += '<div class="stats"><div class="stat"><div class="n">' + tot.esc + '</div><div class="l">Escalados agora</div></div><div class="stat green"><div class="n">' + tot.conf + '</div><div class="l">Confirmados</div></div><div class="stat orange"><div class="n">' + tot.pend + '</div><div class="l">Pendentes / aguardando</div></div><div class="stat red"><div class="n">' + alertas.length + '</div><div class="l">Alertas de presença</div></div><div class="stat blue"><div class="n">' + ocAb + '</div><div class="l">Ocorrências abertas</div></div><div class="stat"><div class="n">' + encAg + '</div><div class="l">Encomendas aguardando</div></div></div>';
+  if (panicos.length) h += '<div class="h2">🚨 Botão de pânico</div>' + panicos.map(a => '<div class="alert-card"><div><b>' + esc(nomePosto(a.posto)) + '</b> — alerta de pânico<div class="meta">' + quando(a.criadoEm) + '</div></div><div class="acts">' + (isGestor() ? '<button class="btn btn-red" onclick="DB.update(\'alertas\',\'' + a.id + '\',{visto:true});render();montarNav()">Ciente</button>' : '') + '</div></div>').join('');
+  const emergs = DB.list('ocorrencias').filter(o => o.prioridade === 'emergencia' && o.status !== 'resolvida' && ps.some(p => p.id === o.posto) && ocNova(o.posto));
+  if (emergs.length) h += '<div class="h2">🚨 Emergências em aberto</div>' + emergs.map(o => '<div class="alert-card"><div><b>' + esc(nomePosto(o.posto)) + '</b> — ' + esc(ocTitulo(o)) + (ocLocal(o) ? ' · 📍 ' + esc(ocLocal(o)) : '') + '<div class="meta">' + quando(o.criadoEm) + ' · ' + (OC_STATUS[o.status] || OC_STATUS.aberta)[0] + (o.responsavel ? ' · ' + esc(o.responsavel) : '') + '</div></div><div class="acts"><button class="btn btn-red" onclick="ocDetalhe(\'' + o.id + '\')">Abrir</button></div></div>').join('');
+  if (alertas.length) h += '<div class="h2">Alertas de presença</div>' + alertas.map(a => {
+    const c = a.x.colab, s = a.x.sit;
+    const quem = s.grupoNomes ? s.grupoNomes.map(esc).join(' ou ') : esc(c.nome);
+    const det = s.grupoNomes ? 'Plantão 12x36 ' + (c.escala.periodo === 'noturno' ? 'noturno' : 'diurno') + ' sem confirmação — dia do plantão não cadastrado' : esc(s.texto || '');
+    return '<div class="alert-card' + (s.status === 'verificar' ? ' orange' : '') + '"><div><b>' + quem + '</b> · ' + esc(c.funcao) + ' · ' + esc(a.p.nome) + '<div class="meta">' + (s.turno && s.turno.ini ? 'Entrada ' + s.turno.ini + ' · ' : '') + det + '</div></div><div class="acts">' +
+      (isGestor() ? '<button class="btn btn-gold" onclick="acionarFreelance(\'' + c.id + '\')">Acionar freelance</button><button class="btn btn-outline" onclick="marcarCobertura(\'' + a.p.id + '\',\'' + c.id + '\')">Registrar cobertura</button>' : '<span class="pill ' + STATUS_INFO[s.status].cor + '">' + STATUS_INFO[s.status].label + '</span>') + '</div></div>';
+  }).join('');
+  h += '<div class="h2">Postos agora</div><div class="postos-grid">' + dados.map(d => {
+    const conf = d.turno.filter(x => x.sit.status === 'confirmado').length, al = d.turno.some(x => x.sit.status === 'ausente' || x.sit.status === 'verificar');
+    return '<div class="pcard' + (al ? ' alert' : '') + '"><div class="ph"><b>' + esc(d.p.nome) + '</b><span class="pill ' + (al ? 'red' : conf === d.turno.length && conf ? 'green' : 'orange') + '">' + conf + '/' + d.turno.length + ' confirmados</span></div>' + (d.turno.length ? d.turno.map(linhaPessoa).join('') : '<div class="empty">Ninguém escalado neste horário</div>') + '</div>';
+  }).join('') + '</div>';
+  M().innerHTML = h;
+}
+function marcarCobertura(pid, cid) {
+  const c = DB.colaboradores().find(x => x.id === cid);
+  abrirModal('<h3>Registrar cobertura</h3><p class="meta">' + esc(c.nome) + ' · ' + esc(nomePosto(pid)) + '</p><div class="form"><label>Quem está cobrindo</label><input id="cobNome" placeholder="Nome"><label>Observação</label><input id="cobObs" placeholder="Ex: freelance acionado às 07:20"></div><div class="acts"><button class="btn btn-ghost" onclick="fecharModal()">Cancelar</button><button class="btn btn-gold" onclick="salvarCobertura(\'' + pid + '\',\'' + cid + '\')">Salvar</button></div>');
+}
+function salvarCobertura(pid, cid) {
+  const n = document.getElementById('cobNome').value.trim(); if (!n) return toast('Informe quem cobre', true);
+  const x = situacoesPosto(pid).find(y => y.colab.id === cid);
+  DB.push('coberturas', { posto: pid, falta: x.colab.nome, cobridor: n, obs: document.getElementById('cobObs').value.trim() });
+  DB.confirmar(cid, x.sit.turno.data, { posto: pid, cobertura: true, cobridor: n });
+  DB.push('livro', { posto: pid, texto: 'Cobertura: ' + n + ' no lugar de ' + x.colab.nome + '.', autor: 'Administração C&S', tipo: 'registro' });
+  fecharModal(); toast('✅ Cobertura registrada'); render(); montarNav();
+}
+
+// ===================== ESCALA DO DIA =====================
+function rPostos() {
+  const hoje = isoDia(new Date());
+  let h = '<div class="filters">' + filtroPostoHtml() + '</div>';
+  postosVisiveis().filter(p => doFiltro(p.id)).forEach(p => {
+    const l = situacoesPosto(p.id);
+    h += '<div class="h2">' + esc(p.nome) + ' <span class="tag">' + l.length + ' colaboradores</span></div><div class="table-wrap"><table><thead><tr><th>Colaborador</th><th>Função</th><th class="hide-m">Escala</th><th>Hoje</th><th>Agora</th></tr></thead><tbody>' +
+      l.map(x => { const t = turnoNoDia(x.colab, hoje), info = STATUS_INFO[x.sit.status];
+        return '<tr><td><b>' + esc(x.colab.nome) + '</b>' + (x.colab.vaga ? ' <span class="pill red">vaga</span>' : '') + '</td><td><span class="tag">' + esc(x.colab.funcao) + '</span></td><td class="small hide-m">' + esc(descreverEscala(x.colab.escala)) + '</td><td class="small">' + (t ? (t.ini ? t.ini + '–' + t.fim : 'a definir') + (t.certeza === 'talvez' ? ' <span class="pill orange">?</span>' : '') : 'folga') + '</td><td><span class="pill ' + info.cor + '">' + info.label + '</span>' + (x.sit.horaConf ? '<div class="meta">' + x.sit.horaConf + '</div>' : '') + '</td></tr>'; }).join('') + '</tbody></table></div>';
+  });
+  M().innerHTML = h;
+}
+
+// ===================== OCORRÊNCIAS =====================
+let filtroOc = 'abertas', ocTab = 'lista', locSel = null, locPosicionar = false, noForm = null;
+const autorPainel = () => A.papel === 'cond' ? 'Síndico' + (A.nome ? ' · ' + A.nome : '') : (NOME_PAPEL[A.papel] || 'Gestão') + ' · ' + (A.nome || A.email);
+const podeAbrirOc = () => isGestor() ? postosVisiveis().some(p => ocNova(p.id)) : A.papel === 'cond' && ocNova(A.posto);
+const temPlanta = pid => !!(DB.mapa(pid) || {}).plantaPath;
+const temMaquete = pid => !!(DB.mapa(pid) || {}).tem_3d;
+// maquete 3D: só o síndico abre pelo painel (a portaria usa no computador do posto)
+const btnMaquete = pid => A.papel === 'cond' && temMaquete(pid) ? '<a class="btn btn-outline" style="font-family:var(--font);font-size:12.5px" href="maquete.html?posto=' + encodeURIComponent(pid) + '" target="_blank" rel="noopener">Ver maquete 3D</a>' : '';
+// condomínio usado na planta (planta é de um condomínio por vez)
+function postoDaPlanta() {
+  if (!isGestor()) return A.posto;
+  if (filtroPosto !== 'todos') return filtroPosto;
+  const ps = DB.postos(), c = ps.find(p => ocNova(p.id) && temPlanta(p.id)) || ps.find(p => temPlanta(p.id)) || ps.find(p => ocNova(p.id)) || ps[0];
+  return c && c.id;
+}
+function ocFiltroCasa(o) {
+  const f = filtroOc;
+  if (f === 'todas') return true;
+  if (f === 'resolvidas') return o.status === 'resolvida';
+  if (o.status === 'resolvida') return false;
+  if (f === 'abertas') return true;
+  if (f === 'emergencia') return o.prioridade === 'emergencia';
+  return o.categoria === f || (f === 'Outro' && !OC_CATEGORIAS[o.categoria]);
+}
+const ordemOc = (a, b) => (a.status === 'resolvida') - (b.status === 'resolvida') || (a.prioridade === 'emergencia' ? 0 : 1) - (b.prioridade === 'emergencia' ? 0 : 1) || String(b.criadoEm).localeCompare(String(a.criadoEm));
+const ocNova = pid => !!DB.params(pid).ocnova;
+function rOcorrenciasClassica() {
+  const l = DB.list('ocorrencias').filter(o => doFiltro(o.posto) && (filtroOc === 'todas' || (filtroOc === 'resolvidas' ? o.status === 'resolvida' : o.status !== 'resolvida')));
+  let h = '<div class="filters">' + filtroPostoHtml() + '<select onchange="filtroOc=this.value;render()">' + [['abertas', 'Abertas'], ['resolvidas', 'Resolvidas'], ['todas', 'Todas']].map(o => '<option value="' + o[0] + '"' + (filtroOc === o[0] ? ' selected' : '') + '>' + o[1] + '</option>').join('') + '</select></div>';
+  h += l.length ? l.map(o => { const st = OC_STATUS[o.status] || OC_STATUS.aberta;
+    return '<div class="card"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><h4>' + esc(o.categoria) + ' · ' + esc(nomePosto(o.posto)) + '</h4><span class="pill ' + st[1] + '">' + st[0] + '</span></div><p>' + esc(o.descricao) + '</p><div class="meta">' + esc(o.autor || '') + ' · ' + quando(o.criadoEm) + (o.origem === 'checklist' ? ' · gerada pelo checklist' : '') + '</div><div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap">' + btnFoto(o.fotoPath, 'Foto da ocorrência') + '</div></div>'; }).join('') : '<div class="empty">Nenhuma ocorrência.</div>';
+  M().innerHTML = h;
+}
+function rOcorrencias() {
+  if (!isGestor() && !ocNova(A.posto)) { if (!['abertas', 'resolvidas', 'todas'].includes(filtroOc)) filtroOc = 'abertas'; return rOcorrenciasClassica(); }
+  const base = DB.list('ocorrencias').filter(o => doFiltro(o.posto));
+  const ab = base.filter(o => o.status !== 'resolvida'), semana = Date.now() - 7 * 864e5;
+  const abas = [['lista', 'Lista'], ['planta', 'Planta']].concat(isAdmRh() ? [['locais', 'Planta e locais']] : []);
+  if (!abas.some(a => a[0] === ocTab)) ocTab = 'lista';
+  let h = '<div class="filters">' + filtroPostoHtml() + (podeAbrirOc() ? '<button class="btn btn-gold" onclick="novaOcorrencia()">+ Nova ocorrência</button>' : '') + '</div>';
+  h += '<div class="stats"><div class="stat red"><div class="n">' + ab.filter(o => o.status === 'aberta').length + '</div><div class="l">Abertas</div></div><div class="stat orange"><div class="n">' + ab.filter(o => o.status === 'andamento').length + '</div><div class="l">Em atendimento</div></div><div class="stat' + (ab.some(o => o.prioridade === 'emergencia') ? ' red' : '') + '"><div class="n">' + ab.filter(o => o.prioridade === 'emergencia').length + '</div><div class="l">Emergências em aberto</div></div><div class="stat green"><div class="n">' + base.filter(o => o.status === 'resolvida' && new Date(o.resolvidaEm || o.criadoEm) > semana).length + '</div><div class="l">Resolvidas em 7 dias</div></div></div>';
+  h += '<div class="tabs">' + abas.map(a => '<button class="tab' + (ocTab === a[0] ? ' active' : '') + '" onclick="ocTab=\'' + a[0] + '\';locPosicionar=false;render()">' + a[1] + '</button>').join('') + '</div>';
+  if (ocTab !== 'locais') {
+    const fs = [['abertas', 'Em aberto'], ['emergencia', 'Emergência']].concat(Object.keys(OC_CATEGORIAS).filter(c => c !== 'Emergência').map(c => [c, c])).concat([['resolvidas', 'Resolvidas'], ['todas', 'Todas']]);
+    h += '<div class="chips" style="margin-bottom:14px">' + fs.map(f => '<button class="chip' + (filtroOc === f[0] ? ' on' : '') + '" onclick="filtroOc=\'' + f[0] + '\';render()">' + f[1] + '</button>').join('') + '</div>';
+  }
+  if (ocTab === 'lista') {
+    const l = base.filter(ocFiltroCasa).sort(ordemOc).slice(0, 200);
+    h += l.length ? l.map(cartaoOc).join('') : '<div class="empty">Nenhuma ocorrência neste filtro.</div>';
+    M().innerHTML = h; return;
+  }
+  const pid = postoDaPlanta();
+  if (ocTab === 'planta') {
+    const l = base.filter(o => o.posto === pid && ocFiltroCasa(o));
+    const comLocal = l.filter(o => ocPontoPlanta(o)), semLocal = l.length - comLocal.length;
+    h += '<div class="h2" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">' + esc(nomePosto(pid)) + (isGestor() && filtroPosto === 'todos' ? ' <span class="meta" style="font-family:var(--font)">escolha outro condomínio no filtro acima</span>' : '') + btnMaquete(pid) + '</div>';
+    if (!ocNova(pid)) h += '<div class="alert-card orange"><div>Este condomínio está na tela clássica de ocorrências: o posto não marca local na planta. Ligue "Ocorrências versão nova" em Parâmetros.</div></div>';
+    h += '<div class="legenda">' + Object.values(OC_PRIORIDADES).map(p => '<span><i style="background:' + p.cor + '"></i>' + p.nome + '</span>').join('') + '<span><i style="background:#666"></i>Resolvida</span></div>';
+    h += '<div id="ocPlanta"></div>';
+    h += '<p class="meta" style="margin-top:8px">' + comLocal.length + ' ocorrência(s) na planta' + (semLocal ? ' · ' + semLocal + ' sem local marcado (veja na Lista)' : '') + '. Clique no pino para abrir.</p>';
+    M().innerHTML = h;
+    const alvo = comLocal.find(o => o.prioridade === 'emergencia' && o.status !== 'resolvida') || comLocal[0];
+    const pt = o => ocPontoPlanta(o);
+    Planta.montar(document.getElementById('ocPlanta'), { postoId: pid, alta: true, foco: alvo ? pt(alvo) : null, semPlantaMsg: isAdmRh() ? 'Envie a planta na aba "Planta e locais".' : 'A administração da C&S cadastra a planta.',
+      pinos: comLocal.sort((a, b) => (a.prioridade === 'emergencia') - (b.prioridade === 'emergencia')).map(o => Object.assign({ id: o.id, cor: o.status === 'resolvida' ? '#666' : ocPrioridade(o).cor, pisca: o.prioridade === 'emergencia' && o.status !== 'resolvida', titulo: ocTitulo(o) + ' · ' + ocLocal(o) }, pt(o))),
+      aoPino: id => ocDetalhe(id) });
+    return;
+  }
+  // ---- Planta e locais (administração e RH) ----
+  const mapa = DB.mapa(pid), areas = DB.areas(pid);
+  h += '<div class="h2">' + esc(nomePosto(pid)) + (isGestor() && filtroPosto === 'todos' ? ' <span class="meta" style="font-family:var(--font)">escolha outro condomínio no filtro acima</span>' : '') + '</div>';
+  h += '<div class="card"><h4>Imagem da planta</h4><p>' + (mapa && mapa.plantaPath ? 'Planta cadastrada' + (mapa.largura ? ' (' + mapa.largura + ' × ' + mapa.altura + ' px)' : '') + '. Enviar outra substitui a atual; os locais e os pinos continuam nas mesmas posições (em % da imagem).' : 'Ainda sem planta. Use uma imagem JPG ou PNG. Se a planta estiver em PDF, exporte a página como imagem.') + (mapa && mapa.tem_3d ? ' <span class="pill gold">Maquete 3D</span>' : '') + '</p>' +
+    '<label class="btn btn-outline" style="display:inline-block;margin-top:10px">' + (mapa && mapa.plantaPath ? 'Enviar outra planta' : 'Enviar planta') + '<input type="file" accept="image/png,image/jpeg,image/webp" style="display:none" onchange="enviarPlanta(\'' + pid + '\',this)"></label></div>';
+  h += '<div class="loc-grid"><div><div class="h2" style="font-size:15px">Locais <button class="btn btn-gold" onclick="editarLocal(null)">+ Novo local</button></div>' +
+    (locPosicionar && locSel ? '<div class="alert-card orange"><div><b>Clique na planta onde fica: ' + esc((DB.area(locSel) || {}).nome || '') + '</b></div><div class="acts"><button class="btn btn-ghost" onclick="locPosicionar=false;render()">Cancelar</button></div></div>' : '') +
+    (areas.length ? '<div class="loc-lista">' + areas.map(a => '<div class="loc-item' + (locSel === a.id ? ' sel' : '') + '" onclick="locSel=\'' + a.id + '\';locPosicionar=false;render()"><div><b>' + esc(a.nome) + '</b><small>' + esc(a.grupo || '') + (a.tipo === 'torre' ? ' · torre, ' + (a.andares || 0) + ' andares + térreo' : '') + (a.x == null ? ' · <span style="color:var(--orange)">sem posição</span>' : '') + '</small></div><div class="acts"><button class="btn btn-ghost" onclick="event.stopPropagation();locSel=\'' + a.id + '\';locPosicionar=true;render()">Posicionar</button><button class="btn btn-ghost" onclick="event.stopPropagation();editarLocal(\'' + a.id + '\')">Editar</button></div></div>').join('') + '</div>' : '<div class="empty">Nenhum local cadastrado. Cadastre portaria, torres, salões, piscina...</div>') +
+    '</div><div id="locPlanta"></div></div>';
+  M().innerHTML = h;
+  Planta.montar(document.getElementById('locPlanta'), { postoId: pid, alta: true, areas: true, rotulos: true, areaSel: locSel, semPlantaMsg: 'Envie a imagem acima.',
+    aoArea: id => { locSel = id; locPosicionar = false; render(); },
+    aoTocar: locPosicionar && locSel ? (x, y) => { DB.update('areas', locSel, { x, y }); locPosicionar = false; toast('Posição salva'); render(); } : null });
+}
+function cartaoOc(o) {
+  const st = OC_STATUS[o.status] || OC_STATUS.aberta, pr = ocPrioridade(o), local = ocLocal(o), n = DB.historico(o.id).length;
+  return '<div class="card oc-card" style="border-left-color:' + (o.status === 'resolvida' ? '#444' : pr.cor) + '" onclick="ocDetalhe(\'' + o.id + '\')"><div class="oc-top"><h4>' + (o.prioridade === 'emergencia' && o.status !== 'resolvida' ? '🚨 ' : '') + esc(ocTitulo(o)) + '</h4><div style="display:flex;gap:6px;flex-wrap:wrap"><span class="pill ' + pr.pill + '">' + pr.nome + '</span><span class="pill ' + st[1] + '">' + st[0] + '</span></div></div>' +
+    '<p>' + (isGestor() ? '<b style="color:var(--gold)">' + esc(nomePosto(o.posto)) + '</b> · ' : '') + (local ? '📍 ' + esc(local) : 'Sem local marcado') + (o.responsavel ? ' · Resp.: ' + esc(o.responsavel) : '') + '</p>' + (o.descricao && o.descricao !== o.titulo ? '<p style="color:var(--light)">' + esc(o.descricao.length > 160 ? o.descricao.slice(0, 157) + '...' : o.descricao) + '</p>' : '') +
+    '<div class="meta">' + esc(o.autor || '') + ' · ' + quando(o.criadoEm) + (o.origem === 'checklist' ? ' · gerada pelo checklist' : '') + (o.fotoPath ? ' · 📷 foto' : '') + (n > 1 ? ' · ' + (n - 1) + (n > 2 ? ' atualizações' : ' atualização') : '') + '</div></div>';
+}
+function ocDetalhe(id) {
+  const o = DB.list('ocorrencias').find(x => x.id === id); if (!o) return;
+  const st = OC_STATUS[o.status] || OC_STATUS.aberta, pr = ocPrioridade(o), local = ocLocal(o), mini = o.mapaX != null && temPlanta(o.posto);
+  let h = '<h3>' + esc(ocTitulo(o)) + '</h3><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px"><span class="pill ' + pr.pill + '">' + pr.nome + '</span><span class="pill ' + st[1] + '">' + st[0] + '</span><span class="pill silver">' + esc(o.categoria || '') + '</span><span class="pill silver">' + esc(nomePosto(o.posto)) + '</span></div>';
+  h += '<div class="oc-fatos"><div><small>Local</small>' + esc(local || 'Sem local marcado') + '</div><div><small>Aberta</small>' + quando(o.criadoEm) + '</div><div><small>Registrada por</small>' + esc(o.autor || '—') + '</div><div><small>Responsável</small>' + esc(o.responsavel || 'A definir') + '</div></div>';
+  if (o.descricao && o.descricao !== o.titulo) h += '<p style="font-size:14px;line-height:1.5;white-space:pre-wrap;margin:10px 0">' + esc(o.descricao) + '</p>';
+  if (o.prioridade === 'emergencia' && o.status !== 'resolvida') h += '<div class="alert-card" style="display:block"><b>Contatos de emergência:</b> ' + OC_TELEFONES.map(([n, t]) => n + ' <a href="tel:' + t + '" style="color:var(--red);font-weight:700">' + t + '</a>').join(' · ') + '</div>';
+  if (o.fotoPath) h += '<div id="ocFotoDet" class="meta">Carregando foto...</div>';
+  if (mini) h += '<div id="ocMini" style="margin:10px 0"></div>';
+  h += '<div class="h2" style="font-size:15px;margin-top:14px">Histórico</div><div class="tline">' + DB.historico(id).map(x => '<div>' + esc(x.texto) + '<small>' + quando(x.criadoEm) + (x.autor && x.texto.indexOf(x.autor) < 0 ? ' · ' + esc(x.autor) : '') + '</small></div>').join('') + '</div>';
+  h += '<div class="form"><label>Adicionar atualização</label><div class="row"><input id="ocUpd" placeholder="Ex.: Encanador a caminho" onkeydown="if(event.key===\'Enter\')ocAtualizar(\'' + id + '\')"><button class="btn btn-ghost" style="flex:0 0 auto" onclick="ocAtualizar(\'' + id + '\')">Adicionar</button></div>';
+  if (isGestor()) h += '<div class="row" style="margin-top:4px"><div><label>Prioridade</label><select id="ocPri">' + Object.entries(OC_PRIORIDADES).map(([k, p]) => '<option value="' + k + '"' + (o.prioridade === k ? ' selected' : '') + '>' + p.nome + '</option>').join('') + '</select></div><div><label>Responsável</label><select id="ocResp"><option value="">A definir</option>' + OC_RESPONSAVEIS.concat(o.responsavel && !OC_RESPONSAVEIS.includes(o.responsavel) ? [o.responsavel] : []).map(r => '<option' + (o.responsavel === r ? ' selected' : '') + '>' + esc(r) + '</option>').join('') + '</select></div></div>';
+  h += '</div><div class="acts">';
+  if (isGestor()) {
+    h += '<button class="btn btn-ghost" onclick="ocSalvarDados(\'' + id + '\')">Salvar prioridade e responsável</button>';
+    if (o.status === 'aberta') h += '<button class="btn btn-outline" onclick="ocStatus(\'' + id + '\',\'andamento\')">Iniciar atendimento</button>';
+    if (o.status !== 'resolvida') h += '<button class="btn btn-green" onclick="ocStatus(\'' + id + '\',\'resolvida\')">Marcar como resolvida</button>';
+    else h += '<button class="btn btn-outline" onclick="ocStatus(\'' + id + '\',\'aberta\')">Reabrir</button>';
+  }
+  h += '<button class="btn btn-ghost" onclick="fecharModal()">Fechar</button></div>';
+  if (!isGestor() && o.status !== 'resolvida') h += '<p class="meta" style="margin-top:10px">O atendimento e a conclusão são marcados pela supervisão C&S. Use "Adicionar atualização" para informar o andamento.</p>';
+  abrirModal(h);
+  if (mini) Planta.montar(document.getElementById('ocMini'), { postoId: o.posto, maxAltura: '260px', foco: { x: +o.mapaX, y: +o.mapaY }, pinos: [{ x: o.mapaX, y: o.mapaY, cor: pr.cor, titulo: ocTitulo(o) }] });
+  if (o.fotoPath) Nuvem.urlFoto(o.fotoPath).then(u => { const el = document.getElementById('ocFotoDet'); if (el) el.innerHTML = u ? '<img src="' + u + '" style="width:100%;max-height:360px;object-fit:contain;border-radius:12px;background:#000" alt="Foto da ocorrência">' : 'Foto ainda não enviada pelo posto (pode estar sem internet).'; });
+}
+function ocAtualizar(id) {
+  const t = document.getElementById('ocUpd').value.trim(); if (!t) { toast('Escreva a atualização', true); return; }
+  const o = DB.list('ocorrencias').find(x => x.id === id);
+  DB.push('ocorrencias_historico', { ocorrenciaId: id, posto: o.posto, texto: t, autor: autorPainel() });
+  toast('Atualização registrada'); ocDetalhe(id);
+}
+function ocStatus(id, st) {
+  const o = DB.list('ocorrencias').find(x => x.id === id), nota = document.getElementById('ocUpd').value.trim();
+  const txt = { andamento: 'Atendimento iniciado', resolvida: 'Resolvida', aberta: 'Reaberta' }[st] + (nota ? ': ' + nota : '') + ' · ' + autorPainel();
+  DB.tratarOcorrencia(o, { status: st }, txt, autorPainel());
+  toast(st === 'resolvida' ? 'Ocorrência resolvida' : st === 'andamento' ? 'Atendimento iniciado' : 'Ocorrência reaberta');
+  ocDetalhe(id); render(); montarNav();
+}
+function ocSalvarDados(id) {
+  const o = DB.list('ocorrencias').find(x => x.id === id), pri = document.getElementById('ocPri').value, resp = document.getElementById('ocResp').value;
+  const patch = {}, mud = [];
+  if (pri !== (o.prioridade || 'media')) { patch.prioridade = pri; mud.push('prioridade: ' + OC_PRIORIDADES[pri].nome); }
+  if (resp !== (o.responsavel || '')) { patch.responsavel = resp || null; mud.push('responsável: ' + (resp || 'a definir')); }
+  if (!mud.length) { toast('Nada foi alterado', true); return; }
+  DB.tratarOcorrencia(o, patch, 'Alterado ' + mud.join(', ') + ' · ' + autorPainel(), autorPainel());
+  toast('Alteração salva'); ocDetalhe(id); render();
+}
+
+// ---- Nova ocorrência (gestão e síndico) ----
+function novaOcorrencia() {
+  const opcoes = postosVisiveis().filter(p => ocNova(p.id));
+  let pid = isGestor() ? (filtroPosto !== 'todos' ? filtroPosto : postoDaPlanta()) : A.posto;
+  if (isGestor() && !opcoes.some(p => p.id === pid)) pid = opcoes[0].id;
+  noForm = { posto: pid, prio: null, prioManual: false, local: null };
+  const cats = '<option value="">Escolha...</option>' + Object.entries(OC_CATEGORIAS).map(([g, l]) => '<optgroup label="' + esc(g) + '">' + l.map(x => '<option value="' + esc(g + '|' + x) + '">' + esc(x) + '</option>').join('') + '</optgroup>').join('');
+  abrirModal('<h3>Nova ocorrência</h3><div class="form">' +
+    (isGestor() ? '<label>Condomínio</label><select id="noPosto" onchange="noForm.posto=this.value;noForm.local=null;noLocal()">' + opcoes.map(p => '<option value="' + p.id + '"' + (p.id === pid ? ' selected' : '') + '>' + esc(p.nome) + '</option>').join('') + '</select>' : '') +
+    '<label>O que aconteceu</label><select id="noCat" onchange="noCategoria()">' + cats + '</select>' +
+    '<div id="noOutroBox" style="display:none"><label>Escreva o que aconteceu</label><input id="noOutro"></div>' +
+    '<div class="row"><div><label>Prioridade</label><select id="noPri" onchange="noForm.prioManual=true;noEmerg()">' + Object.entries(OC_PRIORIDADES).map(([k, p]) => '<option value="' + k + '"' + (k === 'media' ? ' selected' : '') + '>' + p.nome + '</option>').join('') + '</select></div>' +
+    (isGestor() ? '<div><label>Responsável</label><select id="noResp"><option value="">A definir</option>' + OC_RESPONSAVEIS.map(r => '<option>' + esc(r) + '</option>').join('') + '</select></div>' : '') + '</div>' +
+    '<div id="noEmerg"></div>' +
+    '<label>Onde foi</label><div id="noLocal"></div>' +
+    '<label>Detalhes</label><textarea id="noDesc" rows="3" placeholder="Descreva o que foi visto e se a área foi isolada"></textarea>' +
+    '<label>Foto (opcional)</label><input type="file" id="noFoto" accept="image/*">' +
+    '</div><div class="acts"><button class="btn btn-ghost" onclick="fecharModal()">Cancelar</button><button class="btn btn-gold" id="noBtn" onclick="salvarNovaOc()">Registrar ocorrência</button></div>');
+  noLocal(); noEmerg();
+}
+function noCategoria() {
+  const [g, item] = (document.getElementById('noCat').value || '|').split('|');
+  document.getElementById('noOutroBox').style.display = g === 'Outro' ? '' : 'none';
+  if (!noForm.prioManual && g) document.getElementById('noPri').value = prioridadeSugerida(g, item);
+  noEmerg();
+}
+function noEmerg() { document.getElementById('noEmerg').innerHTML = document.getElementById('noPri').value === 'emergencia' ? '<div class="alert-card" style="display:block;margin-top:10px"><b>Emergência:</b> o posto e a supervisão recebem alerta na hora. Havendo risco: ' + OC_TELEFONES.map(([n, t]) => n + ' <a href="tel:' + t + '" style="color:var(--red);font-weight:700">' + t + '</a>').join(' · ') + '</div>' : ''; }
+function noLocal() {
+  const pid = noForm.posto, L = noForm.local, areas = DB.areas(pid), area = L && L.areaId ? DB.area(L.areaId) : null;
+  const grupos = {}; areas.forEach(a => (grupos[a.grupo || 'Locais'] = grupos[a.grupo || 'Locais'] || []).push(a));
+  let h = '';
+  if (temPlanta(pid)) h += '<p class="meta" style="margin-bottom:6px">Clique na planta onde aconteceu' + (areas.length ? ' ou escolha na lista' : '') + '.</p><div id="noPlanta"></div>';
+  h += '<div id="noSel" class="meta" style="margin:8px 0;color:var(--light)">' + (L ? '📍 <b>' + esc(L.nome || 'Ponto marcado na planta') + '</b>' + (L.x != null ? ' · marcado na planta' : '') : '') + '</div>';
+  if (areas.length) h += '<select id="noArea" onchange="noArea(this.value)"><option value="">' + (temPlanta(pid) ? 'ou escolha o local na lista' : 'Escolha o local') + '</option>' + Object.entries(grupos).map(([g, l]) => '<optgroup label="' + esc(g) + '">' + l.map(a => '<option value="' + a.id + '"' + (area && area.id === a.id ? ' selected' : '') + '>' + esc(a.nome) + '</option>').join('') + '</optgroup>').join('') + '</select>';
+  if (area && area.tipo === 'torre') h += '<select id="noAndar" style="margin-top:8px" onchange="noForm.local.andar=this.value===\'\'?null:+this.value"><option value="">Andar (se souber)</option>' + Array.from({ length: (area.andares || 0) + 1 }, (_, i) => '<option value="' + i + '"' + (L.andar === i ? ' selected' : '') + '>' + andarNome(i) + '</option>').join('') + '</select>';
+  h += '<input id="noLocalTxt" style="margin-top:8px" placeholder="' + (areas.length || temPlanta(pid) ? 'Detalhe do local (opcional)' : 'Local: ex. garagem, bloco 3') + '">';
+  const antes = document.getElementById('noLocalTxt'), txt = antes ? antes.value : '';
+  const box = document.getElementById('noLocal'), plantaAntiga = document.getElementById('noPlanta');
+  // mantém a planta (e a rolagem) quando só muda a seleção
+  if (plantaAntiga && box.dataset.posto === pid) { const p = plantaAntiga; p.remove(); box.innerHTML = h; box.querySelector('#noPlanta').replaceWith(p); }
+  else box.innerHTML = h;
+  box.dataset.posto = pid;
+  document.getElementById('noLocalTxt').value = txt;
+  if (temPlanta(pid)) Planta.montar(document.getElementById('noPlanta'), { postoId: pid, maxAltura: '46vh', foco: L && L.deLista && L.x != null ? { x: L.x, y: L.y } : null, pinos: L && L.x != null ? [{ x: L.x, y: L.y, cor: '#D4AF37', novo: true }] : [],
+    aoTocar: (x, y, prop) => { const a = localMaisProximo(pid, x, y, prop); noForm.local = { x, y, areaId: a ? a.id : null, torre: torreDaArea(a), andar: null, nome: a ? a.nome : null }; noLocal(); } });
+}
+function noArea(id) { const a = id && DB.area(id); noForm.local = a ? { x: a.x, y: a.y, areaId: a.id, torre: torreDaArea(a), andar: null, nome: a.nome, deLista: true } : null; noLocal(); }
+async function salvarNovaOc() {
+  const v = document.getElementById('noCat').value; if (!v) { toast('Escolha o que aconteceu', true); return; }
+  let [cat, titulo] = v.split('|');
+  if (cat === 'Outro') { titulo = document.getElementById('noOutro').value.trim(); if (!titulo) { toast('Escreva o que aconteceu', true); return; } }
+  const pid = noForm.posto, L = noForm.local || {}, detalhe = document.getElementById('noLocalTxt').value.trim(), desc = document.getElementById('noDesc').value.trim();
+  const btn = document.getElementById('noBtn'); btn.disabled = true;
+  let fotoPath = null; const f = document.getElementById('noFoto').files[0];
+  if (f) { try { const blob = await comprimirFoto(f); fotoPath = pid + '/ocorrencias/' + isoDia(new Date()) + '/' + novoId() + '.jpg'; await Nuvem.guardarFoto(fotoPath, blob); } catch (e) { toast('Não foi possível ler a foto', true); btn.disabled = false; return; } }
+  const resp = isGestor() ? document.getElementById('noResp').value : '';
+  const o = DB.novaOcorrencia({ posto: pid, categoria: cat, titulo, descricao: desc || titulo, autor: autorPainel(), prioridade: document.getElementById('noPri').value, origem: 'painel', fotoPath, responsavel: resp || null, criadoPor: Nuvem._uid || undefined,
+    localNome: [L.nome, detalhe].filter(Boolean).join(' · ') || null, areaId: L.areaId || null, mapaX: L.x != null ? L.x : null, mapaY: L.y != null ? L.y : null, torre: L.torre || null, andar: L.andar != null ? L.andar : null },
+    'Registrada por ' + autorPainel() + (resp ? ' · responsável: ' + resp : ''));
+  fecharModal(); toast('Ocorrência registrada' + (o.prioridade === 'emergencia' ? ' · o posto foi alertado' : '')); render(); montarNav();
+}
+
+// ---- Planta e locais ----
+async function enviarPlanta(pid, inp) {
+  const f = inp.files && inp.files[0]; if (!f) return;
+  if (!/^image\//.test(f.type)) { toast('Use uma imagem JPG ou PNG', true); return; }
+  if (!navigator.onLine) { toast('Sem internet: envie a planta quando a conexão voltar', true); return; }
+  toast('Enviando a planta...');
+  try {
+    let blob = f;
+    if (f.size > 1500000 || !/png|jpe?g|webp/.test(f.type)) blob = await comprimirFoto(f, 2400, 0.85);
+    const dim = await dimensoesImagem(blob), ext = blob.type === 'image/png' ? 'png' : blob.type === 'image/webp' ? 'webp' : 'jpg';
+    const path = pid + '/mapa/planta-' + Date.now() + '.' + ext;
+    const { error } = await Nuvem.sb.storage.from('fotos').upload(path, blob, { contentType: blob.type || 'image/jpeg' });
+    if (error) throw error;
+    DB.upsert('condominio_mapa', { posto: pid, plantaPath: path, largura: dim.largura || null, altura: dim.altura || null }, 'posto_id');
+    toast('Planta enviada'); render();
+  } catch (e) { toast('Não foi possível enviar a planta: ' + (e.message || e), true); }
+}
+function editarLocal(id) {
+  const a = id ? DB.area(id) : null, pid = postoDaPlanta();
+  const grupos = [...new Set(DB.areas(pid).map(x => x.grupo).filter(Boolean).concat(['Acesso', 'Torres', 'Pátio', 'Clube', 'Esporte', 'Garagem']))];
+  abrirModal('<h3>' + (a ? 'Editar local' : 'Novo local') + '</h3><div class="form">' +
+    '<label>Nome</label><input id="lcNome" value="' + esc(a ? a.nome : '') + '" placeholder="Ex.: Salão de festas, Torre B, Portaria">' +
+    '<div class="row"><div><label>Grupo</label><input id="lcGrupo" list="lcGrupos" value="' + esc(a ? a.grupo || '' : '') + '"><datalist id="lcGrupos">' + grupos.map(g => '<option value="' + esc(g) + '">').join('') + '</datalist></div>' +
+    '<div><label>Tipo</label><select id="lcTipo" onchange="document.getElementById(\'lcAndBox\').style.display=this.value===\'torre\'?\'\':\'none\'"><option value="area">Área</option><option value="torre"' + (a && a.tipo === 'torre' ? ' selected' : '') + '>Torre / bloco</option></select></div></div>' +
+    '<div id="lcAndBox" style="display:' + (a && a.tipo === 'torre' ? '' : 'none') + '"><label>Andares acima do térreo</label><input id="lcAnd" type="number" min="0" max="60" value="' + (a && a.andares != null ? a.andares : 7) + '"></div>' +
+    '</div><div class="acts">' + (a ? '<button class="btn btn-red" style="margin-right:auto" onclick="removerLocal(\'' + a.id + '\')">Remover</button>' : '') + '<button class="btn btn-ghost" onclick="fecharModal()">Cancelar</button><button class="btn btn-gold" onclick="salvarLocal(' + (a ? '\'' + a.id + '\'' : 'null') + ')">' + (a ? 'Salvar' : 'Salvar e posicionar na planta') + '</button></div>');
+}
+function salvarLocal(id) {
+  const nome = document.getElementById('lcNome').value.trim(); if (!nome) { toast('Informe o nome', true); return; }
+  const tipo = document.getElementById('lcTipo').value;
+  const dados = { nome, grupo: document.getElementById('lcGrupo').value.trim() || null, tipo, andares: tipo === 'torre' ? Math.max(0, +document.getElementById('lcAnd').value || 0) : null };
+  if (id) DB.update('areas', id, dados);
+  else { const pid = postoDaPlanta(); const n = DB.push('areas', Object.assign({ posto: pid, ordem: DB.areas(pid).length + 1, ativo: true }, dados)); locSel = n.id; locPosicionar = temPlanta(pid); }
+  fecharModal(); toast(id ? 'Local salvo' : locPosicionar ? 'Agora clique na planta onde ele fica' : 'Local salvo'); render();
+}
+function removerLocal(id) { DB.update('areas', id, { ativo: false }); if (locSel === id) locSel = null; fecharModal(); toast('Local removido'); render(); }
+
+// ---- Alerta de ocorrência em tempo real ----
+function bipCurto() {
+  try { const ctx = sirene.ctx || (sirene.ctx = new (window.AudioContext || window.webkitAudioContext)()); const o = ctx.createOscillator(), g = ctx.createGain(); o.frequency.value = 880; o.connect(g); g.connect(ctx.destination); g.gain.value = .12; o.start(); o.stop(ctx.currentTime + .25); } catch (e) {}
+}
+let emergAtual = null;
+function alertaOcorrencia(o) {
+  const pr = DB.params(o.posto); if (!pr.ocorrencias || !pr.ocnova) return;
+  const local = ocLocal(o);
+  if (o.prioridade === 'emergencia') {
+    emergAtual = o.id;
+    document.getElementById('emergTit').textContent = '🚨 EMERGÊNCIA — ' + nomePosto(o.posto);
+    document.getElementById('emergTxt').textContent = ocTitulo(o) + (local ? ' · ' + local : '') + ' · ' + fmtHora(new Date(o.criadoEm)) + (o.autor ? ' · ' + o.autor : '');
+    document.getElementById('emergOv').classList.add('show'); sirene();
+    try { if ('Notification' in window && Notification.permission === 'granted') new Notification('🚨 Emergência — ' + nomePosto(o.posto), { body: ocTitulo(o) + (local ? ' · ' + local : ''), requireInteraction: true }); } catch (e) {}
+  } else {
+    if (o.prioridade === 'alta') bipCurto();
+    toast('Nova ocorrência · ' + nomePosto(o.posto) + ': ' + ocTitulo(o), o.prioridade === 'alta');
+  }
+}
+function fecharEmerg(abrir) { document.getElementById('emergOv').classList.remove('show'); const id = emergAtual; emergAtual = null; if (abrir && id) { if (secaoAtual !== 'ocorrencias') ir('ocorrencias'); ocDetalhe(id); } }
+
+// ===================== LIVRO ATA =====================
+function rLivro() {
+  const l = DB.list('livro').filter(o => doFiltro(o.posto)).slice(0, 120);
+  M().innerHTML = '<div class="filters">' + filtroPostoHtml() + '</div>' + (l.length ? l.map(r => '<div class="card"' + (r.tipo === 'plantao' ? ' style="border-left:3px solid var(--gold)"' : '') + '><p style="color:var(--light)">' + esc(r.texto) + '</p><div class="meta">' + esc(nomePosto(r.posto)) + ' · ' + esc(r.autor || '') + ' · ' + quando(r.criadoEm) + (r.tipo === 'plantao' ? ' · 🔄 passagem de plantão' : '') + '</div></div>').join('') : '<div class="empty">Nenhum registro.</div>');
+}
+
+// ===================== CHECKLIST =====================
+function rChecklist() {
+  const l = DB.list('checklists').filter(c => doFiltro(c.posto)).slice(0, 60);
+  let h = '<div class="filters">' + filtroPostoHtml() + '</div>';
+  h += l.length ? '<div class="table-wrap"><table><thead><tr><th>Data</th><th>Posto</th><th>Tipo</th><th>Responsável</th><th>Resultado</th><th></th></tr></thead><tbody>' + l.map(c => { const nok = c.itens.filter(i => !i.ok).length;
+    return '<tr><td class="small">' + quando(c.criadoEm) + '</td><td>' + esc(nomePosto(c.posto)) + '</td><td><span class="tag">' + (CHECKLISTS[c.tipo] || {}).nome + '</span></td><td>' + esc(c.autor) + '</td><td><span class="pill ' + (nok ? 'red' : 'green') + '">' + (nok ? nok + ' problema(s)' : 'Tudo OK') + '</span></td><td><button class="btn btn-ghost" onclick="verChecklist(\'' + c.id + '\')">Ver</button></td></tr>'; }).join('') + '</tbody></table></div>' : '<div class="empty">Nenhum checklist enviado ainda.</div>';
+  M().innerHTML = h;
+}
+function verChecklist(id) {
+  const c = DB.list('checklists').find(x => x.id === id);
+  abrirModal('<h3>Checklist ' + CHECKLISTS[c.tipo].nome + '</h3><p class="meta">' + esc(nomePosto(c.posto)) + ' · ' + esc(c.autor) + ' · ' + quando(c.criadoEm) + '</p>' + c.itens.map(i => '<div class="param-row"><span>' + esc(i.item) + (i.obs ? '<small>' + esc(i.obs) + '</small>' : '') + '</span><span class="pill ' + (i.ok ? 'green' : 'red') + '">' + (i.ok ? 'OK' : 'Problema') + '</span></div>').join('') + '<div class="acts"><button class="btn btn-ghost" onclick="fecharModal()">Fechar</button></div>');
+}
+
+// ===================== MATERIAIS =====================
+const ETAPAS = [['solicitado', 'Solicitado', 'Aprovar'], ['aprovado', 'Aprovado', 'Marcar entregue'], ['entregue', 'Entregue (aguardando posto)', null], ['noposto', 'No posto', null]];
+function rMateriais() {
+  // condomínio com Materiais desligado em Parâmetros = material próprio do condomínio, fora do controle da C&S
+  const comCS = pid => !!DB.params(pid).materiais;
+  const proprios = postosVisiveis().filter(p => !comCS(p.id));
+  let h = '<div class="filters">' + filtroPostoHtml() + '</div>';
+  if (filtroPosto !== 'todos' && !comCS(filtroPosto)) {
+    M().innerHTML = h + '<div class="empty">O material do ' + esc(nomePosto(filtroPosto)) + ' é do próprio condomínio, fora do controle da C&S.' + (isAdm() ? '<br>Para controlar pela C&S, ligue Materiais em Parâmetros.' : '') + '</div>'; return;
+  }
+  if (proprios.length) h += '<p class="meta" style="margin:-4px 0 14px">Material próprio do condomínio (fora do controle): ' + proprios.map(p => esc(p.nome)).join(', ') + '.</p>';
+  const l = DB.list('solicitacoes').filter(s => doFiltro(s.posto) && comCS(s.posto));
+  h += '<div class="h2">Reposições</div><div class="kanban">';
+  h += ETAPAS.map((e, i) => { const it = l.filter(s => s.etapa === e[0]);
+    return '<div class="kcol"><h4>' + e[1] + ' (' + it.length + ')</h4>' + (it.map(s => '<div class="kcard' + (s.urgencia === 'urgente' ? ' urg' : '') + '"><b>' + esc(s.material) + '</b> · ' + s.qtd + ' un<div class="meta">' + esc(nomePosto(s.posto)) + ' · ' + quando(s.criadoEm) + (s.urgencia === 'urgente' ? ' · urgente' : '') + '</div>' + (isGestor() && e[2] ? '<button class="btn btn-gold" onclick="avancar(\'' + s.id + '\',\'' + ETAPAS[i + 1][0] + '\')">' + e[2] + '</button>' : '') + (e[0] === 'entregue' ? '<div class="meta">O posto confirma o recebimento no app</div>' : '') + '</div>').join('') || '<div class="empty">—</div>') + '</div>'; }).join('');
+  h += '</div><div class="h2" style="margin-top:22px">Estoque nos postos</div>';
+  postosVisiveis().filter(p => doFiltro(p.id) && comCS(p.id)).forEach(p => {
+    const est = DB.estoque(p.id);
+    h += '<div class="table-wrap"><table><thead><tr><th>' + esc(p.nome) + '</th><th>Qtd</th><th>Mínimo</th><th>Status</th></tr></thead><tbody>' + MATERIAIS_CATALOGO.map(m => { const q = est[m.id], min = DB.minimo(p.id, m.id), s = statusEstoque(q, min);
+      return '<tr><td>' + esc(m.nome) + '</td><td>' + (q == null ? '—' : q + ' ' + m.un) + '</td><td>' + (isAdmRh() ? '<button class="btn btn-ghost" onclick="editarMinimo(\'' + p.id + '\',\'' + m.id + '\')">' + min + '</button>' : min) + '</td><td><span class="pill ' + { ok: 'green', low: 'orange', out: 'red', none: 'silver' }[s.id] + '">' + s.label + '</span></td></tr>'; }).join('') + '</tbody></table></div>';
+  });
+  M().innerHTML = h;
+}
+function avancar(id, etapa) { DB.update('solicitacoes', id, { etapa, atualizadoEm: new Date().toISOString() }); toast('Atualizado'); render(); }
+function editarMinimo(pid, mid) {
+  const m = MATERIAIS_CATALOGO.find(x => x.id === mid);
+  abrirModal('<h3>Estoque mínimo</h3><p class="meta">' + esc(m.nome) + ' · ' + esc(nomePosto(pid)) + '</p><div class="form"><label>Mínimo (' + m.un + ')</label><input id="minV" type="number" min="0" value="' + DB.minimo(pid, mid) + '"></div><div class="acts"><button class="btn btn-ghost" onclick="fecharModal()">Cancelar</button><button class="btn btn-gold" onclick="DB.setMinimo(\'' + pid + '\',\'' + mid + '\',parseInt(document.getElementById(\'minV\').value,10)||0);fecharModal();render()">Salvar</button></div>');
+}
+
+// ===================== ENCOMENDAS =====================
+let abaEnc = 'lista', buscaEnc = '';
+function rEncomendas() {
+  const pvis = postosVisiveis().filter(p => doFiltro(p.id) && DB.params(p.id).encomendas);
+  const comBase = pvis.filter(p => DB.modoEncomenda(p.id) !== 'interno');
+  let h = '<div class="filters">' + filtroPostoHtml() + '<input placeholder="🔎 Unidade ou nome" value="' + esc(buscaEnc) + '" oninput="buscaEnc=this.value;clearTimeout(window._tb);window._tb=setTimeout(render,300)"></div>';
+  h += '<div class="tabs"><button class="tab' + (abaEnc === 'lista' ? ' active' : '') + '" onclick="abaEnc=\'lista\';render()">Encomendas</button>' + (comBase.length ? '<button class="tab' + (abaEnc === 'moradores' ? ' active' : '') + '" onclick="abaEnc=\'moradores\';render()">Base de moradores</button>' : '') + '</div>';
+  if (abaEnc === 'moradores' && comBase.length) { M().innerHTML = h + htmlMoradores(comBase); return; }
+  const b = buscaEnc.trim().toUpperCase();
+  const l = DB.list('encomendas').filter(e => pvis.some(p => p.id === e.posto) && (!b || (e.unidade + ' ' + (e.destinatario || '') + ' ' + (e.retiradoPor || '')).toUpperCase().includes(b)));
+  const ag = l.filter(e => e.status === 'aguardando'), ret = l.filter(e => e.status === 'retirada');
+  if (!isGestor()) { const m = MODOS_ENCOMENDA[DB.modoEncomenda(A.posto)]; h += '<p class="meta" style="margin:-4px 0 12px">Modo ' + m.letra + ' — ' + m.nome + '</p>'; }
+  h += '<div class="stats"><div class="stat orange"><div class="n">' + ag.length + '</div><div class="l">Aguardando retirada</div></div><div class="stat green"><div class="n">' + ret.length + '</div><div class="l">Retiradas</div></div></div>';
+  h += l.length ? '<div class="table-wrap"><table><thead><tr><th>Unidade</th><th>Posto</th><th>Chegada</th><th class="hide-m">Destinatário</th><th class="hide-m">Transportadora</th><th>Status</th><th>Fotos</th></tr></thead><tbody>' + l.slice(0, 200).map(e => '<tr><td><b>' + esc(e.unidade) + '</b></td><td>' + esc(nomePosto(e.posto)) + '</td><td class="small">' + quando(e.criadoEm) + '<div class="meta">' + esc(e.recebidoPor || '') + '</div></td><td class="hide-m">' + esc(e.destinatario || '—') + '</td><td class="small hide-m">' + esc(e.transportadora || '—') + '</td><td>' + (e.status === 'retirada' ? '<span class="pill green">Retirada</span><div class="meta">' + esc(e.retiradoPor) + ' · ' + quando(e.retiradoEm) + '</div>' : '<span class="pill orange">Aguardando</span>' + (e.avisadoEm ? '<div class="meta">morador avisado</div>' : '')) + '</td><td style="white-space:nowrap">' + btnFoto(e.fotoChegada, 'Chegada ' + e.unidade) + ' ' + btnFoto(e.fotoRetirada, 'Retirada ' + e.unidade) + '</td></tr>').join('') + '</tbody></table></div>' : '<div class="empty">Nenhuma encomenda. O registro é feito pela portaria, no app do posto, com foto.</div>';
+  M().innerHTML = h;
+}
+function htmlMoradores(comBase) {
+  const ms = DB.list('moradores').filter(m => comBase.some(p => p.id === m.posto)).sort((a, b) => String(a.unidade).localeCompare(String(b.unidade), 'pt', { numeric: true }));
+  const sel = comBase.length > 1 ? '<div><label>Condomínio</label><select id="morPosto">' + comBase.map(p => '<option value="' + p.id + '">' + esc(p.nome) + '</option>').join('') + '</select></div>' : '<input type="hidden" id="morPosto" value="' + comBase[0].id + '">';
+  let h = '<div class="card form"><h4>Cadastrar morador</h4><div class="row">' + sel + '<div><label>Unidade</label><input id="morUnid" placeholder="Ex: 12B"></div></div><div class="row"><div><label>Nome</label><input id="morNome"></div><div><label>WhatsApp</label><input id="morTel" inputmode="tel" placeholder="(11) 90000-0000"></div></div><button class="btn btn-gold" style="margin-top:12px" onclick="addMorador()">Adicionar</button></div>';
+  h += '<div class="card form"><h4>Importar planilha da administradora (modo B)</h4><p>Salve a planilha como CSV com as colunas <b>unidade; nome; telefone</b> (uma linha por morador) e escolha o arquivo.</p><input type="file" accept=".csv,text/csv" style="margin-top:10px" onchange="importarCsv(this)"></div>';
+  h += ms.length ? '<div class="table-wrap"><table><thead><tr><th>Unidade</th><th>Nome</th><th>Condomínio</th><th>WhatsApp</th><th>Origem</th><th></th></tr></thead><tbody>' + ms.map(m => '<tr><td><b>' + esc(m.unidade) + '</b></td><td>' + esc(m.nome) + '</td><td>' + esc(nomePosto(m.posto)) + '</td><td class="small">' + esc(m.telefone || '—') + '</td><td><span class="tag">' + esc(m.origem) + '</span></td><td><button class="btn btn-ghost" onclick="DB.remove(\'moradores\',\'' + m.id + '\');render()">Remover</button></td></tr>').join('') + '</tbody></table></div>' : '<div class="empty">Nenhum morador na base.</div>';
+  return h;
+}
+function addMorador() {
+  const u = document.getElementById('morUnid').value.trim().toUpperCase(), n = document.getElementById('morNome').value.trim(), t = document.getElementById('morTel').value.trim();
+  if (!u || !n) return toast('Preencha unidade e nome', true);
+  if (t && soDigitos(t).length < 10) return toast('WhatsApp com DDD', true);
+  DB.push('moradores', { posto: document.getElementById('morPosto').value, unidade: u, nome: n, telefone: t, origem: 'manual' }); toast('Morador cadastrado'); render();
+}
+function importarCsv(inp) {
+  const f = inp.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    const pid = document.getElementById('morPosto').value;
+    const linhasCsv = String(r.result).replace(/^﻿/, '').split(/\r?\n/).map(l => l.split(/[;,\t]/).map(x => x.trim().replace(/^"|"$/g, ''))).filter(c => c[0] && c[1]);
+    if (linhasCsv.length && /unid/i.test(linhasCsv[0][0])) linhasCsv.shift();
+    const existentes = new Set(DB.list('moradores').filter(m => m.posto === pid).map(m => (m.unidade + '|' + m.nome).toUpperCase()));
+    let n = 0;
+    linhasCsv.forEach(c => { const k = (c[0] + '|' + c[1]).toUpperCase(); if (existentes.has(k)) return; existentes.add(k); DB.push('moradores', { posto: pid, unidade: c[0].toUpperCase(), nome: c[1], telefone: c[2] || '', origem: 'importado' }); n++; });
+    toast(n + ' moradores importados'); render();
+  };
+  r.readAsText(f, 'utf-8');
+}
+
+// ===================== AVISOS =====================
+function rAvisos() {
+  const ps = DB.postos();
+  let h = '<div class="card form"><h4>Novo aviso</h4><label>Título</label><input id="avTit" maxlength="80" placeholder="Ex: Falta de água amanhã das 8h às 12h"><label>Mensagem</label><textarea id="avTxt" rows="4" placeholder="Escreva o aviso para os postos"></textarea>' +
+    '<div class="row"><div><label>Prioridade</label><select id="avPri"><option value="normal">Normal</option><option value="urgente">Urgente (toca alarme até confirmar)</option></select></div><div><label>Para</label><select id="avPara" onchange="document.getElementById(\'avPostos\').style.display=this.value===\'alguns\'?\'flex\':\'none\'"><option value="todos">Todos os postos</option><option value="alguns">Escolher postos</option></select></div></div>' +
+    '<div id="avPostos" style="display:none;flex-wrap:wrap;gap:12px;margin-top:10px">' + ps.map(p => '<label style="display:flex;gap:6px;align-items:center;margin:0;color:var(--light)"><input type="checkbox" class="avP" value="' + p.id + '" style="width:auto">' + esc(p.nome) + '</label>').join('') + '</div>' +
+    '<button class="btn btn-gold" style="margin-top:14px" onclick="enviarAviso()">Enviar aviso</button><p class="meta">O aviso aparece na hora na tela do celular do posto, com som, e só sai quando alguém confirma "Ciente".</p></div>';
+  const l = DB.list('avisos').slice(0, 40);
+  h += '<div class="h2">Enviados</div>' + (l.length ? l.map(a => {
+    const alvo = a.destino ? ps.filter(p => a.destino.includes(p.id)) : ps;
+    const lidos = alvo.filter(p => DB.leitura(a.id, p.id));
+    return '<div class="card"' + (a.prioridade === 'urgente' ? ' style="border-left:3px solid var(--red)"' : '') + '><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><h4>' + (a.prioridade === 'urgente' ? '🚨 ' : '') + esc(a.titulo) + '</h4><span class="pill ' + (lidos.length === alvo.length ? 'green' : 'orange') + '">' + lidos.length + '/' + alvo.length + ' postos cientes</span></div><p style="white-space:pre-wrap">' + esc(a.texto) + '</p><div class="meta">' + quando(a.criadoEm) + (a.criadoPor ? ' · ' + esc(a.criadoPor) : '') + '</div>' +
+      '<div class="leitura">' + alvo.map(p => { const lt = DB.leitura(a.id, p.id); return '<span class="pill ' + (lt ? 'green' : 'silver') + '" title="' + (lt ? esc(lt.lidoPor || '') + ' · ' + quando(lt.lidoEm) : 'ainda não leu') + '">' + esc(p.nome) + (lt ? ' ✓ ' + esc((lt.lidoPor || '').split(' ')[0]) + ' ' + fmtHora(new Date(lt.lidoEm)) : '') + '</span>'; }).join('') + '</div></div>';
+  }).join('') : '<div class="empty">Nenhum aviso enviado.</div>');
+  M().innerHTML = h;
+}
+function enviarAviso() {
+  const t = document.getElementById('avTit').value.trim(), x = document.getElementById('avTxt').value.trim();
+  if (!t || !x) return toast('Preencha título e mensagem', true);
+  let destino = null;
+  if (document.getElementById('avPara').value === 'alguns') { destino = [...document.querySelectorAll('.avP:checked')].map(c => c.value); if (!destino.length) return toast('Escolha ao menos um posto', true); }
+  DB.push('avisos', { titulo: t, texto: x, prioridade: document.getElementById('avPri').value, destino, criadoPor: A.nome || A.email });
+  toast('📢 Aviso enviado'); render();
+}
+
+// ===================== COBERTURA / FREELANCERS =====================
+function rCobertura() {
+  const fs = DB.list('freelancers').sort((a, b) => a.nome.localeCompare(b.nome));
+  let h = !isAdmRh() ? '<div class="card"><p>Somente o administrador cadastra ou remove freelancers. Use a lista abaixo para ligar, ou "Acionar freelance" nos alertas da Visão Geral.</p></div>' : '<div class="card form"><h4>Cadastrar freelancer</h4><div class="row"><div><label>Nome</label><input id="frNome"></div><div><label>WhatsApp / telefone</label><input id="frTel" inputmode="tel" placeholder="(11) 90000-0000"></div></div><label>Funções que cobre</label><div style="display:flex;gap:14px;flex-wrap:wrap;font-size:13px">' + FUNCOES.filter(f => f !== 'A definir').map(f => '<label style="display:flex;gap:6px;align-items:center;margin:0;color:var(--light)"><input type="checkbox" class="frFun" value="' + f + '" style="width:auto">' + f + '</label>').join('') + '</div><div class="row"><div><label>Região</label><input id="frReg" placeholder="Ex: Suzano / Mogi"></div><div><label>Observação</label><input id="frObs" placeholder="Disponibilidade, valor da diária..."></div></div><button class="btn btn-gold" style="margin-top:12px" onclick="addFreelancer()">Adicionar</button></div>';
+  h += '<div class="h2">Contatos de emergência (' + fs.length + ')</div>' + (fs.length ? '<div class="table-wrap"><table><thead><tr><th>Nome</th><th>Funções</th><th class="hide-m">Região</th><th class="hide-m">Obs.</th><th></th></tr></thead><tbody>' + fs.map(f => '<tr><td><b>' + esc(f.nome) + '</b><div class="meta">' + esc(f.telefone) + '</div></td><td>' + (f.funcoes || []).map(x => '<span class="tag">' + esc(x) + '</span> ').join('') + '</td><td class="small hide-m">' + esc(f.regiao || '') + '</td><td class="small hide-m">' + esc(f.obs || '') + '</td><td style="white-space:nowrap"><a class="btn btn-outline" href="tel:' + soDigitos(f.telefone) + '" style="text-decoration:none">Ligar</a>' + (isAdmRh() ? ' <button class="btn btn-ghost" onclick="DB.remove(\'freelancers\',\'' + f.id + '\');render()">Remover</button>' : '') + '</td></tr>').join('') + '</tbody></table></div>' : '<div class="empty">Nenhum freelancer cadastrado.</div>');
+  const ac = DB.list('acionamentos').slice(0, 20);
+  h += '<div class="h2">Últimos acionamentos</div>' + (ac.length ? ac.map(a => '<div class="card"><p style="color:var(--light)"><b>' + esc(a.freelancer) + '</b> acionado para cobrir <b>' + esc(a.colab) + '</b> · ' + esc(nomePosto(a.posto)) + '</p><div class="meta">' + quando(a.criadoEm) + '</div></div>').join('') : '<div class="empty">Nenhum acionamento ainda. Use "Acionar freelance" nos alertas da Visão Geral.</div>');
+  M().innerHTML = h;
+}
+function addFreelancer() {
+  const n = document.getElementById('frNome').value.trim(), t = document.getElementById('frTel').value.trim(), fun = [...document.querySelectorAll('.frFun:checked')].map(x => x.value);
+  if (!n || soDigitos(t).length < 10 || !fun.length) return toast('Preencha nome, telefone com DDD e ao menos uma função', true);
+  DB.push('freelancers', { nome: n, telefone: t, funcoes: fun, regiao: document.getElementById('frReg').value.trim(), obs: document.getElementById('frObs').value.trim() }); toast('Freelancer cadastrado'); render();
+}
+function acionarFreelance(cid) {
+  const c = DB.colaboradores().find(x => x.id === cid), x = situacoesPosto(c.posto).find(y => y.colab.id === cid), t = x && x.sit.turno ? x.sit.turno : {};
+  const fs = DB.list('freelancers'), aptos = fs.filter(f => (f.funcoes || []).includes(c.funcao)), outros = fs.filter(f => !(f.funcoes || []).includes(c.funcao));
+  const msg = f => 'Olá ' + f.nome.split(' ')[0] + ', aqui é da C&S. Precisamos de cobertura hoje no ' + nomePosto(c.posto) + (t.ini ? ', das ' + t.ini + ' às ' + t.fim : '') + ', função ' + c.funcao + '. Você consegue? Responda assim que puder.';
+  const linha = f => '<div class="param-row"><span><b>' + esc(f.nome) + '</b><small>' + (f.funcoes || []).join(', ') + (f.regiao ? ' · ' + esc(f.regiao) : '') + '</small></span><span style="display:flex;gap:6px"><a class="btn btn-gold" style="text-decoration:none" target="_blank" href="' + linkWhats(f.telefone, msg(f)) + '" onclick="registrarAcionamento(\'' + f.id + '\',\'' + cid + '\')">WhatsApp</a><a class="btn btn-outline" style="text-decoration:none" href="tel:' + soDigitos(f.telefone) + '" onclick="registrarAcionamento(\'' + f.id + '\',\'' + cid + '\')">Ligar</a></span></div>';
+  abrirModal('<h3>Acionar freelance</h3><p class="meta">Falta: ' + esc(c.nome) + ' · ' + esc(c.funcao) + ' · ' + esc(nomePosto(c.posto)) + (t.ini ? ' · ' + t.ini + '–' + t.fim : '') + '</p>' + (aptos.length ? '<div class="h2" style="font-size:14px;margin-top:14px">Cobrem ' + esc(c.funcao) + '</div>' + aptos.map(linha).join('') : '<p class="meta" style="margin-top:12px">Nenhum freelancer cadastrado para ' + esc(c.funcao) + '.</p>') + (outros.length ? '<div class="h2" style="font-size:14px;margin-top:14px">Outros contatos</div>' + outros.map(linha).join('') : '') + '<div class="acts">' + (isAdmRh() ? '<button class="btn btn-ghost" onclick="fecharModal();ir(\'cobertura\')">Cadastrar freelancer</button>' : '') + '<button class="btn btn-outline" onclick="fecharModal()">Fechar</button></div>');
+}
+function registrarAcionamento(fid, cid) { const f = DB.list('freelancers').find(x => x.id === fid), c = DB.colaboradores().find(x => x.id === cid); DB.push('acionamentos', { freelancer: f.nome, colab: c.nome, posto: c.posto }); }
+
+// ===================== COLABORADORES E ESCALA =====================
+function rColaboradores() {
+  const cs = DB.colaboradores().filter(c => doFiltro(c.posto));
+  const pend = cs.filter(c => c.ativo !== false && (c.funcao === 'A definir' || !c.escala || (c.escala.tipo === '12x36' && !c.escala.ref) || c.vaga));
+  let h = '<div class="filters">' + filtroPostoHtml() + (isAdmRh() ? '<button class="btn btn-gold" onclick="editarColab()">+ Novo colaborador</button>' : '<span class="meta">Somente leitura — a escala é alterada pelo administrador.</span>') + '</div>';
+  if (pend.length) h += '<div class="card" style="border-color:rgba(210,153,34,.4)"><h4>⚠️ ' + pend.length + ' cadastros precisam de ajuste</h4><p>Função ou horário faltando, vaga em aberto, ou 12x36 sem o dia do plantão. Sem o dia do plantão, o sistema aceita a confirmação de qualquer um da dupla e só alerta se ninguém confirmar.</p></div>';
+  postosVisiveis().filter(p => doFiltro(p.id)).forEach(p => {
+    const l = DB.colaboradores().filter(c => c.posto === p.id);
+    h += '<div class="h2">' + esc(p.nome) + ' <span class="tag">' + l.filter(c => c.ativo !== false).length + ' ativos</span></div><div class="table-wrap"><table><thead><tr><th>Nome</th><th>Função</th><th>Escala no sistema</th><th class="hide-m">Na planilha</th><th></th></tr></thead><tbody>' +
+      l.map(c => { const fl = [];
+        if (c.vaga) fl.push('<span class="pill red">vaga</span>'); if (c.funcao === 'A definir') fl.push('<span class="pill orange">função?</span>');
+        if (!c.escala) fl.push('<span class="pill orange">horário?</span>'); else if (c.escala.tipo === '12x36' && !c.escala.ref) fl.push('<span class="pill orange">dia do plantão?</span>');
+        if (c.ativo === false) fl.push('<span class="pill silver">inativo</span>');
+        return '<tr' + (c.ativo === false ? ' style="opacity:.5"' : '') + '><td><b>' + esc(c.nome) + '</b><div>' + fl.join(' ') + '</div></td><td><span class="tag">' + esc(c.funcao) + '</span></td><td class="small">' + esc(descreverEscala(c.escala)) + '</td><td class="small hide-m">' + esc(c.original || '—') + '</td><td>' + (isAdmRh() ? '<button class="btn btn-outline" onclick="editarColab(\'' + c.id + '\')">Editar</button>' : '') + '</td></tr>'; }).join('') + '</tbody></table></div>';
+  });
+  M().innerHTML = h;
+}
+function editarColab(id) {
+  const c = id ? DB.colaboradores().find(x => x.id === id) : { id: null, nome: '', posto: filtroPosto !== 'todos' ? filtroPosto : DB.postos()[0].id, funcao: 'Porteiro', escala: { tipo: '12x36', periodo: 'diurno', ini: '07:00', fim: '19:00', ref: null }, ativo: true };
+  const e = c.escala || { tipo: 'nenhuma' }, dias = (e.tipo === 'semanal' && e.dias) || {};
+  abrirModal('<h3>' + (id ? 'Editar colaborador' : 'Novo colaborador') + '</h3>' + (c.original ? '<p class="meta">Na planilha: ' + esc(c.original) + '</p>' : '') +
+    '<div class="form"><div class="row"><div><label>Nome</label><input id="edNome" value="' + esc(c.nome) + '"></div><div><label>Posto</label><select id="edPosto">' + DB.postos().map(p => '<option value="' + p.id + '"' + (p.id === c.posto ? ' selected' : '') + '>' + esc(p.nome) + '</option>').join('') + '</select></div></div>' +
+    '<div class="row"><div><label>Função</label><select id="edFuncao">' + FUNCOES.map(f => '<option' + (f === c.funcao ? ' selected' : '') + '>' + f + '</option>').join('') + '</select></div><div><label>Tipo de escala</label><select id="edTipo" onchange="trocarTipo()"><option value="12x36"' + (e.tipo === '12x36' ? ' selected' : '') + '>12x36</option><option value="semanal"' + (e.tipo === 'semanal' ? ' selected' : '') + '>Dias da semana</option><option value="nenhuma"' + (e.tipo === 'nenhuma' ? ' selected' : '') + '>A definir</option></select></div></div>' +
+    '<div id="box12"><div class="row"><div><label>Período</label><select id="edPer"><option value="diurno"' + (e.periodo !== 'noturno' ? ' selected' : '') + '>Diurno</option><option value="noturno"' + (e.periodo === 'noturno' ? ' selected' : '') + '>Noturno</option></select></div><div><label>Entrada</label><input type="time" id="edIni" value="' + (e.ini || '07:00') + '"></div><div><label>Saída</label><input type="time" id="edFim" value="' + (e.fim || '19:00') + '"></div></div><label>Um dia em que trabalhou (define os dias alternados)</label><input type="date" id="edRef" value="' + (e.ref || '') + '"></div>' +
+    '<div id="boxSem"><label>Dias e horários</label><div class="dias">' + [1, 2, 3, 4, 5, 6, 0].map(d => '<div class="dia"><label><input type="checkbox" class="edDia" data-d="' + d + '"' + (dias[d] ? ' checked' : '') + '>' + DIAS_SEMANA[d] + '</label><input type="time" class="edDi" data-d="' + d + '" value="' + (dias[d] ? dias[d][0] : '07:00') + '"><input type="time" class="edDf" data-d="' + d + '" value="' + (dias[d] ? dias[d][1] : '16:00') + '"></div>').join('') + '</div>' +
+    '<label style="display:flex;gap:8px;align-items:center;margin-top:12px;color:var(--light)"><input type="checkbox" id="edFds" style="width:auto"' + (e.fds ? ' checked' : '') + '> Também trabalha sábado OU domingo (alternado)</label><div class="row"><div><label>Entrada fds</label><input type="time" id="edFi" value="' + ((e.fds && e.fds.ini) || '07:00') + '"></div><div><label>Saída fds</label><input type="time" id="edFf" value="' + ((e.fds && e.fds.fim) || '13:00') + '"></div></div></div>' +
+    '<label style="display:flex;gap:8px;align-items:center;margin-top:14px;color:var(--light)"><input type="checkbox" id="edAtivo" style="width:auto"' + (c.ativo !== false ? ' checked' : '') + '> Ativo</label></div>' +
+    '<div class="acts"><button class="btn btn-ghost" onclick="fecharModal()">Cancelar</button><button class="btn btn-gold" onclick="salvarColab(' + (id ? '\'' + id + '\'' : 'null') + ')">Salvar</button></div>');
+  trocarTipo();
+}
+function trocarTipo() { const t = document.getElementById('edTipo').value; document.getElementById('box12').style.display = t === '12x36' ? '' : 'none'; document.getElementById('boxSem').style.display = t === 'semanal' ? '' : 'none'; }
+function salvarColab(id) {
+  const nome = document.getElementById('edNome').value.trim(); if (!nome) return toast('Informe o nome', true);
+  const t = document.getElementById('edTipo').value; let escala = null;
+  if (t === '12x36') escala = { tipo: '12x36', periodo: document.getElementById('edPer').value, ini: document.getElementById('edIni').value, fim: document.getElementById('edFim').value, ref: document.getElementById('edRef').value || null };
+  if (t === 'semanal') { const dias = {}; document.querySelectorAll('.edDia').forEach(cb => { if (cb.checked) { const d = cb.dataset.d; dias[d] = [document.querySelector('.edDi[data-d="' + d + '"]').value, document.querySelector('.edDf[data-d="' + d + '"]').value]; } });
+    escala = { tipo: 'semanal', dias, fds: document.getElementById('edFds').checked ? { regra: 'sab_ou_dom', ini: document.getElementById('edFi').value, fim: document.getElementById('edFf').value } : null }; }
+  const dados = { nome, posto: document.getElementById('edPosto').value, funcao: document.getElementById('edFuncao').value, escala, ativo: document.getElementById('edAtivo').checked };
+  if (id) { const atual = DB.colaboradores().find(x => x.id === id); if (atual && atual.vaga && nome !== 'A DEFINIR') dados.vaga = false; DB.update('colaboradores', id, dados); }
+  else DB.push('colaboradores', Object.assign({ original: '', vaga: false }, dados));
+  fecharModal(); toast('Salvo'); render();
+}
+
+// ===================== PARÂMETROS =====================
+function rParametros() {
+  let h = '<p class="meta" style="margin:0 0 14px;font-size:12px">O que ficar desligado some do app do posto e do painel do condomínio. As mudanças chegam na hora nos celulares.</p><div class="postos-grid">';
+  h += DB.postos().map(p => { const pr = DB.params(p.id), modo = DB.modoEncomenda(p.id);
+    return '<div class="pcard"><div class="ph"><b>' + esc(p.nome) + '</b><select onchange="DB.update(\'postos\',\'' + p.id + '\',{prioridade:this.value});toast(\'Prioridade salva\')" style="background:var(--bg3);color:var(--light);border:1px solid var(--bg4);border-radius:8px;padding:5px">' + ['critico', 'alto', 'normal'].map(x => '<option value="' + x + '"' + (p.prioridade === x ? ' selected' : '') + '>Prioridade ' + x + '</option>').join('') + '</select></div><div style="padding:6px 14px 12px">' +
+      MODULOS.map(m => '<div class="param-row"><span>' + m.nome + (m.bloqueado ? '<small>em preparação</small>' : m.dica ? '<small>' + m.dica + '</small>' : '') + '</span><label class="toggle"><input type="checkbox"' + (pr[m.id] ? ' checked' : '') + (m.bloqueado ? ' disabled' : '') + ' onchange="DB.setParam(\'' + p.id + '\',\'' + m.id + '\',this.checked);render();toast(\'Parâmetro salvo\')"><span></span></label></div>' +
+        (m.id === 'ocorrencias' && pr.ocorrencias ? '<div class="param-row sub"><span>↳ Ocorrências versão nova<small>Planta, prioridade, histórico e alertas em tempo real. Desligado: tela clássica.</small></span><label class="toggle"><input type="checkbox"' + (pr.ocnova ? ' checked' : '') + ' onchange="DB.setParam(\'' + p.id + '\',\'ocnova\',this.checked);render();toast(\'Parâmetro salvo\')"><span></span></label></div>' : '')).join('') +
+      (pr.encomendas ? '<div style="margin-top:10px"><div class="meta" style="margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">Modo de encomendas</div>' + ['interno', 'parceria', 'api'].map(k => { const md = MODOS_ENCOMENDA[k];
+        return '<div class="modo-card' + (modo === k ? ' on' : '') + '" onclick="trocarModo(\'' + p.id + '\',\'' + k + '\')"><span class="l">' + md.letra + '</span><span><b>' + md.nome + '</b><small>' + md.desc + '</small></span></div>'; }).join('') + (modo === 'api' ? htmlIntegracao(p.id) : '') + '</div>' : '') +
+      '</div></div>'; }).join('') + '</div>';
+  M().innerHTML = h;
+}
+function trocarModo(pid, modo) { DB.update('postos', pid, { encomendaModo: modo }); toast('Modo de encomendas: ' + MODOS_ENCOMENDA[modo].letra); render(); }
+function htmlIntegracao(pid) {
+  const it = DB.list('integracoes').find(i => i.posto === pid) || {};
+  return '<div class="card form" style="margin-top:6px;background:var(--bg3)"><h4>Integração com a administradora</h4><p>Cada administradora tem um sistema diferente. Com a documentação da API dela, criamos a sincronização dos moradores e o aviso automático. Enquanto não estiver ativa, este posto funciona no modo C.</p>' +
+    '<label>Sistema / administradora</label><input id="it_prov_' + pid + '" value="' + esc(it.provedor || '') + '" placeholder="Ex: nome do sistema da administradora"><label>Endereço da API (se houver)</label><input id="it_end_' + pid + '" value="' + esc(it.endpoint || '') + '" placeholder="https://..."><label>Observação</label><input id="it_obs_' + pid + '" value="' + esc(it.observacao || '') + '" placeholder="Contato técnico, documentação..."><p class="meta">Senhas e tokens da API não ficam aqui: vão para os segredos do Supabase.</p>' +
+    '<button class="btn btn-gold" style="margin-top:10px" onclick="salvarIntegracao(\'' + pid + '\')">Salvar</button> <span class="pill ' + (it.status === 'ativa' ? 'green' : 'orange') + '">' + esc(it.status || 'pendente') + '</span></div>';
+}
+function salvarIntegracao(pid) {
+  DB.upsert('integracoes', { posto: pid, provedor: document.getElementById('it_prov_' + pid).value.trim(), endpoint: document.getElementById('it_end_' + pid).value.trim(), observacao: document.getElementById('it_obs_' + pid).value.trim(), atualizadoEm: new Date().toISOString() }, 'posto_id');
+  toast('Integração salva');
+}
+
+// ===================== ACESSOS =====================
+function rAcessos() {
+  const l = DB.list('acessos').sort((a, b) => (a.papel + a.email).localeCompare(b.papel + b.email));
+  const PAP = { adm: ['Administrador', 'gold'], rh: ['RH', 'blue'], sup: ['Supervisor', 'orange'], cond: ['Condomínio', 'blue'], posto: ['Celular do posto', 'green'] };
+  let h = '<div class="card"><h4>Como liberar um acesso</h4><p>1) No Supabase, em <b>Authentication → Users → Add user</b>, crie o e-mail e a senha (marque "Auto Confirm User").<br>2) Aqui embaixo, informe o mesmo e-mail e escolha o papel. Para os celulares dos postos, crie um e-mail por posto (ex.: posto.high@cservicos.com.br).</p></div>';
+  h += '<div class="card form"><h4>Liberar acesso</h4><div class="row"><div><label>E-mail</label><input id="acEmail" type="email"></div><div><label>Nome (opcional)</label><input id="acNome"></div></div><div class="row"><div><label>Papel</label><select id="acPapel" onchange="document.getElementById(\'acPostoBox\').style.display=[\'adm\',\'rh\',\'sup\'].includes(this.value)?\'none\':\'\'"><option value="posto">Celular do posto</option><option value="cond">Condomínio</option><option value="sup">Supervisor (vê tudo, não altera configurações)</option><option value="rh">RH (tudo menos parâmetros)</option>' + (isAdm() ? '<option value="adm">Administrador</option>' : '') + '</select></div><div id="acPostoBox"><label>Posto</label><select id="acPosto">' + DB.postos().map(p => '<option value="' + p.id + '">' + esc(p.nome) + '</option>').join('') + '</select></div></div><button class="btn btn-gold" style="margin-top:12px" id="acBtn" onclick="liberarAcesso()">Liberar</button></div>';
+  h += l.length ? '<div class="table-wrap"><table><thead><tr><th>E-mail</th><th>Papel</th><th>Posto</th><th></th></tr></thead><tbody>' + l.map(a => '<tr><td><b>' + esc(a.email) + '</b>' + (a.nome ? '<div class="meta">' + esc(a.nome) + '</div>' : '') + '</td><td><span class="pill ' + PAP[a.papel][1] + '">' + PAP[a.papel][0] + '</span></td><td>' + esc(a.posto ? nomePosto(a.posto) : 'Todos') + '</td><td>' + (a.userId === (Nuvem._uid || '') ? '<span class="meta">você</span>' : (a.papel === 'adm' && !isAdm()) ? '<span class="meta">só administrador altera</span>' : '<button class="btn btn-ghost" onclick="removerAcesso(\'' + a.userId + '\',\'' + esc(a.email) + '\')">Remover</button>') + '</td></tr>').join('') + '</tbody></table></div>' : '<div class="empty">Carregando...</div>';
+  M().innerHTML = h;
+}
+async function liberarAcesso() {
+  const btn = document.getElementById('acBtn'); btn.disabled = true;
+  try {
+    const papel = document.getElementById('acPapel').value;
+    await Nuvem.rpc('vincular_acesso', { p_email: document.getElementById('acEmail').value, p_papel: papel, p_posto: ['adm', 'rh', 'sup'].includes(papel) ? null : document.getElementById('acPosto').value, p_nome: document.getElementById('acNome').value.trim() || null });
+    toast('✅ Acesso liberado'); await Nuvem.carregar(); render();
+  } catch (e) { toast(e.message, true); }
+  btn.disabled = false;
+}
+function removerAcesso(uid, email) {
+  abrirModal('<h3>Remover acesso?</h3><p class="meta">' + esc(email) + ' deixa de ver os dados. O login continua existindo no Supabase até ser apagado lá.</p><div class="acts"><button class="btn btn-ghost" onclick="fecharModal()">Cancelar</button><button class="btn btn-red" onclick="DB.remove(\'acessos\',\'' + uid + '\');fecharModal();render()">Remover</button></div>');
+}
+
+// ===================== DENÚNCIAS =====================
+function rDenuncias() {
+  const l = DB.list('denuncias');
+  M().innerHTML = '<div class="card"><p>Visível somente para a administração da C&S. Os condomínios e os postos não têm acesso.</p></div>' + (l.length ? l.map(d => '<div class="card"><div style="display:flex;justify-content:space-between;gap:10px"><h4>' + esc(d.tipo) + '</h4><span class="pill ' + (d.anonima ? 'silver' : 'gold') + '">' + (d.anonima ? 'Anônima' : esc(nomePosto(d.posto))) + '</span></div><p style="color:var(--light);white-space:pre-wrap">' + esc(d.texto) + '</p><div class="meta">' + quando(d.criadoEm) + '</div></div>').join('') : '<div class="empty">Nenhuma denúncia recebida.</div>');
+}
+
+// ===================== CRONOGRAMA DE LIMPEZA =====================
+let abaCron = 'execucao', semCron = null, cronEdit = null, distVer = null, eqExec = 'todas';
+const semanaAtual = () => isoDia(inicioSemana(new Date()));
+const agoraHm = () => { const d = new Date(); return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); };
+function statsSemana(pid, cron, segIso) {
+  const hoje = isoDia(new Date()); let prev = 0, feitas = 0, valid = 0, atras = 0, refazer = 0;
+  diasDaSemana(new Date(segIso + 'T12:00:00')).forEach(dia => {
+    if (dia > hoje) return;
+    DB.tarefasDoDia(cron.id, dia).forEach(t => {
+      prev++; const e = DB.execucao(t.id, dia);
+      if (e && e.validacao !== 'refazer') feitas++; if (e && e.validacao === 'ok') valid++; if (e && e.validacao === 'refazer') refazer++;
+      if (!e && (dia < hoje || (dia === hoje && t.horaFim && hm(t.horaFim) <= agoraHm()))) atras++;
+    });
+  });
+  return { prev, feitas, valid, atras, refazer };
+}
+function rCronograma() {
+  const pid = isGestor() ? (filtroPosto === 'todos' ? null : filtroPosto) : A.posto;
+  let h = '<div class="filters">' + filtroPostoHtml() + '</div>';
+  if (!pid) { // visão geral de todos os condomínios
+    h += '<p class="meta" style="margin:-4px 0 14px">Escolha um condomínio para montar o cronograma ou acompanhar a execução.</p><div class="postos-grid">' + postosVisiveis().filter(p => DB.params(p.id).cronograma).map(p => {
+      const c = DB.cronograma(p.id);
+      if (!c) return '<div class="pcard"><div class="ph"><b>' + esc(p.nome) + '</b><span class="pill silver">sem cronograma</span></div><div style="padding:12px 14px"><button class="btn btn-outline" onclick="filtroPosto=\'' + p.id + '\';abaCron=\'montar\';render()">' + (isAdmRh() ? 'Montar cronograma' : 'Ver') + '</button></div></div>';
+      const s = statsSemana(p.id, c, semanaAtual()), pct = s.prev ? Math.round(s.feitas / s.prev * 100) : 0;
+      return '<div class="pcard' + (s.atras || s.refazer ? ' alert' : '') + '"><div class="ph"><b>' + esc(p.nome) + '</b><span class="pill ' + (pct >= 90 ? 'green' : pct >= 60 ? 'orange' : 'red') + '">' + pct + '% feito na semana</span></div>' +
+        '<div class="prow"><span>Feitas até hoje</span><b>' + s.feitas + '/' + s.prev + '</b></div><div class="prow"><span>Validadas pela supervisão</span><b>' + s.valid + '</b></div><div class="prow"><span>Atrasadas</span><b style="color:' + (s.atras ? 'var(--red)' : 'inherit') + '">' + s.atras + '</b></div>' + (s.refazer ? '<div class="prow"><span>Para refazer</span><b style="color:var(--orange)">' + s.refazer + '</b></div>' : '') +
+        '<div style="padding:10px 14px"><button class="btn btn-gold" onclick="filtroPosto=\'' + p.id + '\';abaCron=\'execucao\';render()">Abrir</button></div></div>';
+    }).join('') + '</div>';
+    M().innerHTML = h; return;
+  }
+  const cron = DB.cronograma(pid), podeMontar = isAdmRh();
+  h += '<div class="tabs"><button class="tab' + (abaCron === 'execucao' ? ' active' : '') + '" onclick="abaCron=\'execucao\';render()">Execução da semana</button><button class="tab' + (abaCron === 'montar' ? ' active' : '') + '" onclick="abaCron=\'montar\';render()">' + (podeMontar ? 'Montar cronograma' : 'Cronograma') + '</button></div>';
+  if (!cron) {
+    h += '<div class="card"><h4>' + esc(nomePosto(pid)) + ' ainda não tem cronograma</h4><p>' + (podeMontar ? 'Monte do zero ou copie o de outro condomínio e ajuste.' : 'A administração ainda não montou o cronograma deste condomínio.') + '</p>' +
+      (podeMontar ? '<div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap"><button class="btn btn-gold" onclick="criarCronograma(\'' + pid + '\')">Criar cronograma</button>' + (DB.postos().some(p => p.id !== pid && DB.cronograma(p.id)) ? '<button class="btn btn-outline" onclick="copiarCronograma(\'' + pid + '\')">Copiar de outro condomínio</button>' : '') + '</div>' : '') + '</div>';
+    M().innerHTML = h; return;
+  }
+  h += abaCron === 'montar' ? htmlMontar(pid, cron, podeMontar) : htmlExecucaoCron(pid, cron);
+  M().innerHTML = h;
+}
+
+// ---------- execução ----------
+function htmlExecucaoCron(pid, cron) {
+  const seg = semCron || semanaAtual(), dias = diasDaSemana(new Date(seg + 'T12:00:00')), hoje = isoDia(new Date());
+  const s = statsSemana(pid, cron, seg);
+  const mover = n => { const d = new Date(seg + 'T12:00:00'); d.setDate(d.getDate() + n * 7); return isoDia(d); };
+  let h = '<div class="filters"><button class="btn btn-ghost" onclick="semCron=\'' + mover(-1) + '\';render()">◀</button><b style="font-size:14px">Semana de ' + fmtDiaMes(dias[0]) + ' a ' + fmtDiaMes(dias[6]) + '</b><button class="btn btn-ghost" onclick="semCron=\'' + mover(1) + '\';render()">▶</button>' + (seg !== semanaAtual() ? '<button class="btn btn-outline" onclick="semCron=null;render()">Esta semana</button>' : '') + btnMaquete(pid) + '</div>';
+  h += '<div class="stats"><div class="stat"><div class="n">' + s.prev + '</div><div class="l">Previstas até hoje</div></div><div class="stat green"><div class="n">' + s.feitas + '</div><div class="l">Feitas</div></div><div class="stat blue"><div class="n">' + s.valid + '</div><div class="l">Validadas</div></div><div class="stat red"><div class="n">' + s.atras + '</div><div class="l">Atrasadas</div></div>' + (s.refazer ? '<div class="stat orange"><div class="n">' + s.refazer + '</div><div class="l">Para refazer</div></div>' : '') + '</div>';
+  const eqs = cron.distribuicao ? DB.equipes(cron.id, cron.distribuicao) : [];
+  if (eqExec !== 'todas' && eqExec !== 'comum' && !eqs.some(e => e.id === eqExec)) eqExec = 'todas';
+  if (eqs.length) h += '<div class="chips" style="margin-bottom:12px"><span class="meta" style="align-self:center;margin-right:4px">' + esc(cron.distribuicao) + ':</span>' + [['todas', 'Todas']].concat(eqs.map(e => [e.id, e.nome + ' · ' + e.blocos.join('')])).concat([['comum', 'Áreas comuns e apoio']]).map(o => '<button class="chip' + (eqExec === o[0] ? ' on' : '') + '" onclick="eqExec=\'' + o[0] + '\';render()">' + esc(o[1]) + '</button>').join('') + '</div>';
+  const casaEq = t => eqExec === 'todas' || (eqExec === 'comum' ? !t.equipeId : t.equipeId === eqExec);
+  dias.forEach(dia => {
+    const wd = new Date(dia + 'T12:00:00').getDay(), ts = DB.tarefasDoDia(cron.id, dia).filter(casaEq);
+    if (!ts.length) return;
+    h += '<div class="h2" style="font-size:15px">' + DIAS_NOME[wd] + ' · ' + fmtDiaMes(dia) + (dia === hoje ? ' <span class="pill gold">hoje</span>' : '') + '</div><div class="table-wrap"><table><thead><tr><th>Tarefa</th><th>Feito (assinatura)</th><th>Supervisão</th></tr></thead><tbody>' + ts.map(t => {
+      const e = DB.execucao(t.id, dia);
+      let feito, sup = '';
+      if (e) feito = '<span class="pill ' + (e.validacao === 'refazer' ? 'orange' : 'green') + '">' + (e.validacao === 'refazer' ? 'Devolvida' : 'Feito') + '</span><div class="meta">' + esc(e.feitoPor || '') + ' · ' + quando(e.feitoEm) + '</div>' + (e.obs ? '<div class="meta">“' + esc(e.obs) + '”</div>' : '') + (e.fotoPath ? '<div style="margin-top:4px">' + btnFoto(e.fotoPath, 'Foto ' + t.atividade) + '</div>' : '');
+      else feito = dia > hoje ? '<span class="meta">—</span>' : dia < hoje ? '<span class="pill red">Não feito</span>' : t.horaFim && hm(t.horaFim) <= agoraHm() ? '<span class="pill red">Atrasada</span>' : '<span class="pill silver">Pendente</span>';
+      if (e && e.validacao === 'ok') sup = '<span class="pill blue">✓ Validado</span><div class="meta">' + esc(e.validadoPor || '') + ' · ' + quando(e.validadoEm) + '</div>';
+      else if (e && e.validacao === 'refazer') sup = '<span class="pill orange">↺ Refazer</span><div class="meta">' + esc(e.validacaoObs || '') + '</div>';
+      if (isGestor()) {
+        if (e && e.validacao !== 'ok' && e.validacao !== 'refazer') sup += '<button class="btn btn-gold" onclick="validarExec(\'' + e.id + '\')">Validar</button> <button class="btn btn-ghost" onclick="refazerExec(\'' + e.id + '\')">Refazer</button>';
+        if (!e && dia <= hoje) sup += '<button class="btn btn-ghost" onclick="feitoPelaSupervisao(\'' + t.id + '\',\'' + dia + '\')">Conferido no local</button>';
+      }
+      return '<tr><td>' + (horarioTarefa(t) ? '<span class="meta" style="color:var(--gold);font-weight:700">' + horarioTarefa(t) + '</span> ' : '') + '<b>' + esc(t.atividade) + '</b><div class="meta">' + esc(descreverOnde(t)) + ' · ' + esc(t.funcao) + '</div></td><td>' + feito + '</td><td>' + (sup || '<span class="meta">—</span>') + '</td></tr>';
+    }).join('') + '</tbody></table></div>';
+  });
+  if (!DB.tarefas(cron.id).length) h += '<div class="empty">O cronograma ainda não tem atividades.</div>';
+  return h;
+}
+const quemSou = () => A.nome || A.email;
+function validarExec(id) { DB.update('cronograma_execucoes', id, { validacao: 'ok', validadoPor: quemSou(), validadoEm: new Date().toISOString(), validacaoObs: null }); toast('✓ Validado'); render(); }
+function refazerExec(id) {
+  abrirModal('<h3>Devolver para refazer</h3><p class="meta">O posto recebe o aviso no celular e marca de novo quando terminar.</p><div class="form"><label>O que precisa ser refeito?</label><input id="rfObs" placeholder="Ex: faltou a calçada do bloco 3"></div><div class="acts"><button class="btn btn-ghost" onclick="fecharModal()">Cancelar</button><button class="btn btn-gold" onclick="confirmarRefazer(\'' + id + '\')">Devolver</button></div>');
+}
+function confirmarRefazer(id) {
+  const o = document.getElementById('rfObs').value.trim(); if (!o) return toast('Escreva o que precisa ser refeito', true);
+  DB.update('cronograma_execucoes', id, { validacao: 'refazer', validadoPor: quemSou(), validadoEm: new Date().toISOString(), validacaoObs: o }); fecharModal(); toast('Devolvido ao posto'); render();
+}
+function feitoPelaSupervisao(tid, dia) {
+  const t = DB.list('cronograma_tarefas').find(x => x.id === tid);
+  DB.push('cronograma_execucoes', { tarefaId: tid, posto: t.posto, data: dia, feitoPor: quemSou() + ' (supervisão)', feitoEm: new Date().toISOString(), validacao: 'ok', validadoPor: quemSou(), validadoEm: new Date().toISOString() });
+  toast('Registrado e validado'); render();
+}
+
+// ---------- montar ----------
+function htmlMontar(pid, cron, podeMontar) {
+  const bl = cron.blocos || [], seq = bl.length && bl.every((b, i) => b === String(i + 1));
+  let h = '';
+  if (podeMontar) h += '<div class="card form"><h4>Dados do cronograma</h4><div class="row"><div><label>Nome</label><input id="crNome" value="' + esc(cron.nome) + '"></div><div><label>Quantidade de blocos / torres</label><input id="crQtd" type="number" min="0" max="200" value="' + (seq ? bl.length : '') + '" placeholder="Ex: 15"></div></div><label>Ou escreva os nomes (separados por vírgula)</label><input id="crNomes" value="' + (seq ? '' : esc(bl.join(', '))) + '" placeholder="Ex: Torre A, Torre B, Torre C"><div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap"><button class="btn btn-gold" onclick="salvarCronograma(\'' + cron.id + '\')">Salvar dados</button><button class="btn btn-outline" onclick="editarTarefa(\'' + cron.id + '\')">+ Adicionar atividade</button></div><p class="meta">Blocos atuais: ' + (bl.length ? esc(compactarBlocos(bl)) : 'nenhum (só área comum)') + '</p></div>';
+  else h += '<p class="meta" style="margin-bottom:12px">' + esc(cron.nome) + ' · ' + (bl.length ? bl.length + ' blocos/torres' : 'sem blocos') + '. Alterações são feitas pela administração ou RH.</p>';
+  const dists = DB.distribuicoes(cron.id);
+  if (!dists.includes(distVer)) distVer = cron.distribuicao && dists.includes(cron.distribuicao) ? cron.distribuicao : dists[0] || null;
+  if (dists.length || podeMontar) {
+    h += '<div class="card"><h4>Equipes de limpeza</h4><p>' + (dists.length ? 'Cada equipe cuida de algumas torres. Valendo agora: <b style="color:var(--gold)">' + esc(cron.distribuicao || 'nenhuma') + '</b>. O celular do posto mostra só as atividades da distribuição que está valendo.' : 'Use equipes quando cada operária cuida de algumas torres em horários definidos (ex.: Posto 01 · Torres A a C).') + '</p>';
+    if (dists.length) h += '<div class="chips" style="margin:12px 0">' + dists.map(d => '<button class="chip' + (d === distVer ? ' on' : '') + '" onclick="distVer=\'' + esc(d) + '\';render()">' + esc(d) + (d === cron.distribuicao ? ' ✓' : '') + '</button>').join('') + '</div>';
+    if (distVer) {
+      h += '<div class="loc-lista" style="max-height:none">' + DB.equipes(cron.id, distVer).map(e => '<div class="loc-item"' + (podeMontar ? ' onclick="editarEquipe(\'' + cron.id + '\',\'' + e.id + '\')"' : '') + '><div><b>' + esc(e.nome) + '</b><small>' + esc(descreverBlocos(e.blocos)) + (e.operaria ? ' · ' + esc(e.operaria) : '') + ' · ' + DB.tarefas(cron.id).filter(t => t.equipeId === e.id).length + ' atividades</small></div>' + (podeMontar ? '<div class="acts"><button class="btn btn-ghost">Editar</button></div>' : '') + '</div>').join('') + '</div>';
+      if (podeMontar) h += '<div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">' + (distVer !== cron.distribuicao ? '<button class="btn btn-gold" onclick="usarDistribuicao(\'' + cron.id + '\')">Passar a valer: ' + esc(distVer) + '</button>' : '') + '<button class="btn btn-outline" onclick="editarEquipe(\'' + cron.id + '\',null)">+ Nova equipe em ' + esc(distVer) + '</button><button class="btn btn-ghost" onclick="novaDistribuicao(\'' + cron.id + '\')">+ Nova distribuição</button></div>';
+    } else if (podeMontar) h += '<button class="btn btn-outline" style="margin-top:10px" onclick="novaDistribuicao(\'' + cron.id + '\')">+ Criar equipes</button>';
+    h += '</div>';
+  }
+  if (distVer) h += '<p class="meta" style="margin:4px 0 10px">Quadro da distribuição <b>' + esc(distVer) + '</b> (as atividades sem equipe valem em todas).</p>';
+  const lista = distVer ? DB.tarefas(cron.id, distVer) : DB.tarefas(cron.id);
+  h += '<div class="semana">' + DIAS_ORDEM.map(wd => {
+    const ts = lista.filter(t => (t.dias || []).includes(wd));
+    return '<div class="sem-col"><div class="sem-dia">' + DIAS_CURTO[wd] + '</div>' + (ts.map(t => '<div class="tar-chip"' + (podeMontar ? ' onclick="editarTarefa(\'' + cron.id + '\',\'' + t.id + '\')"' : '') + '>' + (horarioTarefa(t) ? '<span style="color:var(--gold);font-weight:700">' + horarioTarefa(t) + '</span>' : '') + '<b>' + esc(t.atividade) + '</b><span>' + esc(descreverOnde(t)) + '</span><span>' + esc(t.funcao) + '</span></div>').join('') || '<div class="meta" style="text-align:center;padding:8px">—</div>') + '</div>';
+  }).join('') + '</div>';
+  return h;
+}
+function criarCronograma(pid) { DB.push('cronogramas', { posto: pid, nome: 'Cronograma de Limpeza e Conservação', blocos: [], ativo: true }); abaCron = 'montar'; toast('Cronograma criado. Agora informe os blocos e as atividades.'); render(); }
+function copiarCronograma(pid) {
+  const fontes = DB.postos().filter(p => p.id !== pid && DB.cronograma(p.id));
+  abrirModal('<h3>Copiar cronograma</h3><p class="meta">Copia os blocos e todas as atividades. Depois é só ajustar.</p><div class="form"><label>Copiar de</label><select id="cpDe">' + fontes.map(p => '<option value="' + p.id + '">' + esc(p.nome) + ' (' + DB.tarefas(DB.cronograma(p.id).id).length + ' atividades)</option>').join('') + '</select></div><div class="acts"><button class="btn btn-ghost" onclick="fecharModal()">Cancelar</button><button class="btn btn-gold" onclick="executarCopia(\'' + pid + '\')">Copiar</button></div>');
+}
+function executarCopia(pid) {
+  const orig = DB.cronograma(document.getElementById('cpDe').value);
+  const novo = DB.push('cronogramas', { posto: pid, nome: orig.nome, blocos: orig.blocos || [], distribuicao: orig.distribuicao || null, ativo: true });
+  const mapa = {};
+  DB.equipes(orig.id).forEach(e => { mapa[e.id] = DB.push('cronograma_equipes', { cronogramaId: novo.id, posto: pid, distribuicao: e.distribuicao, nome: e.nome, blocos: e.blocos || [], ordem: e.ordem, ativo: true }).id; });
+  DB.tarefas(orig.id).forEach(t => DB.push('cronograma_tarefas', { cronogramaId: novo.id, posto: pid, atividade: t.atividade, dias: t.dias, abrangencia: t.abrangencia, blocos: t.blocos || [], funcao: t.funcao, obs: t.obs, ordem: t.ordem, horaIni: t.horaIni || null, horaFim: t.horaFim || null, equipeId: t.equipeId ? mapa[t.equipeId] || null : null, ativo: true }));
+  fecharModal(); abaCron = 'montar'; toast('Cronograma copiado — revise os blocos e dias'); render();
+}
+function salvarCronograma(id) {
+  const nomes = document.getElementById('crNomes').value.split(/[,;\n]/).map(x => x.trim()).filter(Boolean);
+  const qtd = parseInt(document.getElementById('crQtd').value, 10);
+  const blocos = nomes.length ? nomes : (qtd > 0 ? Array.from({ length: qtd }, (_, i) => String(i + 1)) : []);
+  DB.update('cronogramas', id, { nome: document.getElementById('crNome').value.trim() || 'Cronograma', blocos, atualizadoEm: new Date().toISOString() });
+  toast('Cronograma salvo'); render();
+}
+function editarTarefa(cronId, tid) {
+  const cron = DB.list('cronogramas').find(c => c.id === cronId);
+  const t = tid ? DB.list('cronograma_tarefas').find(x => x.id === tid) : { atividade: '', dias: [], abrangencia: 'comum', blocos: [], funcao: 'Aux. Limpeza', obs: '' };
+  const usadas = [...new Set(DB.list('cronograma_tarefas').map(x => x.atividade))];
+  const opcoes = [...new Set(ATIVIDADES_CATALOGO.concat(usadas))].sort((a, b) => a.localeCompare(b, 'pt'));
+  const outra = t.atividade && !opcoes.includes(t.atividade);
+  cronEdit = { cronId, tid, dias: new Set(t.dias || []), blocos: new Set(t.blocos || []), abr: t.abrangencia || 'comum' };
+  const eqT = t.equipeId && DB.equipe(t.equipeId), distE = eqT ? eqT.distribuicao : distVer, eqsE = distE ? DB.equipes(cronId, distE) : [];
+  abrirModal('<h3>' + (tid ? 'Editar atividade' : 'Nova atividade') + '</h3><div class="form">' +
+    '<label>Atividade</label><select id="taSel" onchange="document.getElementById(\'taOutraBox\').style.display=this.value===\'__outra\'?\'\':\'none\'"><option value="">Escolha na lista...</option>' + opcoes.map(o => '<option' + (o === t.atividade ? ' selected' : '') + '>' + esc(o) + '</option>').join('') + '<option value="__outra"' + (outra ? ' selected' : '') + '>+ Outra atividade (escrever)</option></select>' +
+    '<div id="taOutraBox" style="display:' + (outra ? '' : 'none') + '"><label>Qual atividade?</label><input id="taOutra" value="' + (outra ? esc(t.atividade) : '') + '" placeholder="Ex: Limpeza da casa de máquinas"></div>' +
+    '<label>Dias da semana</label><div class="chips" id="taDias"></div><div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap"><button class="btn btn-ghost" onclick="diasRapido([1,2,3,4,5])">Seg a Sex</button><button class="btn btn-ghost" onclick="diasRapido([1,2,3,4,5,6])">Seg a Sáb</button><button class="btn btn-ghost" onclick="diasRapido([0,1,2,3,4,5,6])">Todos os dias</button><button class="btn btn-ghost" onclick="diasRapido([])">Limpar</button></div>' +
+    '<div class="row"><div><label>Horário de início (opcional)</label><input id="taIni" type="time" value="' + hm(t.horaIni) + '"></div><div><label>Horário de fim</label><input id="taFim" type="time" value="' + hm(t.horaFim) + '"></div></div>' +
+    (eqsE.length ? '<label>Equipe (' + esc(distE) + ')</label><select id="taEq" onchange="document.getElementById(\'taOndeBox\').style.display=this.value?\'none\':\'\'"><option value="">Sem equipe (escolher o local abaixo)</option>' + eqsE.map(e => '<option value="' + e.id + '"' + (t.equipeId === e.id ? ' selected' : '') + '>' + esc(e.nome + ' · ' + descreverBlocos(e.blocos)) + '</option>').join('') + (tid ? '' : '<option value="__todas">Todas as equipes (cria uma atividade para cada)</option>') + '</select>' : '') +
+    '<div id="taOndeBox" style="display:' + (t.equipeId ? 'none' : '') + '"><label>Onde</label><div class="chips" id="taAbr"></div><div class="chips" id="taBlocos" style="margin-top:8px"></div></div>' +
+    '<div class="row"><div><label>Quem faz</label><select id="taFun">' + FUNCOES.filter(f => f !== 'A definir').map(f => '<option' + (f === t.funcao ? ' selected' : '') + '>' + f + '</option>').join('') + '</select></div><div><label>Observação (opcional)</label><input id="taObs" value="' + esc(t.obs || '') + '"></div></div></div>' +
+    '<div class="acts">' + (tid ? '<button class="btn btn-red" style="margin-right:auto" onclick="removerTarefa(\'' + tid + '\')">Excluir</button>' : '') + '<button class="btn btn-ghost" onclick="fecharModal()">Cancelar</button><button class="btn btn-gold" onclick="salvarTarefa()">Salvar</button></div>');
+  desenharChips(cron);
+}
+function desenharChips(cron) {
+  cron = cron || DB.list('cronogramas').find(c => c.id === cronEdit.cronId);
+  document.getElementById('taDias').innerHTML = DIAS_ORDEM.map(d => '<button class="chip' + (cronEdit.dias.has(d) ? ' on' : '') + '" onclick="cronEdit.dias.has(' + d + ')?cronEdit.dias.delete(' + d + '):cronEdit.dias.add(' + d + ');desenharChips()">' + DIAS_CURTO[d] + '</button>').join('');
+  const temBlocos = (cron.blocos || []).length > 0;
+  document.getElementById('taAbr').innerHTML = [['comum', 'Área comum'], ['todos', 'Todos os blocos'], ['alguns', 'Escolher blocos']].filter(o => temBlocos || o[0] === 'comum').map(o => '<button class="chip' + (cronEdit.abr === o[0] ? ' on' : '') + '" onclick="cronEdit.abr=\'' + o[0] + '\';desenharChips()">' + o[1] + '</button>').join('') + (temBlocos ? '' : '<span class="meta" style="align-self:center">Cadastre os blocos em "Dados do cronograma" para escolher blocos</span>');
+  document.getElementById('taBlocos').innerHTML = cronEdit.abr === 'alguns' ? cron.blocos.map((b, i) => '<button class="chip' + (cronEdit.blocos.has(b) ? ' on' : '') + '" onclick="alternarBloco(' + i + ')">' + esc(b) + '</button>').join('') : '';
+}
+function alternarBloco(i) {
+  const b = DB.list('cronogramas').find(c => c.id === cronEdit.cronId).blocos[i];
+  cronEdit.blocos.has(b) ? cronEdit.blocos.delete(b) : cronEdit.blocos.add(b); desenharChips();
+}
+function diasRapido(l) { cronEdit.dias = new Set(l); desenharChips(); }
+function salvarTarefa() {
+  const sel = document.getElementById('taSel').value, atividade = sel === '__outra' ? document.getElementById('taOutra').value.trim() : sel;
+  if (!atividade) return toast('Escolha ou escreva a atividade', true);
+  if (!cronEdit.dias.size) return toast('Escolha ao menos um dia', true);
+  const eqSel = (document.getElementById('taEq') || {}).value || '';
+  if (!eqSel && cronEdit.abr === 'alguns' && !cronEdit.blocos.size) return toast('Escolha os blocos', true);
+  const ini = document.getElementById('taIni').value || null, fim = document.getElementById('taFim').value || null;
+  if (ini && fim && fim <= ini) return toast('O fim precisa ser depois do início', true);
+  const cron = DB.list('cronogramas').find(c => c.id === cronEdit.cronId);
+  const dados = { atividade, dias: [...cronEdit.dias].sort(), abrangencia: cronEdit.abr, blocos: cronEdit.abr === 'alguns' ? [...cronEdit.blocos].sort((a, b) => String(a).localeCompare(String(b), 'pt', { numeric: true })) : [], funcao: document.getElementById('taFun').value, obs: document.getElementById('taObs').value.trim(), horaIni: ini, horaFim: fim, equipeId: null };
+  const daEquipe = e => Object.assign({}, dados, { abrangencia: 'alguns', blocos: e.blocos || [], equipeId: e.id });
+  const alvo = eqSel === '__todas' ? DB.equipes(cron.id, distVer) : eqSel ? [DB.equipe(eqSel)] : [null];
+  if (cronEdit.tid) DB.update('cronograma_tarefas', cronEdit.tid, alvo[0] ? daEquipe(alvo[0]) : dados);
+  else alvo.forEach(e => DB.push('cronograma_tarefas', Object.assign({ cronogramaId: cron.id, posto: cron.posto, ordem: DB.tarefas(cron.id).length + 1, ativo: true }, e ? daEquipe(e) : dados)));
+  fecharModal(); toast('Atividade salva'); render();
+}
+// ---------- equipes e distribuições ----------
+let eqEdit = null;
+function editarEquipe(cronId, id) {
+  const cron = DB.list('cronogramas').find(c => c.id === cronId), e = id ? DB.equipe(id) : null;
+  const dist = e ? e.distribuicao : distVer, n = DB.equipes(cronId, dist).length + 1;
+  eqEdit = { cronId, id, dist, blocos: new Set(e ? e.blocos || [] : []) };
+  const nomes = DB.doPosto(cron.posto).map(c => c.nome).filter(x => x && !/A DEFINIR/i.test(x));
+  abrirModal('<h3>' + (e ? 'Editar equipe' : 'Nova equipe') + ' · ' + esc(dist) + '</h3><div class="form">' +
+    '<div class="row"><div><label>Nome</label><input id="eqNome" value="' + esc(e ? e.nome : 'Posto ' + String(n).padStart(2, '0')) + '"></div><div><label>Operária (opcional)</label><input id="eqOp" list="eqOps" value="' + esc(e ? e.operaria || '' : '') + '"><datalist id="eqOps">' + nomes.map(x => '<option value="' + esc(x) + '">').join('') + '</datalist></div></div>' +
+    '<label>Torres / blocos desta equipe</label><div class="chips" id="eqBlocos"></div>' + ((cron.blocos || []).length ? '' : '<p class="meta">Cadastre as torres em "Dados do cronograma" primeiro.</p>') +
+    (e ? '<p class="meta" style="margin-top:10px">Mudar as torres atualiza todas as atividades desta equipe.</p>' : '') +
+    '</div><div class="acts">' + (e ? '<button class="btn btn-red" style="margin-right:auto" onclick="removerEquipe(\'' + e.id + '\')">Excluir equipe</button>' : '') + '<button class="btn btn-ghost" onclick="fecharModal()">Cancelar</button><button class="btn btn-gold" onclick="salvarEquipe()">Salvar</button></div>');
+  desenharEqBlocos();
+}
+function desenharEqBlocos() {
+  const cron = DB.list('cronogramas').find(c => c.id === eqEdit.cronId);
+  document.getElementById('eqBlocos').innerHTML = (cron.blocos || []).map((b, i) => '<button class="chip' + (eqEdit.blocos.has(b) ? ' on' : '') + '" onclick="alternarEqBloco(' + i + ')">' + esc(b) + '</button>').join('');
+}
+function alternarEqBloco(i) { const b = DB.list('cronogramas').find(c => c.id === eqEdit.cronId).blocos[i]; eqEdit.blocos.has(b) ? eqEdit.blocos.delete(b) : eqEdit.blocos.add(b); desenharEqBlocos(); }
+function salvarEquipe() {
+  const nome = document.getElementById('eqNome').value.trim(); if (!nome) return toast('Informe o nome', true);
+  const cron = DB.list('cronogramas').find(c => c.id === eqEdit.cronId), ordem = b => (cron.blocos || []).indexOf(b);
+  const blocos = [...eqEdit.blocos].sort((a, b) => ordem(a) - ordem(b)), dados = { nome, blocos, operaria: document.getElementById('eqOp').value.trim() || null };
+  if (eqEdit.id) {
+    DB.update('cronograma_equipes', eqEdit.id, dados);
+    DB.tarefas(cron.id).filter(t => t.equipeId === eqEdit.id).forEach(t => DB.update('cronograma_tarefas', t.id, { blocos, abrangencia: 'alguns' }));
+  } else DB.push('cronograma_equipes', Object.assign({ cronogramaId: cron.id, posto: cron.posto, distribuicao: eqEdit.dist, ordem: DB.equipes(cron.id, eqEdit.dist).length + 1, ativo: true }, dados));
+  fecharModal(); toast('Equipe salva'); render();
+}
+function removerEquipe(id) {
+  const e = DB.equipe(id), ts = DB.tarefas(e.cronogramaId).filter(t => t.equipeId === id);
+  if (ts.length && !confirmarDuas('rmEq' + id)) { toast('Clique de novo em Excluir: as ' + ts.length + ' atividades desta equipe também saem', true); return; }
+  ts.forEach(t => DB.update('cronograma_tarefas', t.id, { ativo: false }));
+  DB.update('cronograma_equipes', id, { ativo: false }); fecharModal(); toast('Equipe excluída'); render();
+}
+// pede um segundo clique em até 5 s (sem caixa de diálogo do navegador)
+function confirmarDuas(chave) { const agora = Date.now(); if (confirmarDuas[chave] && agora - confirmarDuas[chave] < 5000) { delete confirmarDuas[chave]; return true; } confirmarDuas[chave] = agora; return false; }
+function novaDistribuicao(cronId) {
+  abrirModal('<h3>Nova distribuição</h3><p class="meta">Ex.: "3 operárias" e "4 operárias". Cada distribuição tem as suas equipes; o painel escolhe qual está valendo.</p><div class="form"><div class="row"><div><label>Nome</label><input id="ndNome" placeholder="Ex: 5 operárias"></div><div><label>Quantas equipes</label><input id="ndQtd" type="number" min="1" max="20" value="3"></div></div></div><div class="acts"><button class="btn btn-ghost" onclick="fecharModal()">Cancelar</button><button class="btn btn-gold" onclick="criarDistribuicao(\'' + cronId + '\')">Criar</button></div>');
+}
+function criarDistribuicao(cronId) {
+  const nome = document.getElementById('ndNome').value.trim(), qtd = Math.max(1, Math.min(20, parseInt(document.getElementById('ndQtd').value, 10) || 1));
+  if (!nome) return toast('Informe o nome', true);
+  if (DB.distribuicoes(cronId).includes(nome)) return toast('Já existe uma distribuição com esse nome', true);
+  const cron = DB.list('cronogramas').find(c => c.id === cronId);
+  for (let i = 1; i <= qtd; i++) DB.push('cronograma_equipes', { cronogramaId: cronId, posto: cron.posto, distribuicao: nome, nome: 'Posto ' + String(i).padStart(2, '0'), blocos: [], ordem: i, ativo: true });
+  if (!cron.distribuicao) DB.update('cronogramas', cronId, { distribuicao: nome });
+  distVer = nome; fecharModal(); toast('Distribuição criada: escolha as torres de cada equipe'); render();
+}
+function usarDistribuicao(cronId) {
+  DB.update('cronogramas', cronId, { distribuicao: distVer, atualizadoEm: new Date().toISOString() });
+  toast('Agora vale: ' + distVer + '. O posto já vê as atividades dessa distribuição.'); render();
+}
+function removerTarefa(tid) { DB.update('cronograma_tarefas', tid, { ativo: false }); fecharModal(); toast('Atividade removida do cronograma'); render(); }
+
+const RENDER = { cronograma: rCronograma, visao: rVisao, postos: rPostos, ocorrencias: rOcorrencias, livro: rLivro, checklist: rChecklist, materiais: rMateriais, encomendas: rEncomendas, avisos: rAvisos, cobertura: rCobertura, colaboradores: rColaboradores, parametros: rParametros, acessos: rAcessos, denuncias: rDenuncias };
+
+// ===================== PÂNICO EM TEMPO REAL =====================
+function sirene() {
+  try { const ctx = sirene.ctx || (sirene.ctx = new (window.AudioContext || window.webkitAudioContext)());
+    for (let i = 0; i < 6; i++) { const o = ctx.createOscillator(), g = ctx.createGain(); o.type = 'square'; o.frequency.setValueAtTime(i % 2 ? 700 : 1000, ctx.currentTime + i * .3); o.connect(g); g.connect(ctx.destination); g.gain.value = .15; o.start(ctx.currentTime + i * .3); o.stop(ctx.currentTime + i * .3 + .28); } } catch (e) {}
+}
+let panicoAtual = null;
+function mostrarPanico(a) {
+  panicoAtual = a.id;
+  document.getElementById('panicoTit').textContent = 'PÂNICO — ' + nomePosto(a.posto);
+  document.getElementById('panicoTxt').textContent = 'Botão de pânico acionado às ' + fmtHora(new Date(a.criadoEm)) + '. Ligue para o posto.';
+  document.getElementById('panicoOv').classList.add('show'); sirene();
+  try { if ('Notification' in window && Notification.permission === 'granted') new Notification('🚨 Pânico — ' + nomePosto(a.posto), { body: 'Botão de pânico acionado', requireInteraction: true }); } catch (e) {}
+}
+function cientePanico() { document.getElementById('panicoOv').classList.remove('show'); if (panicoAtual && isGestor()) DB.update('alertas', panicoAtual, { visto: true }); panicoAtual = null; render(); montarNav(); }
+
+// ===================== INÍCIO =====================
+function abrirSistema() {
+  document.getElementById('login').classList.add('hide');
+  document.getElementById('who').innerHTML = isGestor() ? esc(A.nome || NOME_PAPEL[A.papel]) + '<span>' + NOME_PAPEL[A.papel] + ' · ' + esc(A.email) + '</span>' : esc(nomePosto(A.posto)) + '<span>Perfil do condomínio</span>';
+  Nuvem.sb.auth.getUser().then(r => { Nuvem._uid = r.data && r.data.user && r.data.user.id; });
+  if (isGestor() && 'Notification' in window && Notification.permission === 'default') document.addEventListener('click', () => Notification.requestPermission().catch(() => {}), { once: true });
+  if (!SECOES.find(s => s.id === secaoAtual && secaoVisivel(s))) secaoAtual = 'visao';
+  ir(secaoAtual);
+}
+function aoMudar(tabela, p) {
+  if (!A) return;
+  if (tabela === 'alertas' && p && p.eventType === 'INSERT' && p.new.tipo === 'panico') mostrarPanico(paraTela(p.new));
+  if (tabela === 'ocorrencias' && p && p.eventType === 'INSERT' && p.new && !(p.new.criado_por && p.new.criado_por === Nuvem._uid) && !(p.new.origem === 'painel' && !p.new.criado_por && p.new.autor === autorPainel())) alertaOcorrencia(paraTela(p.new));
+  montarNav();
+  const ativo = document.activeElement;
+  if (modalAberto() || (ativo && /INPUT|TEXTAREA|SELECT/.test(ativo.tagName) && ativo.closest('#main'))) return; // não atrapalha quem está digitando
+  if (secaoAtual === 'rondas' || secaoAtual === 'relatorios') return;
+  setTitulo(); render();
+}
+function tick() { document.getElementById('clock').textContent = new Date().toLocaleString('pt-BR', { weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }); atualizarStatus(); }
+setInterval(() => { tick(); if (A && ['visao', 'postos'].includes(secaoAtual)) aoMudar('relogio'); }, 30000);
+
+(async function () {
+  tick();
+  if (!Nuvem.configurado()) { document.body.innerHTML = '<div class="erro-cfg"><img src="icons/logo.png" style="height:56px"><h2 style="font-family:var(--title);color:var(--gold);margin:16px 0">Sistema não configurado</h2><p style="color:var(--silver)">Preencha o arquivo config.js com a URL e a chave publicável do Supabase.</p></div>'; return; }
+  A = await Nuvem.iniciar({ aoMudar, aoAuth, aoStatus: atualizarStatus, aoErro: (op, err) => toast('Não foi possível salvar (' + op.tabela + '): ' + (err.message || ''), true) });
+  if (A && A.papel === 'posto') { await Nuvem.sair(); A = null; }
+  if (A) abrirSistema();
+  if (emRecuperacao && Nuvem.sb) { const { data } = await Nuvem.sb.auth.getSession(); if (data && data.session && !modalAberto()) modalSenha(true); }
+})();
+if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
+</script>
+</body>
+</html>
