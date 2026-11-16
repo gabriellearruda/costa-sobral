@@ -518,8 +518,8 @@ const autorPainel = () => A.papel === 'cond' ? 'Síndico' + (A.nome ? ' · ' + A
 const podeAbrirOc = () => isGestor() ? postosVisiveis().some(p => ocNova(p.id)) : A.papel === 'cond' && ocNova(A.posto);
 const temPlanta = pid => !!(DB.mapa(pid) || {}).plantaPath;
 const temMaquete = pid => !!(DB.mapa(pid) || {}).tem_3d;
-// maquete 3D: só o síndico abre pelo painel (a portaria usa no computador do posto)
-const btnMaquete = pid => A.papel === 'cond' && temMaquete(pid) ? '<a class="btn btn-outline" style="font-family:var(--font);font-size:12.5px" href="maquete.html?posto=' + encodeURIComponent(pid) + '" target="_blank" rel="noopener">Ver maquete 3D</a>' : '';
+// maquete 3D: síndico e C&S abrem pelo painel (a portaria usa no computador do posto)
+const btnMaquete = pid => (A.papel === 'cond' || isGestor()) && temMaquete(pid) ? '<a class="btn btn-outline" style="font-family:var(--font);font-size:12.5px" href="maquete.html?posto=' + encodeURIComponent(pid) + '" target="_blank" rel="noopener">Ver maquete 3D</a>' : '';
 // condomínio usado na planta (planta é de um condomínio por vez)
 function postoDaPlanta() {
   if (!isGestor()) return A.posto;

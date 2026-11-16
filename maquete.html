@@ -256,6 +256,7 @@ table.t td.c{color:var(--muted)}
   <nav class="tabs" id="tabs" role="tablist" aria-label="Módulos"></nav>
   <div class="clock" id="clock"></div>
   <div class="hacts">
+    <select id="selPosto" hidden aria-label="Condomínio"></select>
     <button class="hbtn" id="btnSom" aria-pressed="false" title="Aviso sonoro quando chega ocorrência nova">🔕 Som desligado</button>
     <button class="hbtn opc" id="btnLeve" title="Modo leve"></button>
     <button class="hbtn" id="btnSair">Sair</button>
@@ -989,10 +990,16 @@ function mostrarCaixa(id) { ['login', 'aviso'].forEach(x => $('#' + x).hidden = 
 function aviso(titulo, texto, comSair) { $('#avTit').textContent = titulo; $('#avTxt').innerHTML = texto; $('#avSair').hidden = !comSair; mostrarCaixa('aviso'); }
 // celular = tela de toque pequena (tablet e computador abrem a maquete)
 const ehCelular = () => matchMedia('(pointer: coarse)').matches && Math.min(screen.width, screen.height) < 700;
-// quem vê a maquete: síndico (celular ou computador) e portaria (só no computador)
-function escolherPosto() { return (A.papel === 'posto' || A.papel === 'cond') && temMaquete(A.posto) ? A.posto : null; }
+// quem vê a maquete: síndico (celular ou computador), portaria (só no computador) e a C&S (adm, RH, supervisor)
+const ehGestor = () => ['adm', 'rh', 'sup'].includes(A.papel);
+function escolherPosto() {
+  if (A.papel === 'posto' || A.papel === 'cond') return temMaquete(A.posto) ? A.posto : null;
+  const com3d = DB.postos().filter(p => temMaquete(p.id)), pedido = new URLSearchParams(location.search).get('posto');
+  if (pedido && com3d.some(p => p.id === pedido)) return pedido;
+  return com3d[0] ? com3d[0].id : null;
+}
 function abrir() {
-  if (!['posto', 'cond'].includes(A.papel)) { aviso('Maquete só para síndico e portaria', 'A maquete 3D é usada pelo síndico (celular ou computador) e pelo computador da portaria.<br>Na gestão, acompanhe pelo painel: Ocorrências → Planta.', true); return; }
+  if (!['posto', 'cond'].includes(A.papel) && !ehGestor()) { aviso('Sem acesso', 'A maquete 3D é usada pelo síndico, pelo computador da portaria e pela C&S.', true); return; }
   if (A.papel === 'posto' && ehCelular()) { aviso('No celular, use a planta', 'No celular da portaria a maquete 3D não abre.<br>Use a planta no app do posto: <b>Ocorrências → Ver planta</b>.<br><br><a href="./" style="color:var(--gold);font-weight:700">Abrir o app do posto</a>', true); return; }
   const pid = escolherPosto();
   if (!pid) {
@@ -1002,7 +1009,10 @@ function abrir() {
   const primeira = PID !== pid; PID = pid; MAPA = DB.mapa(pid);
   mostrarCaixa(null);
   $('#condNome').textContent = nomePosto(pid);
-  $('#condSub').textContent = 'Maquete 3D · ' + (A.papel === 'posto' ? 'Portaria' : 'Síndico');
+  $('#condSub').textContent = 'Maquete 3D · ' + (A.papel === 'posto' ? 'Portaria' : A.papel === 'cond' ? 'Síndico' : 'C&S · ' + (A.nome || A.email));
+  const com3d = DB.postos().filter(p => temMaquete(p.id)), sel = $('#selPosto');
+  sel.hidden = !(ehGestor() && com3d.length > 1);
+  sel.innerHTML = com3d.map(p => `<option value="${p.id}"${p.id === pid ? ' selected' : ''}>${esc(p.nome)}</option>`).join('');
   if (primeira) setMod('geral'); else refreshAll();
 }
 async function entrar() {
@@ -1011,6 +1021,7 @@ async function entrar() {
   catch (e) { msg.textContent = e.message; }
   btn.disabled = false; btn.textContent = 'ENTRAR';
 }
+$('#selPosto').onchange = e => { const u = new URL(location.href); u.searchParams.set('posto', e.target.value); history.replaceState(null, '', u); PID = null; abrir(); };
 $('#lgBtn').onclick = entrar;
 $('#lgSenha').addEventListener('keydown', e => { if (e.key === 'Enter') entrar(); });
 async function sair() { await Nuvem.sair(); location.reload(); }
