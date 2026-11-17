@@ -1,4 +1,17 @@
 {
+  "ignoreCommand": "bash scripts/checar-estrutura.sh",
+  "redirects": [
+    {
+      "source": "/painel.html",
+      "destination": "/app/painel.html",
+      "permanent": false
+    },
+    {
+      "source": "/maquete.html",
+      "destination": "/app/maquete.html",
+      "permanent": false
+    }
+  ],
   "headers": [
     {
       "source": "/admin.html",
@@ -44,6 +57,15 @@
         {
           "key": "Referrer-Policy",
           "value": "same-origin"
+        }
+      ]
+    },
+    {
+      "source": "/scripts/(.*)",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex"
         }
       ]
     }
