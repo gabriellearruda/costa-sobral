@@ -17,10 +17,17 @@ costa-sobral/
 │   ├── config.js, dados.js, sw.js, manifest-*.json
 │   ├── icons/  treino/  vendor/
 │
+├── avaliacao/          ← formulário público de avaliação (síndicos)  → cservicos.com/avaliacao
+├── escuta/             ← canal público de escuta e denúncia          → cservicos.com/escuta
+├── orcamento/          ← página pública de orçamento (Comercial)     → cservicos.com/orcamento
+│
 └── portal/             ← PORTAL (Área Restrita) → cservicos.com/portal
     ├── index.html
     ├── _comum/cs-auth.js
-    └── adm/custos/  adm/uniformes/  (e os próximos sistemas)
+    ├── adm/        custos/  uniformes/  estoque/
+    ├── comercial/  propostas/  gestao/
+    ├── rh/         folha/  talentos/  prontuario/
+    └── supervisao/ veiculo/  relatorio/
 ```
 
 ## Regras para subir arquivos pelo GitHub
