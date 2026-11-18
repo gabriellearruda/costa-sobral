@@ -118,7 +118,7 @@ p.lead + p.lead{margin-top:11px;}
 .step p{font-size:9.5px;line-height:1.45;color:var(--body);}
 .quote{font-family:'Playfair';font-style:italic;font-size:16px;color:var(--gold-d);text-align:center;margin:26px 0 14px;}
 .team{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
-.team img{width:100%;height:150px;border-radius:12px;object-fit:cover;box-shadow:0 6px 18px rgba(0,0,0,.10);}
+.team img{width:100%;aspect-ratio:3/4;height:auto;border-radius:12px;object-fit:cover;object-position:center 22%;box-shadow:0 6px 18px rgba(0,0,0,.10);display:block}
 table.tb{width:100%;border-collapse:collapse;margin-top:18px;border-radius:10px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,.05);}
 table.tb thead th{background:var(--gold);color:var(--ink2);font-size:10px;font-weight:700;text-align:left;padding:12px 14px;}
 table.tb tbody td{font-size:10px;color:var(--body);padding:13px 14px;border-bottom:1px solid var(--line);}
@@ -219,7 +219,7 @@ table.hist td{padding:7px 6px;border-bottom:1px solid #f0ede5}table.hist .r{text
 .postos-box .pgrid{display:grid;grid-template-columns:1fr 1fr}
 .postos-box .attr{background:transparent;border:none;border-radius:0;border-bottom:1px solid var(--line);padding:11px 14px}
 .postos-box .attr:nth-child(odd){border-right:1px solid var(--line)}.postos-box .attr .check li{font-size:9.6px;line-height:1.45}
-.team.n6{grid-template-columns:repeat(3,1fr);gap:10px}.team.n6 img{height:118px}
+.team.n6{gap:10px}.team.n6 img{border-radius:9px}
 .ref-grid{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-top:16px;background:var(--card)}
 .ref{padding:11px 14px;border-bottom:1px solid var(--line)}.ref:nth-child(odd){border-right:1px solid var(--line)}
 .ref h4{font-family:'Playfair';font-weight:700;font-size:12.5px;color:var(--ink)}.ref .seg{font-size:7.5px;letter-spacing:2px;color:var(--gold-d);font-weight:700;text-transform:uppercase;margin:2px 0 6px}
@@ -547,7 +547,7 @@ function renderPreview(){
   const steps=P.passos.map(s=>'<div class="step"><div class="num">'+esc(s[0])+'</div><h4>'+esc(s[1])+'</h4><p>'+esc(s[2])+'</p></div>').join('');
   const fotos=d.fotos.map(fotoSrc).filter(Boolean);
   H+='<section class="page"><div class="kicker">Portfólio Completo</div><h1 class="sec">Nossos serviços</h1><div class="rule"></div><div class="serv-grid">'+serv+'</div><div style="margin-top:22px" class="kicker">Metodologia</div><h1 class="sec" style="font-size:24px">Como trabalhamos</h1><div class="steps">'+steps+'</div><div class="quote">“'+esc(P.frase)+'”</div>'+
-    (fotos.length?'<div class="team'+(fotos.length>3?' n6':'')+'">'+fotos.map(s=>'<img src="'+esc(s)+'">').join('')+'</div>':'')+pg()+'</section>';
+    (fotos.length?'<div class="team'+(fotos.length>3?' n6':'')+'" style="justify-content:center;grid-template-columns:repeat('+fotos.length+','+(fotos.length>3?'1fr':'minmax(0,205px)')+')">'+fotos.map(s=>'<img src="'+esc(s)+'">').join('')+'</div>':'')+pg()+'</section>';
   // 4 · escopo
   const tsel=tecSel(), tipoTxt=d.tipoCliente==='empresa'?'a sua empresa':'o seu '+(d.tipoCliente||'condomínio');
   const rows=d.postos.filter(p=>p.posto).map(p=>'<tr><td>'+esc(p.posto)+'</td><td>'+esc(p.escala)+'</td><td>'+esc(p.cobertura)+'</td><td>'+esc(p.efetivo)+'</td></tr>').join('');
