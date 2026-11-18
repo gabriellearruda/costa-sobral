@@ -1332,6 +1332,8 @@ function buildMap(cfg){
   {n:'Petrópolis II',a:'R. Nova Timboteva, 537',b:'Vila Izabel · Guarulhos',km:25,min:45,x:850,y:160,cx:882,cy:122},
   {n:'Paulista I',a:'Av. Paulista, 1451',b:'Jd. Monte Cristo · Suzano',km:3,min:10,x:1480,y:640,cx:1512,cy:606,s:1},
   {n:'Solar das Oliveiras',a:'Estr. do Ribeirão, 450',b:'Cidade Boa Vista · Suzano',km:7,min:20,x:1700,y:800,cx:1572,cy:830,s:1},
+  {n:'Flex Suzano',a:'Av. Armando Salles de Oliveira, 1600',b:'Conj. Res. Iraí · Suzano',km:3,min:10,x:1180,y:690,cx:896,cy:618,s:1},
+  {n:'Residencial Vida',a:'Rua Fábio José Bezerra, nº 404',b:'Ermelino Matarazzo · São Paulo',km:13,min:30,x:1110,y:430,cx:1144,cy:396},
  ];
  const FLEX={x:+cfg.mapa.x||1110,y:+cfg.mapa.y||430,km:+cfg.mapa.km||0,min:+cfg.mapa.min||0};
  const BASE2={x:1290,y:800};
@@ -1348,7 +1350,7 @@ function buildMap(cfg){
 
  /* rotas */
  const curve=(a,b,bend)=>{const mx=(a.x+b.x)/2,my=(a.y+b.y)/2,dx=b.x-a.x,dy=b.y-a.y;return `M${a.x} ${a.y} Q${mx-dy*bend} ${my+dx*bend} ${b.x} ${b.y}`};
- const bends=[.18,.12,-.2,-.1,-.12,-.08,-.1];
+ const bends=[.18,.12,-.2,-.1,-.12,-.08,-.1,0,.14];
  const routes=PTS.map((p,i)=>{const d=p.s?curve(BASE2,p,i===5?-.18:.16):curve(BASE,p,bends[i]);
   el('path',{d,fill:'none',stroke:'rgba(212,175,55,.35)','stroke-width':6,filter:'url(#glow)',class:'rglow'});
   const path=el('path',{d,fill:'none',stroke:'url(#lineg)','stroke-width':2.2,'stroke-linecap':'round'});return path});
@@ -1393,6 +1395,8 @@ function buildMap(cfg){
    ${SUP?`<div class="sup">Suporte C&amp;S já presente na região:<br>${E(SUP.n)}${String(cfg.mapa.supKm||'').trim()?` a <em>≈ ${E(cfg.mapa.supKm)} km</em>`:''}</div>`:''}
    ${FLEX.km?`<span class="drv">${car}<span>Base ${OB===BASE2?'Suzano':'Vila Carrão'} <i data-v="${FLEX.km}">${FLEX.km}</i> km · <i data-v="${FLEX.min}">${FLEX.min}</i> min</span></span>`:''}</div>`;
  const cards=PTS.map((p,i)=>document.getElementById('pc'+i)),cB=document.getElementById('pcB'),cB2=document.getElementById('pcB2'),cF=document.getElementById('pcF');
+ // o cliente apresentado já é posto (ex.: Flex, Vida): mostra só o destaque dele, sem repetir o pino
+ PTS.forEach((p,i)=>{if(Math.hypot(p.x-FLEX.x,p.y-FLEX.y)<40){[routes[i],routes[i].previousSibling,pinG[i].parentNode,cards[i],parts[i]].forEach(e=>{if(e)e.style.display='none'});}});
 
  /* animação */
  const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
