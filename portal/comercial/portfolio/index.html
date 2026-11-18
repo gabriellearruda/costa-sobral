@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Gerador de Portfólio · C&amp;S</title>
+<style>
+@font-face{font-family:'Corm';src:url(fonts/Cormorant.woff2) format('woff2');font-weight:300 700;font-style:normal}
+@font-face{font-family:'Corm';src:url(fonts/Cormorant-Italic.woff2) format('woff2');font-weight:300 700;font-style:italic}
+@font-face{font-family:'Mont';src:url(fonts/Montserrat.woff2) format('woff2');font-weight:100 900}
+:root{--gold:#C9A24A;--gold-d:#A47A26;--ink:#1A1813;--txt:#3b3830;--muted:#8d8678;--cream:#F4F0E7;--card:#FBF8F1;--line:#E4DAC4;--ui-line:#E3E0D8}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Mont,system-ui,sans-serif;background:#ECEAE4;color:var(--txt)}
+.topbar{height:56px;background:#0D0D0D;display:flex;align-items:center;gap:10px;padding:0 18px;position:sticky;top:0;z-index:50;border-bottom:2px solid #D4AF37}
+.topbar .brand{display:flex;align-items:center;gap:10px;color:#fff;font-weight:700;font-size:14px}.topbar .brand img{height:30px}
+.topbar .sp{flex:1}.estado{color:#cfc6ae;font-size:12px}.estado i{color:#e4a59c;font-style:normal}
+.btn{font-family:inherit;font-size:13px;font-weight:600;border:none;border-radius:8px;padding:9px 14px;cursor:pointer}
+.btn-gold{background:#D4AF37;color:#111}.btn-ghost{background:transparent;color:#EDE7D6;border:1px solid #4a463c}
+.lnk{color:#e7c77a;font-size:12px;text-decoration:none;margin-left:4px}
+.layout{display:grid;grid-template-columns:440px 1fr;height:calc(100vh - 56px)}
+.editor{overflow-y:auto;background:#fff;border-right:1px solid var(--ui-line);padding:14px 16px 80px}
+.preview{overflow:auto;background:#6b6a66;padding:26px}
+#paper{display:flex;flex-direction:column;align-items:center;gap:22px}
+.grp{border:1px solid var(--ui-line);border-radius:10px;margin-bottom:10px;background:#fff}
+.grp>summary{list-style:none;cursor:pointer;padding:10px 12px;font-size:12px;font-weight:700;letter-spacing:.4px;color:#A67C1E;text-transform:uppercase;display:flex;align-items:center;gap:8px}
+.grp>summary::-webkit-details-marker{display:none}.grp>summary .sw{margin-left:auto;font-size:11px;font-weight:600;color:#6b675e;text-transform:none;letter-spacing:0;display:flex;align-items:center;gap:5px}
+.grp .in{padding:0 12px 12px}
+.fld{margin-bottom:9px}.fld label{display:block;font-size:11px;font-weight:600;color:#6b675e;margin-bottom:4px}.fld label i{font-weight:400;color:#9a968c}
+.fld input,.fld textarea{width:100%;font-family:inherit;font-size:12.5px;color:#2c2a26;border:1px solid #d7d3c8;border-radius:7px;padding:7px 9px;outline:none}
+.fld textarea{resize:vertical;min-height:60px;line-height:1.45}.fld input:focus,.fld textarea:focus{border-color:#D4AF37}
+.hint{font-size:10.5px;color:#9a968c;line-height:1.45;margin-bottom:8px}
+.opts{display:flex;flex-direction:column;gap:5px;margin-bottom:8px}.opts label{display:flex;gap:8px;align-items:center;font-size:12.5px;cursor:pointer}
+.fotos-pick{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.fp{position:relative;border:2px solid transparent;border-radius:7px;padding:0;background:none;cursor:pointer;overflow:hidden}
+.fp img{width:100%;height:62px;object-fit:cover;display:block;opacity:.45}.fp.on{border-color:#D4AF37}.fp.on img{opacity:1}
+.fp span{position:absolute;top:3px;right:3px;background:#D4AF37;color:#111;font-size:10px;font-weight:700;border-radius:9px;min-width:16px;height:16px;display:flex;align-items:center;justify-content:center}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:#1a1a1a;color:#fff;border-left:3px solid #D4AF37;padding:10px 16px;border-radius:8px;font-size:13px;opacity:0;pointer-events:none;transition:.25s;z-index:200}
+.toast.show{opacity:1;transform:translateX(-50%)}.toast.err{border-left-color:#d9534f}
+
+/* ---------------- folhas do portfólio ---------------- */
+.page{position:relative;width:210mm;height:297mm;background:var(--cream);padding:17mm 17mm 20mm;overflow:hidden;box-shadow:0 4px 22px rgba(0,0,0,.3);flex:0 0 auto}
+.kk{font-size:7.6px;letter-spacing:3.4px;text-transform:uppercase;color:var(--gold-d);font-weight:600;margin-bottom:5px}
+h1.t{font-family:Corm;font-weight:400;font-size:42.5px;line-height:1.05;color:var(--ink)}h1.t em{font-style:italic;color:var(--gold-d)}
+.rl{width:62px;height:1.4px;background:var(--gold);margin:10px 0 14px}
+p.ld{font-size:12.0px;line-height:1.75;color:var(--txt);font-weight:300}p.ld b{font-weight:600;color:var(--ink)}p.ld+p.ld{margin-top:9px}
+ul.ck{list-style:none;margin-top:10px}ul.ck li{position:relative;padding-left:17px;font-size:11.8px;line-height:1.5;margin-bottom:5px;font-weight:300}
+ul.ck li::before{content:"\2713";position:absolute;left:0;color:var(--gold-d);font-weight:700;font-size:11.2px}
+.ft{position:absolute;left:17mm;right:17mm;bottom:10mm;border-top:1px solid var(--line);padding-top:5px;display:flex;justify-content:space-between;font-size:6.4px;letter-spacing:2.4px;color:var(--muted);text-transform:uppercase}
+.ft b{color:var(--gold-d);letter-spacing:1px}
+.cardx{background:var(--card);border:1px solid var(--line);border-radius:4px}
+.ic{flex:0 0 auto;width:30px;height:30px;border-radius:50%;border:1px solid var(--gold);display:flex;align-items:center;justify-content:center}
+.ic svg{width:15px;height:15px;stroke:var(--gold-d);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+/* capa */
+.capa{padding:14mm}.capa .fr{position:absolute;inset:9mm;border:1px solid var(--line)}
+.capa .fr::before,.capa .fr::after{content:'';position:absolute;width:26px;height:26px;border-color:var(--gold);border-style:solid}
+.capa .fr::before{top:-1px;left:-1px;border-width:2px 0 0 2px}.capa .fr::after{bottom:-1px;right:-1px;border-width:0 2px 2px 0}
+.capa .mid{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 30mm}
+.capa .mid img{width:118mm}.capa .k2{margin-top:16mm;font-size:8px;letter-spacing:4.6px;color:var(--gold-d);font-weight:600;text-transform:uppercase}
+.capa .sub{font-family:Corm;font-size:20px;line-height:1.3;color:var(--ink);margin-top:9mm;font-weight:400}
+.capa .slo{font-family:Corm;font-style:italic;font-size:15px;color:var(--gold-d);margin-top:7mm}
+.capa .base{position:absolute;bottom:17mm;left:0;right:0;text-align:center;font-size:7.4px;letter-spacing:3.2px;color:var(--ink);font-weight:600;text-transform:uppercase}
+.capa .base span{color:var(--muted);font-weight:400}
+/* quem somos */
+.qs{display:grid;grid-template-columns:1.25fr 1fr;gap:9mm;align-items:start}.qs img{width:100%;aspect-ratio:3/4;object-fit:cover;object-position:center 20%;border-radius:3px;box-shadow:0 8px 20px rgba(0,0,0,.14)}
+.idt{margin-top:11mm}.idt .g3{display:grid;grid-template-columns:repeat(3,1fr);gap:4mm;margin-top:4mm}
+.idt .cardx{padding:5mm}.idt h3{font-family:Corm;font-weight:500;font-size:21.2px;color:var(--gold-d);margin-bottom:3mm}.idt p{font-size:10.8px;line-height:1.6;font-weight:300}
+.pal{margin-top:8mm;text-align:center;font-size:9.2px;letter-spacing:3px;color:var(--gold-d);font-weight:600}
+/* serviços */
+.sv{display:grid;grid-template-columns:1fr 1fr;gap:6mm 8mm;margin-top:8mm}.sv .s{display:flex;gap:4mm}.sv h4,.dif h4{font-family:Corm;font-size:19.4px;font-weight:600;color:var(--ink);margin-bottom:1.5mm;line-height:1.15}
+.sv p,.dif p{font-size:10.5px;line-height:1.55;font-weight:300}
+.cob{margin-top:9mm;display:flex;gap:4mm;align-items:center;padding:5mm 6mm;background:#F8F1DF;border:1px solid #E6D3A4;border-left:3px solid var(--gold);border-radius:3px}
+.cob h4{font-family:Corm;font-size:20.0px;font-weight:600;color:var(--gold-d)}.cob p{font-size:10.8px;line-height:1.5;font-weight:300}
+/* método */
+.st{display:grid;grid-template-columns:repeat(4,1fr);gap:5mm;margin-top:7mm}.st .n{font-family:Corm;font-size:35.0px;color:var(--gold);line-height:1}
+.st .r{height:1px;background:var(--line);margin:2mm 0 2.5mm}.st h4{font-size:11.0px;font-weight:700;color:var(--ink);margin-bottom:1.5mm}.st p{font-size:10.0px;line-height:1.5;font-weight:300}
+.ph{display:flex;flex-wrap:wrap;justify-content:center;gap:5mm;margin-top:10mm}.ph figure{width:44mm}
+.ph img{width:100%;aspect-ratio:3/4;object-fit:cover;object-position:center 22%;display:block;border:3px solid #fff;box-shadow:0 6px 16px rgba(0,0,0,.14)}
+.ph figcaption{font-size:6.4px;letter-spacing:1.6px;text-transform:uppercase;color:var(--gold-d);font-weight:700;text-align:center;margin-top:2.5mm;line-height:1.5}
+/* investimento */
+.ct{margin-top:8mm;padding:6mm 7mm}.ct h4{font-size:12.0px;font-weight:700;color:var(--gold-d);margin-bottom:3mm}.ct .g2{display:grid;grid-template-columns:1fr 1fr;gap:0 8mm}.ct ul.ck{margin-top:0}
+.dt{display:grid;grid-template-columns:repeat(3,1fr);gap:5mm;margin-top:9mm}.dt .cardx{text-align:center;padding:6mm 4mm;background:#F8F1DF;border-color:#E6D3A4}
+.dt b{display:block;font-family:Corm;font-size:37.5px;color:var(--gold-d);font-weight:500;line-height:1}.dt h5{font-size:9.2px;letter-spacing:1.6px;text-transform:uppercase;margin:2mm 0 1.5mm;color:var(--ink)}
+.dt p{font-size:10.0px;line-height:1.5;font-weight:300}.nt{margin-top:9mm;border-top:1px solid var(--line);padding-top:4mm;font-size:10.5px;font-style:italic;color:var(--muted);text-align:center;line-height:1.6}
+/* condições */
+.cd{display:grid;grid-template-columns:repeat(3,1fr);gap:4mm;margin-top:6mm}.cd .cardx{padding:5mm}.cd h4{font-family:Corm;font-size:18.8px;font-weight:600;color:var(--gold-d);margin-bottom:2mm;line-height:1.15}.cd p{font-size:10.2px;line-height:1.55;font-weight:300}
+.jur{margin-top:8mm;background:#141311;border-radius:3px;padding:6mm 7mm;color:#EDE6D4}.jur .kk{color:#E1C06A}.jur ul.ck{display:grid;grid-template-columns:1fr 1fr;gap:0 8mm}.jur ul.ck li{color:#E8E1CF}
+.seg{margin-top:6mm;display:grid;grid-template-columns:1fr 1fr;gap:4mm}.seg .cardx{padding:5mm;display:flex;gap:4mm}.seg h4{font-size:11.5px;font-weight:700;color:var(--ink);margin-bottom:1.5mm}.seg p{font-size:10.2px;line-height:1.5;font-weight:300}
+/* diferenciais */
+.dif{display:grid;grid-template-columns:1fr 1fr;gap:5mm;margin-top:8mm}.dif .cardx{display:flex;gap:4mm;padding:5mm}
+/* tecnologia */
+.tc{margin-top:6mm;display:flex;flex-direction:column;gap:4mm}.tc .cardx{display:grid;grid-template-columns:50% 1fr;gap:5mm;padding:3mm;align-items:center}
+.tc img{width:100%;display:block;border-radius:2px}.tc h4{font-family:Corm;font-size:16px;font-weight:600;color:var(--ink);line-height:1.15;margin-bottom:1.5mm}.tc p{font-size:8.2px;line-height:1.5;font-weight:300}.tc ul.ck{margin-top:2mm}.tc ul.ck li{font-size:8px;margin-bottom:2px}
+/* referências */
+.rf-top{text-align:center}.rf-top .lg{display:inline-block;background:#0D0D0D;padding:3mm 7mm;border-radius:3px}.rf-top .lg img{height:12mm;display:block}
+.rf-top h1{font-family:Corm;font-weight:500;font-size:28px;letter-spacing:3px;color:var(--ink);margin-top:5mm}.rf-top .s2{font-size:6.6px;letter-spacing:2.6px;color:var(--muted);text-transform:uppercase;margin-top:1mm}
+.rf-top .rl{margin:4mm auto 0;width:100%;background:linear-gradient(90deg,transparent,var(--gold),transparent)}
+.rf-in{margin-top:5mm;padding:4mm 5mm;border-left:2px solid var(--gold);background:var(--card);font-size:8.2px;line-height:1.6;font-weight:300}
+.rg{display:grid;grid-template-columns:1fr 1fr;gap:3.5mm;margin-top:5mm}.rg .cardx{padding:4mm 5mm;border-top:2px solid var(--gold)}
+.rg h4{font-family:Corm;font-size:14.5px;font-weight:600;color:var(--ink);line-height:1.15}.rg .tg{display:inline-block;margin:1.5mm 0 2.5mm;font-size:5.8px;letter-spacing:1.2px;text-transform:uppercase;color:var(--gold-d);border:1px solid #E6D3A4;padding:1px 6px;font-weight:600}
+.rg p{font-size:7.6px;line-height:1.6}.rg p span{display:inline-block;width:16mm;color:var(--muted);font-size:6px;letter-spacing:1.2px;text-transform:uppercase}.rg p b{color:var(--gold-d);font-weight:600}
+.cn{display:grid;gap:3mm;margin-top:4mm}.cn img{width:100%;aspect-ratio:16/10;object-fit:cover;display:block;border-radius:2px}
+.esp{margin-top:5mm;background:#0D0D0D;color:#EDE6D4;text-align:center;padding:3.5mm;border-radius:2px}.esp .kk{color:#E1C06A;margin-bottom:1.5mm}.esp p{font-size:7.8px}
+/* fecho */
+.cg{display:grid;grid-template-columns:1fr 1fr;gap:4mm;margin-top:8mm}.cg .cardx{display:flex;gap:4mm;align-items:center;padding:5mm}
+.cg small{display:block;font-size:8.0px;letter-spacing:2px;text-transform:uppercase;color:var(--gold-d);font-weight:700;margin-bottom:1mm}.cg p{font-family:Corm;font-size:18.8px;color:var(--ink);line-height:1.25}
+.fim{position:absolute;left:0;right:0;bottom:30mm;text-align:center}.fim img{width:62mm}.fim p{font-family:Corm;font-style:italic;font-size:17.5px;color:var(--gold-d);margin-top:4mm}
+@page{size:A4;margin:0}
+@media print{body{background:#fff}.topbar,.editor,.toast{display:none!important}.layout{display:block;height:auto}.preview{padding:0;overflow:visible;background:#fff}
+  #paper{display:block}.page{box-shadow:none;page-break-after:always;break-after:page}.page:last-child{page-break-after:auto}}
+</style>
+</head>
+<body>
+<script src="/app/vendor/supabase.js"></script>
+<script src="/app/config.js"></script>
+<script src="/portal/_comum/cs-auth.js"></script>
+<div class="topbar">
+  <div class="brand"><img src="img/escudo.png" alt="C&amp;S"> · Gerador de Portfólio</div>
+  <div class="sp"></div><span class="estado" id="estado" data-sujo="0"></span>
+  <button class="btn btn-ghost" onclick="restaurar()">Texto padrão</button>
+  <button class="btn btn-ghost" onclick="salvar()">Salvar</button>
+  <button class="btn btn-gold" onclick="exportarPDF()">Exportar PDF</button>
+  <a class="lnk" href="/portal/">Portal</a><a class="lnk" href="#" onclick="CSAuth.sair();return false">Sair</a>
+</div>
+<div class="layout"><div class="editor" id="editor"></div><div class="preview"><div id="paper"></div></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* =====================================================================
+   GERADOR DE PORTFÓLIO C&S — apresentação institucional (antes de proposta).
+   Textos próprios ficam em com_parametros 'portfolio'. Referências, cortesias,
+   seguros, tecnologia e unidades vêm do Gerador de propostas ('propostas'),
+   para as duas peças dizerem sempre a mesma coisa.
+   ===================================================================== */
+const AP='/portal/comercial/apresentacao/img/', PR='/portal/comercial/propostas/';
+const FOTOS=[{k:'portaria',n:'Portaria e controle de acesso',src:'img/m-portaria.jpg'},{k:'limpeza',n:'Limpeza e conservação',src:'img/m-limpeza.jpg'},
+  {k:'zeladoria',n:'Zeladoria',src:'img/m-zeladoria.jpg'},{k:'jardinagem',n:'Jardinagem e áreas verdes',src:'img/m-jardinagem.jpg'},
+  {k:'garagem',n:'Lavagem e higienização de garagens',src:'img/m-garagem.jpg'},{k:'quem',n:'Portaria (terno)',src:'img/quem.jpg'},
+  {k:'controle-acesso',n:'Controle de acesso',src:AP+'controle-acesso.jpg'},{k:'triciclo',n:'Triciclo de lixo',src:AP+'triciclo.jpg'},{k:'viaturas',n:'Supervisão móvel',src:AP+'viaturas.jpg'}];
+const CONDOS=[{k:'condo-1',src:AP+'condo-1.jpg'},{k:'condo-2',src:AP+'condo-2.jpg'},{k:'condo-3',src:AP+'condo-3.jpg'},{k:'condo-4',src:AP+'condo-4.jpg'}];
+
+/* base compartilhada (iguais ao Gerador de propostas; o banco sobrescreve) */
+const B0={
+  refsIntro:"A satisfação dos nossos clientes é o nosso maior compromisso. Apresentamos abaixo algumas das gestões condominiais atendidas pelo Grupo C&S, com os respectivos contatos autorizados para verificação do nosso padrão de qualidade e excelência em atendimento.",
+  refs:[["High Belém","Grande porte / Alto padrão","Contato","Zafira (administrador)","(11) 2056-2036 · a/c Sra Jane"],
+    ["Smart Studio","Grande porte / Alto padrão","Contato","Zafira (administrador)","(11) 2056-2036 · a/c Sra Jane"],
+    ["Condomínio Flex Suzano","Grande porte / Residencial","Síndico","Fabio","(11) 94021-4631"],
+    ["Paulista I","Grande porte / Residencial","Síndico","Alex","(11) 97170-4521"],
+    ["Condomínio Ecoway","Grande porte / Condomínio clube","Síndico","Robson","(11) 95290-9557"],
+    ["Condomínio Residencial Nova Petrópolis II","Médio porte / Residencial","Síndica","Deise","(11) 94905-7572"],
+    ["Condomínio Solar das Oliveiras","Médio porte / Residencial","Síndica","Adriana","(11) 96669-9348"]],
+  contempla:["Salários, encargos e benefícios conforme CCT","Cobertura de faltas, férias e afastamentos","Vale-transporte e refeição da equipe","Uniformes completos e EPIs","Supervisão periódica e gestão da operação","Emissão de nota fiscal de serviços"],
+  cortesias:[["Materiais de higiene","Fornecimento básico de materiais de limpeza e higiene para as áreas comuns, renovados mensalmente."],["Rádios de comunicação (HT)","Comunicação digital entre os postos, em regime de comodato."],["Celulares corporativos","Canal direto da portaria com moradores, administração e supervisão."],["Veículo de transporte de lixo","Veículo específico e preparado para coleta e transporte de lixo na área do condomínio."],["Carrinho de limpeza multifuncional","Equipamento profissional completo para a rotina de conservação."],["Relógio de ponto digital","Registro digital de jornada da equipe, com controle de frequência e transparência na gestão."],["Primeira lavagem de garagem e áreas comuns","Lavagem inicial das áreas de garagem e comuns na implantação, como cortesia de boas-vindas (serviço único)."],["Serviços de jardinagem (1x ao mês)","Manutenção mensal de jardins e áreas verdes, como cortesia durante a vigência do contrato."]],
+  seguros:[["Seguro de Responsabilidade Civil","Nossa empresa conta com seguro de Responsabilidade Civil, garantindo a segurança de suas atividades."],["Seguro de vida e acidentes de trabalho","Nossos colaboradores contam com seguro de vida e acidentes de trabalho, uma segurança jurídica ainda maior ao contratante."]],
+  tecIntro:"Para complementar a operação de portaria e controle de acesso, a C&S disponibiliza soluções tecnológicas que trazem mais agilidade, controle e autonomia ao dia a dia do condomínio.",
+  tecNota:"Imagens ilustrativas. Instalação e configuração conforme a estrutura do condomínio, definidas em visita técnica.",
+  tecnologias:[{k:"rfid",titulo:"Identificação veicular por RFID (TAG UHF)",desc:"TAG instalada no para-brisa e lida automaticamente na chegada do veículo, com liberação de portão ou cancela sem parar.",itens:"Acesso rápido para veículos cadastrados\nRegistro automático de entradas e saídas\nIntegração com portaria, cancelas e CFTV\nOperação contínua 24 horas",img:"img/tec-rfid.jpg"},
+    {k:"totem",titulo:"Totem de monitoramento 24h",desc:"Totem na entrada do condomínio com câmeras de alta definição e cobertura 360°, interfone com a portaria e sinalização de área monitorada.",itens:"Monitoramento contínuo da entrada e áreas estratégicas\nControle de acesso veicular integrado\nInterfone direto com a portaria\nIntegração com os programas Smart Sampa e Smart Suzano (mediante adesão)",img:"img/tec-totem.jpg"},
+    {k:"armario",titulo:"Armário inteligente para encomendas",desc:"Compartimentos individuais para receber encomendas 24 horas, com retirada pelo morador por código, QR Code ou aplicativo.",itens:"Recebimento de encomendas 24 horas\nAviso automático ao morador no recebimento e na retirada\nRetirada no horário ideal, sem depender da portaria\nMenos fluxo e mais organização na portaria",img:"img/tec-armario.jpg"}],
+  locais:{carrao:{nome:"Vila Carrão (São Paulo)",tel:"(11) 92661-2817 · (11) 92524-2324",end:"Av. Conselheiro Carrão, 258, sala 8 – São Paulo, SP"},suzano:{nome:"Suzano",tel:"(11) 92661-2817 · (11) 95324-2324",end:"Av. Rio de Janeiro, 100 – Suzano, SP"}}
+};
+/* textos próprios do portfólio (base: apresentação institucional atual) */
+const C0={
+  paginas:{capa:true,quem:true,servicos:true,metodo:true,invest:true,condicoes:true,diferenciais:true,tecnologia:true,refs:true,fecho:true},
+  capaKicker:"Apresentação institucional", capaSub:"Soluções em serviços terceirizados para condomínios, empresas e indústrias", slogan:"Movendo Confiança, Gerando Valor.",
+  capaBase:"cservicos.com · (11) 92524-2324 · Suzano / SP",
+  quemTexto:"A C&S é uma empresa especializada na prestação de serviços terceirizados para condomínios, empresas e indústrias, com atuação focada em gestão eficiente, organização e cuidado diário com o patrimônio.\nNosso diferencial está na integração entre pessoas bem selecionadas e treinadas, processos claros e padronizados e supervisão contínua — garantindo que o seu patrimônio esteja sempre protegido e bem cuidado.",
+  quemItens:"Pessoas bem selecionadas e treinadas\nProcessos claros e padronizados\nGestão organizada e supervisão contínua\nRelatórios e indicadores de desempenho",
+  quemFoto:"quem",
+  missao:"Agregar modernidade, praticidade e segurança, conectando pessoas e tecnologia para entregar alto valor aos nossos clientes.",
+  visao:"Ser uma empresa consolidada no mercado, reconhecida pela excelência técnica e pela geração de soluções viáveis e inteligentes para nossos parceiros.",
+  valores:"Ética, transparência e compromisso com a qualidade e o desenvolvimento contínuo da equipe, com foco na particularidade de cada cliente.",
+  palavras:"Confiança · Profissionalismo · Segurança · Eficiência · Transparência · Valor",
+  servIntro:"Um escopo completo de facilities para condomínios, empresas e indústrias. Todos os serviços seguem o mesmo padrão de seleção, treinamento, supervisão e relatórios — com portaria, limpeza e zeladoria como base da operação.",
+  servicos:"Portaria e Controle de Acesso | Controle de entrada e saída de moradores, visitantes e prestadores, rondas preventivas e operação de portões e interfones.\nLimpeza e Conservação | Higienização de áreas internas e externas com cronograma técnico, checklist diário, reposição e controle de materiais.\nManutenção Predial e Zeladoria | Zeladoria ativa e preventiva, pequenos reparos, inspeções, gestão de chaves e apoio à administração do condomínio.\nJardinagem e Áreas Verdes | Manutenção de jardins e paisagismo, poda, corte e roçagem, com canteiros e áreas verdes sempre cuidados.\nLavagem e Higienização de Garagens | Lavagem técnica de pisos com lavadora automática industrial, removendo óleo, resíduos e odores das áreas comuns.\nApoio Operacional e Serviços Gerais | Apoio administrativo, mensageria, recepção, copeiragem e soluções sob demanda para o dia a dia.",
+  cobertura:"Cobertura Garantida | Cobertura de faltas, férias e afastamentos com equipe reserva uniformizada e treinada — o posto nunca fica descoberto, em qualquer serviço.",
+  metodoIntro:"Do primeiro contato ao posto em operação, seguimos um método padronizado que garante previsibilidade e qualidade em qualquer frente de serviço.",
+  passos:"Entendimento | Visita técnica e análise da necessidade e do perfil do ambiente.\nPlano personalizado | Escopo, escalas e rotinas sob medida para o seu condomínio ou empresa.\nExecução e gestão | Equipe treinada, supervisão constante e processos padronizados.\nResultados | Acompanhamento, relatórios, indicadores e melhoria contínua.",
+  fotos:['portaria','limpeza','zeladoria','jardinagem','garagem'],
+  investKicker:"Proposta · Modelo transparente",
+  investTexto:"Trabalhamos com um **valor mensal por posto**, definido após a visita técnica e o dimensionamento da sua operação. É um valor único e previsível: todos os encargos, benefícios e a gestão já estão inclusos — **sem custos ocultos** e **sem passivo trabalhista** para o contratante.",
+  destaques:"1 | Valor mensal | Um único valor por posto contratado, sem surpresas.\n0 | Passivo trabalhista | Encargos e obrigações da equipe por nossa conta.\n100% | Documentado | Documentação mensal disponível ao contratante para conferência.",
+  investNota:"O valor exato é apresentado após o dimensionamento — número de postos, escala e perfil da equipe — em proposta sob medida para a sua realidade.",
+  condicoes:"Validade da proposta | 30 dias a partir da data de apresentação.\nInício da operação | Em até 15 dias após a assinatura do contrato, com transição assistida da atual prestadora.\nFaturamento e pagamento | Nota fiscal mensal, com vencimento até o dia 10 do mês subsequente à prestação do serviço.\nVigência do contrato | 24 meses, com renovação automática por iguais períodos.\nReajuste | Anual, conforme a convenção coletiva da categoria (CCT) vigente.\nGestão e supervisão | Supervisão periódica nos postos, com relatórios e canal direto com a administração.",
+  juridico:"Empresa regularizada, com CNPJ ativo e enquadramento correto.\nColaboradores registrados em CLT, com FGTS e INSS em dia.\nDocumentação mensal disponível ao contratante para conferência.\nContrato claro, com escopo, SLA e cobertura de faltas definidos.\nGestão que protege o CNPJ do contratante de passivos trabalhistas.\nComunicação direta e transparente com o síndico ou gestor.",
+  mostrarSeguros:true,
+  difIntro:"Conforme o porte e o escopo do contrato, a C&S pode incluir, sem custo adicional, itens que facilitam a rotina da operação e a vida de quem contrata:",
+  difSel:["Rádios de comunicação (HT)","Celulares corporativos","Relógio de ponto digital","Veículo de transporte de lixo","Carrinho de limpeza multifuncional","Primeira lavagem de garagem e áreas comuns"],
+  tecExtra:"Disponíveis como serviços adicionais, com instalação e configuração definidas em visita técnica.",
+  tecSel:["rfid","totem","armario"],
+  refsSel:["High Belém","Smart Studio","Condomínio Flex Suzano","Paulista I","Condomínio Ecoway","Condomínio Residencial Nova Petrópolis II","Condomínio Solar das Oliveiras"],
+  condos:['condo-1','condo-2','condo-3','condo-4'],
+  especialidades:"Portaria • Limpeza e Higienização • Zeladoria • Jardinagem • Revitalização",
+  fechoTexto:"Estamos à disposição para cuidar do seu condomínio com pessoas bem preparadas, gestão organizada e resultados que protegem — inclusive com transição assistida da atual prestadora, sem ruptura na operação.",
+  whatsapp:"(11) 92524-2324", email:"costaesobral@gmail.com", site:"cservicos.com", unidades:["carrao","suzano"]
+};
+let C=JSON.parse(JSON.stringify(C0)), B=JSON.parse(JSON.stringify(B0)), sb=null;
+
+/* ---------- utilidades ---------- */
+const $=id=>document.getElementById(id);
+function esc(s){return (s==null?'':String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function rich(s){return esc(s).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>');}
+function tit(s){return esc(s).replace(/\*(.+?)\*/g,'<em>$1</em>');}
+function linhas(t){return String(t||'').split('\n').map(x=>x.trim()).filter(Boolean);}
+function pares(t){return linhas(t).map(l=>l.split('|').map(x=>x.trim()));}
+function toast(m,err){const t=$('toast');t.textContent=m;t.className='toast show'+(err?' err':'');clearTimeout(toast.h);toast.h=setTimeout(()=>t.className='toast',3400);}
+function sujo(){$('estado').dataset.sujo='1';estado();}
+function estado(){$('estado').innerHTML='Portfólio institucional'+($('estado').dataset.sujo==='1'?' · <i>não salvo</i>':'');}
+function setv(k,v){C[k]=v;render();sujo();}
+const IC={key:'<circle cx="8" cy="15" r="4"/><path d="M10.8 12.2 20 3M17 6l3 3M15 8l2 2"/>',broom:'<path d="M19 4 9.5 13.5"/><path d="M6 20c-1-2-1-4 1-6l3 3c-2 2-4 2-6 1z"/><path d="M8 14l2 2"/>',
+ tool:'<path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/>',leaf:'<path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.5 19 2c1 2 2 4.2 2 8 0 5.5-4.8 10-10 10z"/><path d="M2 21c0-3 1.9-5.4 5-6"/>',
+ car:'<path d="M5 17h14v-5l-2-5H7l-2 5z"/><circle cx="8" cy="17" r="2"/><circle cx="16" cy="17" r="2"/>',users:'<circle cx="9" cy="8" r="4"/><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><path d="M16 4a4 4 0 0 1 0 8M23 21v-2a4 4 0 0 0-3-3.9"/>',
+ eye:'<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>',shield:'<path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/>',
+ radio:'<circle cx="12" cy="12" r="2"/><path d="M16.2 7.8a6 6 0 0 1 0 8.5M7.8 16.2a6 6 0 0 1 0-8.5M19.1 4.9a10 10 0 0 1 0 14.2M4.9 19.1a10 10 0 0 1 0-14.2"/>',phone:'<rect x="6" y="2" width="12" height="20" rx="2"/><path d="M11 18h2"/>',
+ clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',cart:'<circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M2 3h3l2.7 12h11l2-8H6.2"/>',drop:'<path d="M12 3l5.7 5.7a8 8 0 1 1-11.4 0z"/>',
+ wa:'<path d="M21 12a9 9 0 0 1-13.4 7.8L3 21l1.3-4.4A9 9 0 1 1 21 12z"/>',mail:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>',globe:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z"/>',pin:'<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/>'};
+function ic(n){return '<div class="ic"><svg viewBox="0 0 24 24">'+(IC[n]||IC.eye)+'</svg></div>';}
+const SV_IC=['key','broom','tool','leaf','car','users'];
+function icCort(t){t=(t||'').toLowerCase();return /rádio|radio/.test(t)?'radio':/celular/.test(t)?'phone':/rel[oó]gio/.test(t)?'clock':/carrinho/.test(t)?'cart':/ve[ií]culo|lixo/.test(t)?'car':/jardin/.test(t)?'leaf':/lavagem/.test(t)?'drop':/materia/.test(t)?'drop':'shield';}
+function fotoSrc(k){const f=FOTOS.find(x=>x.k===k)||CONDOS.find(x=>x.k===k);return f?f.src:'';}
+
+/* ---------- folhas ---------- */
+function render(){
+  const P=C.paginas;let H='',n=0;const ft=()=>'<div class="ft"><span>C&amp;S · Soluções em serviços terceirizados</span><b>'+String(++n).padStart(2,'0')+'</b></div>';
+  if(P.capa){n++;H+='<section class="page capa"><div class="fr"></div><div class="mid"><img src="img/logo.png" alt="C&amp;S"><div class="k2">'+esc(C.capaKicker)+'</div><div class="sub">'+esc(C.capaSub)+'</div><div class="slo">'+esc(C.slogan)+'</div></div><div class="base">'+
+    esc(C.capaBase).split('·').map((x,i)=>i?'<span>'+x+'</span>':x).join('·')+'</div></section>';}
+  if(P.quem){H+='<section class="page"><div class="kk">C&amp;S — Soluções em serviços terceirizados</div><h1 class="t">Quem <em>somos</em></h1><div class="rl"></div><div class="qs"><div>'+linhas(C.quemTexto).map(p=>'<p class="ld">'+rich(p)+'</p>').join('')+
+    '<ul class="ck">'+linhas(C.quemItens).map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul></div>'+(fotoSrc(C.quemFoto)?'<img src="'+fotoSrc(C.quemFoto)+'" alt="">':'')+'</div>'+
+    '<div class="idt"><div class="kk">Nossa identidade</div><div class="g3"><div class="cardx"><h3>Missão</h3><p>'+esc(C.missao)+'</p></div><div class="cardx"><h3>Visão</h3><p>'+esc(C.visao)+'</p></div><div class="cardx"><h3>Valores</h3><p>'+esc(C.valores)+'</p></div></div>'+
+    '<div class="pal">'+esc(C.palavras.toUpperCase())+'</div></div>'+ft()+'</section>';}
+  if(P.servicos){const cb=(C.cobertura||'').split('|').map(x=>x.trim());
+    H+='<section class="page"><div class="kk">Portfólio completo</div><h1 class="t">Nossos <em>serviços</em></h1><div class="rl"></div><p class="ld">'+rich(C.servIntro)+'</p><div class="sv">'+
+    pares(C.servicos).map((s,i)=>'<div class="s">'+ic(SV_IC[i]||'shield')+'<div><h4>'+esc(s[0])+'</h4><p>'+esc(s[1]||'')+'</p></div></div>').join('')+'</div>'+
+    (cb[0]?'<div class="cob">'+ic('shield')+'<div><h4>'+esc(cb[0])+'</h4><p>'+esc(cb[1]||'')+'</p></div></div>':'')+ft()+'</section>';}
+  if(P.metodo){const fs=C.fotos.map(k=>FOTOS.find(f=>f.k===k)).filter(Boolean);
+    H+='<section class="page"><div class="kk">Metodologia</div><h1 class="t">Como <em>trabalhamos</em></h1><div class="rl"></div><p class="ld">'+rich(C.metodoIntro)+'</p><div class="st">'+
+    pares(C.passos).map((s,i)=>'<div><div class="n">'+String(i+1).padStart(2,'0')+'</div><div class="r"></div><h4>'+esc(s[0])+'</h4><p>'+esc(s[1]||'')+'</p></div>').join('')+'</div>'+
+    (fs.length?'<div class="ph">'+fs.map(f=>'<figure><img src="'+f.src+'" alt=""><figcaption>'+esc(f.n)+'</figcaption></figure>').join('')+'</div>':'')+ft()+'</section>';}
+  if(P.invest){const h=Math.ceil(B.contempla.length/2);
+    H+='<section class="page"><div class="kk">'+esc(C.investKicker)+'</div><h1 class="t">Investimento</h1><div class="rl"></div><p class="ld">'+rich(C.investTexto)+'</p>'+
+    '<div class="cardx ct"><h4>O valor mensal já contempla</h4><div class="g2"><ul class="ck">'+B.contempla.slice(0,h).map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul><ul class="ck">'+B.contempla.slice(h).map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul></div></div>'+
+    '<div class="dt">'+pares(C.destaques).map(d=>'<div class="cardx"><b>'+esc(d[0])+'</b><h5>'+esc(d[1]||'')+'</h5><p>'+esc(d[2]||'')+'</p></div>').join('')+'</div><div class="nt">'+esc(C.investNota)+'</div>'+ft()+'</section>';}
+  if(P.condicoes){H+='<section class="page"><div class="kk">Transparência em cada etapa</div><h1 class="t">Condições <em>comerciais</em></h1><div class="rl"></div><div class="cd">'+
+    pares(C.condicoes).map(c=>'<div class="cardx"><h4>'+esc(c[0])+'</h4><p>'+esc(c[1]||'')+'</p></div>').join('')+'</div>'+
+    '<div class="jur"><div class="kk">Segurança jurídica</div><ul class="ck">'+linhas(C.juridico).map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul></div>'+
+    (C.mostrarSeguros&&B.seguros.length?'<div class="kk" style="margin-top:7mm">Seguros e garantias</div><div class="seg" style="margin-top:2mm">'+B.seguros.map(s=>'<div class="cardx">'+ic('shield')+'<div><h4>'+esc(s[0])+'</h4><p>'+esc(s[1])+'</p></div></div>').join('')+'</div>':'')+ft()+'</section>';}
+  const dif=B.cortesias.filter(c=>C.difSel.includes(c[0]));
+  if(P.diferenciais&&dif.length){H+='<section class="page"><div class="kk">Diferenciais</div><h1 class="t">Mais do que <em>o posto</em></h1><div class="rl"></div><p class="ld">'+rich(C.difIntro)+'</p><div class="dif">'+
+    dif.map(c=>'<div class="cardx">'+ic(icCort(c[0]))+'<div><h4>'+esc(c[0])+'</h4><p>'+esc(c[1])+'</p></div></div>').join('')+'</div>'+ft()+'</section>';}
+  const tec=B.tecnologias.filter(t=>C.tecSel.includes(t.k));
+  if(P.tecnologia&&tec.length){H+='<section class="page"><div class="kk">Inovação · Serviços adicionais</div><h1 class="t">Tecnologia para o seu <em>condomínio</em></h1><div class="rl"></div><p class="ld">'+esc(B.tecIntro)+' '+esc(C.tecExtra)+'</p><div class="tc">'+
+    tec.map(t=>'<div class="cardx"><img src="'+PR+esc(t.img)+'" alt=""><div><h4>'+esc(t.titulo)+'</h4><p>'+esc(t.desc)+'</p><ul class="ck">'+linhas(t.itens).map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul></div></div>').join('')+
+    '</div><div class="nt" style="margin-top:4mm;border:0;padding:0">'+esc(B.tecNota)+'</div>'+ft()+'</section>';}
+  const refs=C.refsSel.map(nm=>B.refs.find(r=>r[0]===nm)).filter(Boolean), cds=C.condos.map(fotoSrc).filter(Boolean);
+  if(P.refs&&refs.length){H+='<section class="page"><div class="rf-top"><div class="lg"><img src="img/logo.png" alt="C&amp;S"></div><h1>REFERÊNCIAS COMERCIAIS</h1><div class="s2">Apresentação de clientes &amp; gestões atendidas</div><div class="rl"></div></div>'+
+    '<div class="rf-in">'+esc(B.refsIntro)+'</div><div class="rg">'+refs.map(r=>'<div class="cardx"><h4>'+esc(r[0])+'</h4><div class="tg">'+esc(r[1])+'</div><p><span>Contato</span><b>'+esc(r[3])+'</b>'+(r[2]&&!/^contato$/i.test(r[2])?' ('+esc(r[2])+')':'')+'</p><p><span>Telefone</span><b>'+esc(r[4])+'</b></p></div>').join('')+'</div>'+
+    (cds.length?'<div class="cn" style="grid-template-columns:repeat('+cds.length+',1fr)">'+cds.map(s=>'<img src="'+s+'" alt="">').join('')+'</div>':'')+
+    (C.especialidades?'<div class="esp"><div class="kk">Especialidades &amp; serviços terceirizados</div><p>'+esc(C.especialidades)+'</p></div>':'')+ft()+'</section>';}
+  if(P.fecho){const un=C.unidades.map(k=>B.locais[k]).filter(Boolean);
+    H+='<section class="page"><div class="kk">Próximos passos</div><h1 class="t">Pronto para ser <em>C&amp;S?</em></h1><div class="rl"></div><p class="ld">'+rich(C.fechoTexto)+'</p><div class="cg">'+
+    (C.whatsapp?'<div class="cardx">'+ic('wa')+'<div><small>WhatsApp</small><p>'+esc(C.whatsapp)+'</p></div></div>':'')+(C.email?'<div class="cardx">'+ic('mail')+'<div><small>E-mail</small><p>'+esc(C.email)+'</p></div></div>':'')+
+    (C.site?'<div class="cardx">'+ic('globe')+'<div><small>Site</small><p>'+esc(C.site)+'</p></div></div>':'')+
+    un.map(u=>'<div class="cardx">'+ic('pin')+'<div><small>Unidade '+esc(u.nome.replace(/ \(.*\)/,''))+'</small><p>'+esc(u.end)+'</p></div></div>').join('')+
+    '</div><div class="fim"><img src="img/logo.png" alt="C&amp;S"><p>'+esc(C.slogan)+'</p></div>'+ft()+'</section>';}
+  $('paper').innerHTML=H;
+}
+
+/* ---------- editor ---------- */
+const PG=[['capa','Capa'],['quem','Quem somos'],['servicos','Nossos serviços'],['metodo','Como trabalhamos'],['invest','Investimento'],['condicoes','Condições comerciais'],['diferenciais','Diferenciais'],['tecnologia','Tecnologia'],['refs','Referências'],['fecho','Pronto para ser C&S?']];
+function f(label,k,rows,dica){const v=C[k];return '<div class="fld"><label>'+label+(dica?' <i>('+dica+')</i>':'')+'</label>'+(rows?'<textarea rows="'+rows+'" oninput="setv(\''+k+'\',this.value)">'+esc(v)+'</textarea>':'<input value="'+esc(v)+'" oninput="setv(\''+k+'\',this.value)">')+'</div>';}
+function marca(lista,k,on){const a=C[lista].filter(x=>x!==k);if(on)a.push(k);C[lista]=a;render();editor();sujo();}
+function ordem(lista,k){const a=C[lista],i=a.indexOf(k);if(i>=0)a.splice(i,1);else a.push(k);render();editor();sujo();}
+function editor(){
+  const ab={};document.querySelectorAll('#editor details').forEach(d=>{if(d.open)ab[d.dataset.k]=1;});
+  const g=(k,corpo)=>{const t=PG.find(p=>p[0]===k)[1];return '<details class="grp" data-k="'+k+'"'+(ab[k]?' open':'')+'><summary>'+t+'<span class="sw" onclick="event.stopPropagation()"><input type="checkbox" '+(C.paginas[k]?'checked':'')+' onchange="C.paginas.'+k+'=this.checked;render();sujo()"> incluir</span></summary><div class="in">'+corpo+'</div></details>';};
+  let h='<div class="hint">Use *palavra* para o destaque dourado nos títulos e **texto** para negrito nos parágrafos. Referências, cortesias, seguros, tecnologia e unidades vêm do <b>Gerador de propostas › Parâmetros</b>: editou lá, muda aqui também.</div>';
+  h+=g('capa',f('Chamada','capaKicker')+f('Frase da capa','capaSub',2)+f('Slogan','slogan')+f('Rodapé da capa','capaBase'));
+  h+=g('quem',f('Texto','quemTexto',6,'um parágrafo por linha')+f('Destaques','quemItens',4,'um por linha')+
+    '<div class="fld"><label>Foto</label><div class="fotos-pick">'+FOTOS.map(x=>'<button type="button" class="fp'+(C.quemFoto===x.k?' on':'')+'" onclick="setv(\'quemFoto\',\''+x.k+'\');editor()"><img src="'+x.src+'" alt=""></button>').join('')+'</div></div>'+
+    f('Missão','missao',3)+f('Visão','visao',3)+f('Valores','valores',3)+f('Palavras da marca','palavras'));
+  h+=g('servicos',f('Abertura','servIntro',3)+f('Serviços','servicos',8,'Serviço | descrição, um por linha')+f('Quadro de destaque','cobertura',3,'Título | texto'));
+  h+=g('metodo',f('Abertura','metodoIntro',3)+f('Etapas','passos',5,'Etapa | descrição')+'<div class="fld"><label>Fotos <i>(clique na ordem em que vão aparecer)</i></label><div class="fotos-pick">'+
+    FOTOS.map(x=>{const i=C.fotos.indexOf(x.k);return '<button type="button" class="fp'+(i>=0?' on':'')+'" title="'+esc(x.n)+'" onclick="ordem(\'fotos\',\''+x.k+'\')"><img src="'+x.src+'" alt="">'+(i>=0?'<span>'+(i+1)+'</span>':'')+'</button>';}).join('')+'</div></div>');
+  h+=g('invest',f('Chamada','investKicker')+f('Texto','investTexto',5)+f('Destaques','destaques',4,'Número | título | texto')+f('Nota final','investNota',3)+'<div class="hint">A lista "O valor mensal já contempla" vem dos Parâmetros das propostas.</div>');
+  h+=g('condicoes',f('Condições','condicoes',8,'Título | texto')+f('Segurança jurídica','juridico',6,'um por linha')+
+    '<label class="opts"><span><input type="checkbox" '+(C.mostrarSeguros?'checked':'')+' onchange="setv(\'mostrarSeguros\',this.checked)"> Mostrar "Seguros e garantias"</span></label>');
+  h+=g('diferenciais',f('Abertura','difIntro',3)+'<div class="opts">'+B.cortesias.map(c=>'<label><input type="checkbox" '+(C.difSel.includes(c[0])?'checked':'')+' onchange="marca(\'difSel\',\''+esc(c[0]).replace(/'/g,"\\'")+'\',this.checked)"> '+esc(c[0])+'</label>').join('')+'</div>');
+  h+=g('tecnologia',f('Complemento da abertura','tecExtra',2)+'<div class="opts">'+B.tecnologias.map(t=>'<label><input type="checkbox" '+(C.tecSel.includes(t.k)?'checked':'')+' onchange="marca(\'tecSel\',\''+t.k+'\',this.checked)"> '+esc(t.titulo)+'</label>').join('')+'</div>');
+  h+=g('refs','<div class="hint">Clique na ordem em que as referências vão aparecer (até 8).</div><div class="opts">'+B.refs.map(r=>{const i=C.refsSel.indexOf(r[0]);return '<label><input type="checkbox" '+(i>=0?'checked':'')+' onchange="refTroca(\''+esc(r[0]).replace(/'/g,"\\'")+'\',this.checked)"> '+(i>=0?'<b>'+(i+1)+'.</b> ':'')+esc(r[0])+' <span style="color:#9a968c">· '+esc(r[3])+'</span></label>';}).join('')+'</div>'+
+    '<div class="fld"><label>Fotos de condomínios</label><div class="fotos-pick">'+CONDOS.map(x=>{const i=C.condos.indexOf(x.k);return '<button type="button" class="fp'+(i>=0?' on':'')+'" onclick="ordem(\'condos\',\''+x.k+'\')"><img src="'+x.src+'" alt="">'+(i>=0?'<span>'+(i+1)+'</span>':'')+'</button>';}).join('')+'</div></div>'+f('Especialidades','especialidades'));
+  h+=g('fecho',f('Texto','fechoTexto',4)+f('WhatsApp','whatsapp')+f('E-mail','email')+f('Site','site')+'<div class="opts">'+Object.keys(B.locais).map(k=>'<label><input type="checkbox" '+(C.unidades.includes(k)?'checked':'')+' onchange="marca(\'unidades\',\''+k+'\',this.checked)"> Unidade '+esc(B.locais[k].nome)+'</label>').join('')+'</div>');
+  $('editor').innerHTML=h;estado();
+}
+function refTroca(nm,on){if(on&&C.refsSel.length>=8){toast('No máximo 8 referências por página.',1);editor();return}marca('refsSel',nm,on);}
+
+/* ---------- banco ---------- */
+async function carregar(){
+  const r=await sb.from('com_parametros').select('chave,valor').in('chave',['propostas','portfolio']);
+  (r.data||[]).forEach(x=>{const v=x.valor||{};
+    if(x.chave==='propostas'){Object.keys(B0).forEach(k=>{if(v[k]!=null)B[k]=v[k];});
+      if(!B.refs.some(r=>/flex/i.test(r[0])))B.refs.splice(2,0,B0.refs[2]);}       // Flex ainda não salvo nos parâmetros
+    if(x.chave==='portfolio')Object.keys(C0).forEach(k=>{if(v[k]!=null)C[k]=v[k];});});
+  C.paginas=Object.assign({},C0.paginas,C.paginas);}
+async function salvar(sil){const r=await sb.from('com_parametros').upsert({chave:'portfolio',valor:C});
+  if(r.error){toast('Não foi possível salvar: '+r.error.message,1);return false}$('estado').dataset.sujo='0';estado();if(!sil)toast('Portfólio salvo.');return true;}
+function restaurar(){if(!confirm('Voltar todos os textos do portfólio ao padrão? (Referências, cortesias e tecnologia continuam vindo dos Parâmetros das propostas.)'))return;C=JSON.parse(JSON.stringify(C0));render();editor();sujo();toast('Texto padrão carregado. Clique em Salvar para manter.');}
+async function exportarPDF(){if($('estado').dataset.sujo==='1')await salvar(true);
+  await Promise.all([...document.images].map(i=>i.complete?1:new Promise(r=>{i.onload=i.onerror=r;})));await document.fonts.ready;
+  const t=document.title;document.title='Apresentacao_Institucional_CS';setTimeout(()=>{window.print();document.title=t;},150);}
+
+render();editor();
+CSAuth.iniciar({sistema:'o Gerador de Portfólio', papeis:['comercial','diretoria']}).then(async r=>{
+  sb=r.sb;try{await carregar();}catch(e){toast('Não foi possível carregar os parâmetros.',1)}render();editor();
+}).catch(()=>{});
+window.addEventListener('beforeunload',e=>{if($('estado').dataset.sujo==='1'){e.preventDefault();e.returnValue='';}});
+</script>
+</body>
+</html>
