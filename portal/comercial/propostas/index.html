@@ -137,6 +137,16 @@ table.tb tbody tr:nth-child(even){background:#F1ECDD;}
 .cort p{font-size:9px;line-height:1.45;color:var(--body);}
 table.inv thead th{background:var(--gold);color:var(--ink2);font-size:10px;font-weight:700;padding:12px 14px;text-align:left;}
 table.inv thead th.r{text-align:right;}
+table.inv tbody tr.sub-row td{background:#fff8e6;color:var(--gold-d);font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:8px 14px;}
+table.inv .mk{color:var(--gold-d);font-weight:700;margin-right:6px;}
+table.inv i{color:var(--muted);}
+ul.adic{list-style:none;margin:2px 0 0;padding:0}ul.adic li{font-size:10px;color:var(--body);line-height:1.5;margin-bottom:5px;display:flex;gap:8px}ul.adic li b{color:var(--gold-d);min-width:18px}
+.adic-nota{font-size:9px;font-style:italic;color:var(--muted);margin-top:8px}
+.tec-box{margin-top:16px;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--card)}
+.tec{display:grid;grid-template-columns:52% 1fr;gap:16px;align-items:center;padding:10px 14px 10px 10px;border-bottom:1px solid var(--line)}.tec:last-child{border-bottom:0}
+.tec img{width:100%;height:auto;border-radius:6px;display:block}
+.tec h4{font-size:11.5px;font-weight:700;color:var(--ink);margin-bottom:5px;line-height:1.35}.tec h4 b{color:var(--gold-d)}
+.tec p{font-size:9px;line-height:1.5;color:var(--body);margin-bottom:6px}.tec .check li{font-size:9px;margin-bottom:3px}
 table.inv tbody td{font-size:10.5px;padding:14px;border-bottom:1px solid var(--line);}
 table.inv tbody tr:nth-child(odd){background:#F7F3E9;}
 table.inv tbody tr:nth-child(even){background:#F1ECDD;}
@@ -272,6 +282,13 @@ function ic(n,s){s=s||22;return '<svg viewBox="0 0 24 24" width="'+s+'" height="
 
 /* ---------------- PARÂMETROS PADRÃO (editáveis em "Parâmetros") ---------------- */
 const P0 = {
+  tecIntro: "Para complementar a operação de portaria e controle de acesso, a C&S disponibiliza soluções tecnológicas que trazem mais agilidade, controle e autonomia ao dia a dia do condomínio.",
+  tecNota: "Imagens ilustrativas. Instalação e configuração conforme a estrutura do condomínio, definidas em visita técnica.",
+  tecnologias: [
+    {k:"rfid", titulo:"Identificação veicular por RFID (TAG UHF)", desc:"TAG instalada no para-brisa e lida automaticamente na chegada do veículo, com liberação de portão ou cancela sem parar.", itens:"Acesso rápido para veículos cadastrados\nRegistro automático de entradas e saídas\nIntegração com portaria, cancelas e CFTV\nOperação contínua 24 horas", img:"img/tec-rfid.jpg"},
+    {k:"totem", titulo:"Totem de monitoramento 24h", desc:"Totem na entrada do condomínio com câmeras de alta definição e cobertura 360°, interfone com a portaria e sinalização de área monitorada.", itens:"Monitoramento contínuo da entrada e áreas estratégicas\nControle de acesso veicular integrado\nInterfone direto com a portaria\nIntegração com os programas Smart Sampa e Smart Suzano (mediante adesão)", img:"img/tec-totem.jpg"},
+    {k:"armario", titulo:"Armário inteligente para encomendas", desc:"Compartimentos individuais para receber encomendas 24 horas, com retirada pelo morador por código, QR Code ou aplicativo.", itens:"Recebimento de encomendas 24 horas\nAviso automático ao morador no recebimento e na retirada\nRetirada no horário ideal, sem depender da portaria\nMenos fluxo e mais organização na portaria", img:"img/tec-armario.jpg"}
+  ],
   postosCatalogo: [
     {titulo:"Portaria 24 horas", subtitulo:"", itens:"Controle de acesso de moradores, visitantes e prestadores\nOperação de portões, interfones e cancelas\nRondas preventivas e registro de ocorrências\nRecebimento e organização de encomendas"},
     {titulo:"Aux. de Limpeza", subtitulo:"(sem acúmulo de função)", itens:"Higienização diária das áreas comuns internas\nLimpeza de áreas externas conforme cronograma\nCronograma técnico semanal de limpeza\nControle e reposição de materiais"},
@@ -364,7 +381,7 @@ function estadoVazio(){ return {
   kickerEscopo:"Dimensionamento sob medida", mostrarTabela:false,
   postos:[{posto:"",escala:"",cobertura:"",efetivo:""}],
   atribuicoes:[{titulo:"",subtitulo:"",itens:""}],
-  cortesias:[], seguros:true,
+  cortesias:[], seguros:true, tec:[],
   fotos:['eq1','eq2','eq3','viaturas','portaria-terno','controle-acesso'],
   refs:[0,1,2,3,4,5], condos:['condo-1','condo-2','condo-3','condo-4'],
   investimento:[{servico:"",escala:"",qtd:"1",unit:""}], mostrarEscala:false, notaInvestimento:"",
@@ -388,7 +405,7 @@ function extenso(n){
     if(mi>0)parts.push(ate999(mi)+(mi===1?' milhão':' milhões'));if(mil>0)parts.push(mil===1?'mil':ate999(mil)+' mil');if(un>0)parts.push(ate999(un));
     if(parts.length===1)return parts[0];const last=parts.pop();const join=((un>0&&un<100)||(un===0))?' e ':', ';return parts.join(', ')+join+last;}
   let s=inteiro(reais)+' '+(reais===1?'real':'reais');if(cent>0)s+=' e '+inteiro(cent)+' '+(cent===1?'centavo':'centavos');return s;}
-function totalMensal(){let t=0;S.investimento.forEach(i=>{t+=parseBRL(i.unit)*(parseInt(i.qtd)||0);});return t;}
+function totalMensal(){let t=0;S.investimento.concat(S.tec||[]).forEach(i=>{t+=parseBRL(i.unit)*(parseInt(i.qtd)||0);});return t;}
 function pad2(n){return n<10?'0'+n:''+n;}
 function toast(m,err){const t=document.getElementById('toast');t.textContent=m;t.className='toast show'+(err?' err':'');clearTimeout(toast.h);toast.h=setTimeout(()=>t.className='toast',3200);}
 function marcaAlterado(){ const e=document.getElementById('estado'); if(e) e.dataset.sujo='1'; atualizaEstado(); }
@@ -440,6 +457,17 @@ function renderEditor(){
   h+='<div class="catadd"><select id="catNovo"><option value="">Escolha um posto com descrição pronta…</option>'+opcoesCatalogo()+'</select><button class="btn-cat" onclick="addCatalogo()">+ Adicionar</button></div>';
   h+='<button class="addbtn" onclick="add(\'atribuicoes\')">+ Adicionar posto em branco</button></div>';
 
+  // SERVIÇOS ADICIONAIS · TECNOLOGIA
+  S.tec=S.tec||[];
+  h+='<div class="grp"><h2>Serviços adicionais · tecnologia</h2><div class="hint">Marque as soluções desta proposta. Elas entram no escopo, ganham uma página própria com fotos e aparecem no investimento. Deixe o valor em branco para "Sem custo".</div><div class="check-menu" style="margin:8px 0">';
+  (P.tecnologias||[]).forEach(t=>{const on=S.tec.some(x=>x.k===t.k);h+='<label class="opt"><input type="checkbox" '+(on?'checked':'')+' onchange="toggleTec(\''+t.k+'\',this.checked)"><span>'+esc(t.titulo)+'</span></label>';});
+  h+='</div>';
+  S.tec.forEach((x,i)=>{const t=tecDe(x.k);if(!t)return;
+    h+='<div class="subcard"><div style="font-size:12px;font-weight:700;color:var(--gold-d);margin-bottom:6px">'+marcaTec(i)+' '+esc(t.titulo)+'</div><div class="row2">'+
+      '<div class="fld"><label>Qtd.</label><input type="number" min="0" value="'+esc(x.qtd)+'" oninput="setCalc(\'tec.'+i+'.qtd\',this.value)"></div>'+
+      '<div class="fld"><label>Valor unitário</label><input value="'+esc(x.unit||'')+'" placeholder="Sem custo" oninput="setCalc(\'tec.'+i+'.unit\',this.value)"></div></div></div>';});
+  h+='</div>';
+
   // CORTESIAS + SEGUROS
   h+='<div class="grp"><h2>Cortesias e comodato</h2><div class="hint">Marque as cortesias negociadas. A quantidade aparece antes do nome (ex.: 5 Rádios).</div><div class="check-menu" style="margin:8px 0">';
   P.cortesias.forEach((m,i)=>{const on=S.cortesias.some(c=>c.titulo===m[0]);
@@ -479,6 +507,10 @@ function renderEditor(){
 function add(list){const t={postos:{posto:"",escala:"",cobertura:"",efetivo:""},atribuicoes:{titulo:"",subtitulo:"",itens:""},investimento:{servico:"",escala:"",qtd:"1",unit:""}};
   S[list].push(JSON.parse(JSON.stringify(t[list])));renderEditor();renderPreview();marcaAlterado();}
 function rm(list,i){S[list].splice(i,1);renderEditor();renderPreview();marcaAlterado();}
+function tecDe(k){return (P.tecnologias||[]).find(t=>t.k===k);}
+function marcaTec(i){return '*'.repeat(i+1);}
+function toggleTec(k,on){S.tec=(S.tec||[]).filter(x=>x.k!==k);if(on){const o=(P.tecnologias||[]).map(t=>t.k);S.tec.push({k,qtd:'1',unit:''});S.tec.sort((a,b)=>o.indexOf(a.k)-o.indexOf(b.k));}renderEditor();renderPreview();marcaAlterado();}
+function tecSel(){return (S.tec||[]).map((x,i)=>Object.assign({},tecDe(x.k)||{},x,{m:marcaTec(i)})).filter(x=>x.titulo);}
 function addCort(){S.cortesias.push({titulo:"",desc:"",qtd:""});renderEditor();renderPreview();marcaAlterado();}
 function toggleCort(mi,on){const m=P.cortesias[mi];if(on){if(!S.cortesias.some(c=>c.titulo===m[0]))S.cortesias.push({titulo:m[0],desc:m[1],qtd:""});}else{S.cortesias=S.cortesias.filter(c=>c.titulo!==m[0]);}renderEditor();renderPreview();marcaAlterado();}
 function toggleRef(i,on){S.refs=S.refs.filter(x=>x!==i);if(on){if(S.refs.length>=6){toast('Escolha no máximo 6 referências.',1);renderEditor();return}S.refs.push(i);S.refs.sort((a,b)=>a-b);}renderPreview();marcaAlterado();}
@@ -491,7 +523,7 @@ function checarQualidade(){
   const cortT=S.cortesias.map(c=>(c.titulo||'').toLowerCase());
   S.investimento.forEach(v=>{const s=(v.servico||'').toLowerCase();cortT.forEach(ct=>{const base=ct.split('(')[0].trim();if(base.length>4&&s.indexOf(base)>=0)avisos.push('"'+v.servico+'" aparece como serviço pago e como cortesia. Escolha um dos dois.');});});
   const proibidos=['vigilância','vigilancia','segurança armada','seguranca armada','vigilante','vigilantes','ronda ostensiva','rondas ostensivas','segurança patrimonial 24h'];
-  const txt=[S.cliente,S.ac,S.kickerEscopo,S.notaInvestimento].concat(S.postos.map(p=>p.posto)).concat(S.investimento.map(v=>v.servico)).concat(S.atribuicoes.map(a=>a.titulo+' '+a.itens)).join(' | ').toLowerCase();
+  const txt=[S.cliente,S.ac,S.kickerEscopo,S.notaInvestimento].concat(S.postos.map(p=>p.posto)).concat(S.investimento.map(v=>v.servico)).concat(S.atribuicoes.map(a=>a.titulo+' '+a.itens)).concat(tecSel().map(t=>t.titulo+' '+t.desc+' '+t.itens)).join(' | ').toLowerCase();
   proibidos.forEach(t=>{if(txt.indexOf(t)>=0)avisos.push('Termo "'+t+'" viola a Lei 7.102/83. Use "Portaria e Controle de Acesso" / "rondas preventivas".');});
   if(!S.cliente)avisos.push('Preencha o nome do cliente.');
   const el=document.getElementById('warn');if(!el)return;
@@ -517,11 +549,18 @@ function renderPreview(){
   H+='<section class="page"><div class="kicker">Portfólio Completo</div><h1 class="sec">Nossos serviços</h1><div class="rule"></div><div class="serv-grid">'+serv+'</div><div style="margin-top:22px" class="kicker">Metodologia</div><h1 class="sec" style="font-size:24px">Como trabalhamos</h1><div class="steps">'+steps+'</div><div class="quote">“'+esc(P.frase)+'”</div>'+
     (fotos.length?'<div class="team'+(fotos.length>3?' n6':'')+'">'+fotos.map(s=>'<img src="'+esc(s)+'">').join('')+'</div>':'')+pg()+'</section>';
   // 4 · escopo
+  const tsel=tecSel(), tipoTxt=d.tipoCliente==='empresa'?'a sua empresa':'o seu '+(d.tipoCliente||'condomínio');
   const rows=d.postos.filter(p=>p.posto).map(p=>'<tr><td>'+esc(p.posto)+'</td><td>'+esc(p.escala)+'</td><td>'+esc(p.cobertura)+'</td><td>'+esc(p.efetivo)+'</td></tr>').join('');
   const attr=d.atribuicoes.filter(a=>a.titulo||a.itens).map(a=>'<div class="attr"><h4>'+esc(a.titulo)+(a.subtitulo?' <span>'+esc(a.subtitulo)+'</span>':'')+'</h4><ul class="check">'+linhas(a.itens).map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul></div>').join('');
   H+='<section class="page"><div class="kicker">'+esc(d.kickerEscopo||'Dimensionamento sob medida')+'</div><h1 class="sec">Escopo desta proposta</h1><div class="rule"></div>'+
     (d.mostrarTabela&&rows?'<table class="tb"><thead><tr><th>Posto de trabalho</th><th>Escala</th><th>Cobertura</th><th>Efetivo</th></tr></thead><tbody>'+rows+'</tbody></table>':'')+
-    '<div class="postos-box"><div class="hd">Postos de trabalho</div><div class="pgrid">'+attr+'</div></div><div class="note">Dimensionamento elaborado a partir das informações fornecidas pelo '+esc(d.tipoCliente)+', podendo ser refinado após visita técnica.</div>'+pg()+'</section>';
+    '<div class="postos-box"><div class="hd">Postos de trabalho</div><div class="pgrid">'+attr+(tsel.length?'<div class="attr"><h4>Serviços adicionais</h4><ul class="adic">'+tsel.map(t=>'<li><b>'+t.m+'</b>'+esc(t.titulo)+'</li>').join('')+'</ul><p class="adic-nota">Detalhes na página seguinte.</p></div>':'')+'</div></div><div class="note">Dimensionamento elaborado a partir das informações fornecidas pelo '+esc(d.tipoCliente)+', podendo ser refinado após visita técnica.</div>'+pg()+'</section>';
+  // 4b · tecnologia (só quando há serviços adicionais)
+  if(tsel.length){
+    const semCusto=tsel.every(t=>!parseBRL(t.unit));
+    H+='<section class="page"><div class="kicker">Serviços adicionais</div><h1 class="sec">Tecnologia para '+esc(tipoTxt)+'</h1><div class="rule"></div><p class="lead" style="margin-top:14px">'+esc(P.tecIntro)+(semCusto?' Nesta proposta, os serviços adicionais são oferecidos <b>sem custo adicional</b>.':'')+'</p><div class="tec-box">'+
+      tsel.map(t=>'<div class="tec"><img src="'+esc(t.img)+'" alt=""><div><h4><b>'+t.m+'</b> '+esc(t.titulo)+'</h4><p>'+esc(t.desc)+'</p><ul class="check">'+linhas(t.itens).map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul></div></div>').join('')+
+      '</div><div class="note">'+esc(P.tecNota)+'</div>'+pg()+'</section>';}
   // 5 · cortesias e seguros
   if(d.cortesias.length||d.seguros){
     const ci=d.cortesias.map(c=>'<div class="cort"><div class="ic-circle">'+ic(ICON_CORT(c.titulo))+'</div><div><h4>'+(c.qtd?esc(c.qtd)+' ':'')+esc(c.titulo)+'</h4><p>'+esc(c.desc)+'</p></div></div>').join('');
@@ -538,8 +577,9 @@ function renderPreview(){
   // 7 · investimento
   const ce=d.mostrarEscala;
   const invr=d.investimento.filter(v=>v.servico).map(v=>{const q=(parseInt(v.qtd)||0),m=parseBRL(v.unit)*q;return '<tr><td>'+esc(v.servico)+'</td>'+(ce?'<td>'+esc(v.escala)+'</td>':'')+'<td class="c">'+pad2(q)+'</td><td class="num-r">'+fmtBRL(parseBRL(v.unit))+'</td><td class="num-r">'+fmtBRL(m)+'</td></tr>';}).join('');
+  const tinv=tecSel().map(t=>{const q=(parseInt(t.qtd)||0),u=parseBRL(t.unit);return '<tr><td><span class="mk">'+t.m+'</span>'+esc(t.titulo)+'</td>'+(ce?'<td></td>':'')+'<td class="c">'+pad2(q)+'</td><td class="num-r">'+(u?fmtBRL(u):'<i>Sem custo</i>')+'</td><td class="num-r">'+(u?fmtBRL(u*q):'<i>Sem custo</i>')+'</td></tr>';}).join('');
   const tot=totalMensal(), half=Math.ceil(P.contempla.length/2);
-  H+='<section class="page"><div class="kicker">Proposta Mensal</div><h1 class="sec">Investimento</h1><div class="rule"></div><table class="tb inv"><thead><tr><th>Serviço</th>'+(ce?'<th>Escala</th>':'')+'<th class="c">Qtd.</th><th class="r">Valor unitário</th><th class="r">Valor mensal</th></tr></thead><tbody>'+invr+
+  H+='<section class="page"><div class="kicker">Proposta Mensal</div><h1 class="sec">Investimento</h1><div class="rule"></div><table class="tb inv"><thead><tr><th>Serviço</th>'+(ce?'<th>Escala</th>':'')+'<th class="c">Qtd.</th><th class="r">Valor unitário</th><th class="r">Valor mensal</th></tr></thead><tbody>'+invr+(tinv?'<tr class="sub-row"><td colspan="'+(ce?5:4)+'">Serviços adicionais</td></tr>'+tinv:'')+
     '<tr class="total-row"><td colspan="'+(ce?4:3)+'">VALOR TOTAL MENSAL</td><td class="num-r">'+fmtBRL(tot)+'</td></tr></tbody></table><div class="extenso">('+esc(extenso(tot))+').</div>'+(d.notaInvestimento?'<div class="inv-note">'+esc(d.notaInvestimento)+'</div>':'')+
     '<div class="contempla"><h4>O valor mensal já contempla:</h4><div class="grid2"><ul class="check">'+P.contempla.slice(0,half).map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul><ul class="check">'+P.contempla.slice(half).map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul></div></div>'+
     '<div style="margin-top:24px" class="kicker">Transparência em cada etapa</div><h1 class="sec" style="font-size:24px">Condições comerciais</h1><div class="cond-grid">'+P.condicoes.map(c=>'<div class="cond"><h4>'+esc(c[0])+'</h4><p>'+esc(c[1])+'</p></div>').join('')+'</div>'+pg()+'</section>';
@@ -650,6 +690,9 @@ function parametros(){
   h+='<div class="pgrp"><h3>Numeração</h3><div class="row2"><div class="fld"><label>Ano</label><input id="pr_ano" value="'+esc(P._ultimoAno||new Date().getFullYear())+'"></div><div class="fld"><label>Último número usado fora do sistema</label><input id="pr_num" type="number" min="0" value="'+esc(P._ultimoNumero||0)+'"></div></div><p class="hint">O próximo número é sempre o maior entre este e o último salvo no sistema, + 1.</p></div>';
   h+='<div class="pgrp"><h3>Locais da C&amp;S</h3>'+Object.keys(P.locais).map(k=>'<div class="row3"><div class="fld"><label>Nome</label><input data-loc="'+k+'.nome" value="'+esc(P.locais[k].nome)+'"></div><div class="fld"><label>Telefones</label><input data-loc="'+k+'.tel" value="'+esc(P.locais[k].tel)+'"></div><div class="fld"><label>Endereço</label><input data-loc="'+k+'.end" value="'+esc(P.locais[k].end)+'"></div></div>').join('')+'</div>';
   h+='<div class="pgrp"><h3>Descrições prontas dos postos</h3><div class="fld"><label>Um posto por bloco <i>(1ª linha: Posto | complemento; depois uma atividade por linha; separe os postos com uma linha contendo só ---)</i></label><textarea id="pr_cat" rows="14">'+esc(catalogoTexto())+'</textarea></div></div>';
+  h+='<div class="pgrp"><h3>Serviços adicionais · tecnologia</h3><div class="fld"><label>Texto de abertura da página</label><textarea id="pr_tecIntro" rows="3">'+esc(P.tecIntro)+'</textarea></div>'+
+    (P.tecnologias||[]).map((t,i)=>'<div class="fld"><label>'+esc(t.titulo)+' <i>(1ª linha: título; 2ª: descrição; depois um benefício por linha)</i></label><textarea data-tec="'+i+'" rows="6">'+esc(t.titulo+'\n'+t.desc+'\n'+t.itens)+'</textarea></div>').join('')+
+    '<div class="fld"><label>Nota das imagens</label><input id="pr_tecNota" value="'+esc(P.tecNota)+'"></div></div>';
   h+='<div class="pgrp"><h3>Textos</h3>'+PAR_TEXTOS.map(t=>'<div class="fld"><label>'+t[1]+(t[2]?' <i>('+t[2]+')</i>':'')+'</label><textarea data-par="'+t[0]+'" rows="'+(Array.isArray(P[t[0]])?4:2)+'">'+esc(paramTexto(t[0]))+'</textarea></div>').join('')+'</div>';
   h+='<div class="pgrp"><h3>Listas</h3>'+PAR_LISTAS.map(t=>'<div class="fld"><label>'+t[1]+' <i>('+t[2]+')</i></label><textarea data-par="'+t[0]+'" rows="6">'+esc(paramTexto(t[0]))+'</textarea></div>').join('')+'</div>';
   h+='<div class="modal-foot"><button class="btn btn-ghost-d" onclick="restaurarPadrao()">Restaurar textos padrão</button><button class="btn btn-gold" onclick="gravarParametros()">Salvar parâmetros</button></div>';
@@ -661,7 +704,9 @@ function lerLista(k,txt){const ls=txt.split('\n').map(x=>x.trim()).filter(Boolea
 async function gravarParametros(){
   const v={};document.querySelectorAll('[data-par]').forEach(t=>{const k=t.dataset.par;v[k]=Array.isArray(P0[k])?lerLista(k,t.value):t.value.trim();});
   const loc=JSON.parse(JSON.stringify(P.locais));document.querySelectorAll('[data-loc]').forEach(i=>{const [k,c]=i.dataset.loc.split('.');loc[k][c]=i.value.trim();});v.locais=loc;
-  v.postosCatalogo=lerCatalogo(document.getElementById('pr_cat').value);v.ultimoAno=String(document.getElementById('pr_ano').value).trim();v.ultimoNumero=parseInt(document.getElementById('pr_num').value)||0;
+  v.postosCatalogo=lerCatalogo(document.getElementById('pr_cat').value);
+  v.tecIntro=document.getElementById('pr_tecIntro').value.trim();v.tecNota=document.getElementById('pr_tecNota').value.trim();
+  v.tecnologias=(P.tecnologias||[]).map((t,i)=>{const el=document.querySelector('[data-tec="'+i+'"]');const l=(el?el.value:'').split('\n').map(x=>x.trim()).filter(Boolean);return l.length>=2?Object.assign({},t,{titulo:l[0],desc:l[1],itens:l.slice(2).join('\n')}):t;});v.ultimoAno=String(document.getElementById('pr_ano').value).trim();v.ultimoNumero=parseInt(document.getElementById('pr_num').value)||0;
   if(!(await salvarParametros(v)))return;Object.assign(P,v);P._ultimoAno=v.ultimoAno;P._ultimoNumero=v.ultimoNumero;
   fecharModal();renderEditor();renderPreview();toast('Parâmetros salvos.');}
 async function restaurarPadrao(){if(!confirm('Voltar todos os textos e listas ao padrão? (A numeração e as fotos enviadas continuam.)'))return;
