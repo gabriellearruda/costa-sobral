@@ -57,6 +57,10 @@ body{font-family:'Mont',system-ui,sans-serif;color:var(--ui-text);background:var
 .addbtn{width:100%;font-family:inherit;font-size:12px;font-weight:600;color:var(--gold-d);
   background:#faf5e9;border:1px dashed #d8c48f;border-radius:8px;padding:9px;cursor:pointer;}
 .addbtn:hover{background:#f6eed9;}
+.catbar{display:flex;gap:6px;margin-top:2px}.catbar select{flex:1;min-width:0;font:inherit;font-size:11.5px;border:1px solid var(--ui-line);border-radius:6px;padding:4px 6px;color:#6b675e;background:#fff}
+.catbar button{font:inherit;font-size:11px;border:1px solid #e0d6bd;background:#faf5e9;color:var(--gold-d);border-radius:6px;padding:4px 8px;cursor:pointer;white-space:nowrap}
+.catadd{display:flex;gap:6px;margin:4px 0 8px}.catadd select{flex:1;min-width:0;font:inherit;font-size:12.5px;border:1px solid #d8c48f;border-radius:8px;padding:8px;background:#fff}
+.btn-cat{font:inherit;font-size:12px;font-weight:700;border:none;border-radius:8px;padding:8px 12px;background:var(--gold);color:#111;cursor:pointer;white-space:nowrap}
 .hint{font-size:10.5px;color:#9a968c;margin-top:3px;line-height:1.4;}
 .calc{background:#f7f3e9;border:1px solid #e6dcc2;border-radius:8px;padding:10px 12px;font-size:12px;}
 .calc b{color:var(--gold-d);}
@@ -268,6 +272,15 @@ function ic(n,s){s=s||22;return '<svg viewBox="0 0 24 24" width="'+s+'" height="
 
 /* ---------------- PARÂMETROS PADRÃO (editáveis em "Parâmetros") ---------------- */
 const P0 = {
+  postosCatalogo: [
+    {titulo:"Portaria 24 horas", subtitulo:"", itens:"Controle de acesso de moradores, visitantes e prestadores\nOperação de portões, interfones e cancelas\nRondas preventivas e registro de ocorrências\nRecebimento e organização de encomendas"},
+    {titulo:"Aux. de Limpeza", subtitulo:"(sem acúmulo de função)", itens:"Higienização diária das áreas comuns internas\nLimpeza de áreas externas conforme cronograma\nCronograma técnico semanal de limpeza\nControle e reposição de materiais"},
+    {titulo:"Ronda/Controlador de Acesso", subtitulo:"", itens:"Rondas periódicas em perímetro, garagens e áreas comuns\nVerificação de portas, portões, iluminação e equipamentos\nApoio ao controle de acesso nos horários de maior fluxo\nRegistro de ocorrências e não conformidades em relatório"},
+    {titulo:"Aux. de Serviços Gerais com CNH", subtitulo:"(com acúmulo de função)", itens:"Condução do carrinho motorizado para coleta e transporte de lixo até a área de descarte\nApoio na conservação e limpeza de áreas comuns\nPequenos reparos e ajustes de baixa complexidade\nMovimentação de materiais e mobiliário conforme demanda"},
+    {titulo:"Zelador", subtitulo:"", itens:"Supervisão da rotina das equipes de limpeza e portaria\nVistoria diária das áreas comuns e instalações\nAcompanhamento de prestadores de serviço e manutenções\nInterface com síndico e gestão, reporte de pendências e ocorrências."},
+    {titulo:"Manutencista", subtitulo:"", itens:"Manutenção preventiva e corretiva predial\nTroca de lâmpadas, reatores, torneiras, válvulas e fechaduras\nInspeção periódica de bombas, quadros elétricos e reservatórios\nRegistro das intervenções e controle de materiais utilizados"},
+    {titulo:"Auxiliar Administrativo", subtitulo:"", itens:"Atendimento a moradores, fornecedores e administração\nControle de documentos, correspondências e arquivos\nLançamentos, planilhas e acompanhamento de rotinas administrativas\nAgendamento de áreas comuns e apoio à gestão do condomínio"}
+  ],
   quemSomos: [
     "Somos uma empresa especializada na prestação de serviços terceirizados para condomínios, empresas e indústrias, com atuação focada em gestão eficiente, organização e cuidado diário com o patrimônio.",
     "Nosso diferencial está na integração entre pessoas bem selecionadas e treinadas, processos claros e padronizados e supervisão contínua — garantindo que o seu patrimônio esteja sempre protegido e bem cuidado."],
@@ -422,8 +435,10 @@ function renderEditor(){
   S.atribuicoes.forEach((a,i)=>{
     h+='<div class="subcard"><button class="rm" onclick="rm(\'atribuicoes\','+i+')">×</button>';
     h+='<div class="row2">'+fld('Posto','atribuicoes.'+i+'.titulo',a.titulo,'Portaria 24 horas')+fld('Complemento (opcional)','atribuicoes.'+i+'.subtitulo',a.subtitulo,'(sem acúmulo de função)')+'</div>';
-    h+='<div class="fld"><label>Atividades (uma por linha)</label><textarea oninput="set(\'atribuicoes.'+i+'.itens\',this.value)" placeholder="Controle de acesso...">'+esc(a.itens)+'</textarea></div></div>';});
-  h+='<button class="addbtn" onclick="add(\'atribuicoes\')">+ Adicionar posto</button></div>';
+    h+='<div class="fld"><label>Atividades (uma por linha)</label><textarea oninput="set(\'atribuicoes.'+i+'.itens\',this.value)" placeholder="Controle de acesso...">'+esc(a.itens)+'</textarea></div>';
+    h+='<div class="catbar"><select onchange="usarCatalogo('+i+',this.value)"><option value="">Trocar por descrição pronta…</option>'+opcoesCatalogo()+'</select><button onclick="salvarNoCatalogo('+i+')">Salvar como descrição pronta</button></div></div>';});
+  h+='<div class="catadd"><select id="catNovo"><option value="">Escolha um posto com descrição pronta…</option>'+opcoesCatalogo()+'</select><button class="btn-cat" onclick="addCatalogo()">+ Adicionar</button></div>';
+  h+='<button class="addbtn" onclick="add(\'atribuicoes\')">+ Adicionar posto em branco</button></div>';
 
   // CORTESIAS + SEGUROS
   h+='<div class="grp"><h2>Cortesias e comodato</h2><div class="hint">Marque as cortesias negociadas. A quantidade aparece antes do nome (ex.: 5 Rádios).</div><div class="check-menu" style="margin:8px 0">';
@@ -600,6 +615,24 @@ async function enviarFoto(inp){const f=inp.files&&inp.files[0];if(!f)return;
   const s=await sb.storage.from('comercial').createSignedUrl(path,3600*8);if(s.data)URL_EXTRA[path]=s.data.signedUrl;
   if(S.fotos.length<6)S.fotos.push(k);renderEditor();renderPreview();marcaAlterado();toast('Foto adicionada ao banco de imagens.');}
 
+/* Descrições prontas dos postos (Parâmetros > Descrições prontas dos postos) */
+function catalogo(){return P.postosCatalogo||[];}
+function opcoesCatalogo(){return catalogo().map((c,k)=>'<option value="'+k+'">'+esc(c.titulo+(c.subtitulo?' '+c.subtitulo:''))+'</option>').join('');}
+function copiaCat(k){const c=catalogo()[k];return {titulo:c.titulo,subtitulo:c.subtitulo||'',itens:c.itens};}
+function addCatalogo(){const k=document.getElementById('catNovo').value;if(k==='')return toast('Escolha um posto na lista.',1);
+  const vazio=S.atribuicoes.findIndex(a=>!a.titulo&&!a.itens);if(vazio>=0)S.atribuicoes[vazio]=copiaCat(+k);else S.atribuicoes.push(copiaCat(+k));
+  renderEditor();renderPreview();marcaAlterado();}
+function usarCatalogo(i,k){if(k==='')return;const a=S.atribuicoes[i];
+  if((a.titulo||a.itens)&&!confirm('Trocar o texto deste posto pela descrição pronta?'))return renderEditor();
+  S.atribuicoes[i]=copiaCat(+k);renderEditor();renderPreview();marcaAlterado();}
+async function salvarNoCatalogo(i){const a=S.atribuicoes[i];if(!a.titulo.trim()||!a.itens.trim())return toast('Preencha o posto e as atividades antes de salvar.',1);
+  const cat=catalogo().slice();const j=cat.findIndex(c=>c.titulo.trim().toLowerCase()===a.titulo.trim().toLowerCase()&&(c.subtitulo||'').trim()===(a.subtitulo||'').trim());
+  if(j>=0&&!confirm('Já existe uma descrição pronta para "'+a.titulo+'". Substituir pelo texto deste posto?'))return;
+  const novo={titulo:a.titulo.trim(),subtitulo:(a.subtitulo||'').trim(),itens:a.itens.trim()};if(j>=0)cat[j]=novo;else cat.push(novo);
+  if(!(await salvarParametros({postosCatalogo:cat})))return;P.postosCatalogo=cat;renderEditor();toast(j>=0?'Descrição pronta atualizada.':'Descrição pronta salva.');}
+function catalogoTexto(){return catalogo().map(c=>c.titulo+(c.subtitulo?' | '+c.subtitulo:'')+'\n'+c.itens).join('\n---\n');}
+function lerCatalogo(t){return t.split(/\n\s*-{3,}\s*\n/).map(b=>b.split('\n').map(x=>x.trim()).filter(Boolean)).filter(b=>b.length).map(b=>{const [ti,sub]=b[0].split('|').map(x=>x.trim());return {titulo:ti,subtitulo:sub||'',itens:b.slice(1).join('\n')};});}
+
 /* Parâmetros: listas editáveis, uma por linha ("Título | descrição") */
 const PAR_LISTAS=[
   ['servicos','Nossos serviços (página 3)','ícone | título | descrição — ícones: key, broom, tool, leaf, users, eye'],
@@ -616,6 +649,7 @@ function parametros(){
   let h='<h2>Parâmetros do gerador</h2><p class="hint">Valem para todas as propostas novas. As já salvas guardam o texto da época só no que é do cliente (escopo, valores, cortesias); os textos fixos vêm daqui.</p>';
   h+='<div class="pgrp"><h3>Numeração</h3><div class="row2"><div class="fld"><label>Ano</label><input id="pr_ano" value="'+esc(P._ultimoAno||new Date().getFullYear())+'"></div><div class="fld"><label>Último número usado fora do sistema</label><input id="pr_num" type="number" min="0" value="'+esc(P._ultimoNumero||0)+'"></div></div><p class="hint">O próximo número é sempre o maior entre este e o último salvo no sistema, + 1.</p></div>';
   h+='<div class="pgrp"><h3>Locais da C&amp;S</h3>'+Object.keys(P.locais).map(k=>'<div class="row3"><div class="fld"><label>Nome</label><input data-loc="'+k+'.nome" value="'+esc(P.locais[k].nome)+'"></div><div class="fld"><label>Telefones</label><input data-loc="'+k+'.tel" value="'+esc(P.locais[k].tel)+'"></div><div class="fld"><label>Endereço</label><input data-loc="'+k+'.end" value="'+esc(P.locais[k].end)+'"></div></div>').join('')+'</div>';
+  h+='<div class="pgrp"><h3>Descrições prontas dos postos</h3><div class="fld"><label>Um posto por bloco <i>(1ª linha: Posto | complemento; depois uma atividade por linha; separe os postos com uma linha contendo só ---)</i></label><textarea id="pr_cat" rows="14">'+esc(catalogoTexto())+'</textarea></div></div>';
   h+='<div class="pgrp"><h3>Textos</h3>'+PAR_TEXTOS.map(t=>'<div class="fld"><label>'+t[1]+(t[2]?' <i>('+t[2]+')</i>':'')+'</label><textarea data-par="'+t[0]+'" rows="'+(Array.isArray(P[t[0]])?4:2)+'">'+esc(paramTexto(t[0]))+'</textarea></div>').join('')+'</div>';
   h+='<div class="pgrp"><h3>Listas</h3>'+PAR_LISTAS.map(t=>'<div class="fld"><label>'+t[1]+' <i>('+t[2]+')</i></label><textarea data-par="'+t[0]+'" rows="6">'+esc(paramTexto(t[0]))+'</textarea></div>').join('')+'</div>';
   h+='<div class="modal-foot"><button class="btn btn-ghost-d" onclick="restaurarPadrao()">Restaurar textos padrão</button><button class="btn btn-gold" onclick="gravarParametros()">Salvar parâmetros</button></div>';
@@ -627,7 +661,7 @@ function lerLista(k,txt){const ls=txt.split('\n').map(x=>x.trim()).filter(Boolea
 async function gravarParametros(){
   const v={};document.querySelectorAll('[data-par]').forEach(t=>{const k=t.dataset.par;v[k]=Array.isArray(P0[k])?lerLista(k,t.value):t.value.trim();});
   const loc=JSON.parse(JSON.stringify(P.locais));document.querySelectorAll('[data-loc]').forEach(i=>{const [k,c]=i.dataset.loc.split('.');loc[k][c]=i.value.trim();});v.locais=loc;
-  v.ultimoAno=String(document.getElementById('pr_ano').value).trim();v.ultimoNumero=parseInt(document.getElementById('pr_num').value)||0;
+  v.postosCatalogo=lerCatalogo(document.getElementById('pr_cat').value);v.ultimoAno=String(document.getElementById('pr_ano').value).trim();v.ultimoNumero=parseInt(document.getElementById('pr_num').value)||0;
   if(!(await salvarParametros(v)))return;Object.assign(P,v);P._ultimoAno=v.ultimoAno;P._ultimoNumero=v.ultimoNumero;
   fecharModal();renderEditor();renderPreview();toast('Parâmetros salvos.');}
 async function restaurarPadrao(){if(!confirm('Voltar todos os textos e listas ao padrão? (A numeração e as fotos enviadas continuam.)'))return;
