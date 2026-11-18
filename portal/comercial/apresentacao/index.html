@@ -606,6 +606,22 @@ tr.gone{opacity:0;transition:opacity .25s}
 
 
 .hint{position:absolute;right:96px;bottom:84px;font-family:var(--mono);font-size:12px;letter-spacing:.14em;color:rgba(154,151,142,.6);text-transform:uppercase;z-index:20}
+
+/* ---------- link para o cliente ---------- */
+body.modo-cliente #prep,body.modo-cliente #btnAdd,body.modo-cliente #btnClear,body.modo-cliente #btnGen,body.modo-cliente #gStat,body.modo-cliente #gLast,
+body.modo-cliente #tscroll .qm,body.modo-cliente #tscroll .qp,body.modo-cliente #tscroll .del{display:none!important}
+body.modo-cliente #tscroll input,body.modo-cliente #tscroll select,body.modo-cliente #tscroll textarea,body.modo-cliente .scope input{pointer-events:none}
+.cs-gennota{font-size:15px;opacity:.75;margin-top:14px}
+.lk-ovl{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9000;display:flex;align-items:flex-start;justify-content:center;padding:6vh 16px;overflow:auto;font-family:Montserrat,system-ui,sans-serif}
+.lk-box{background:#fff;color:#222;border-radius:14px;max-width:720px;width:100%;padding:22px 24px;position:relative;box-shadow:0 30px 80px rgba(0,0,0,.5)}
+.lk-box h3{font-size:20px;margin:0 0 4px}.lk-box .s{font-size:13px;color:#777;margin-bottom:14px;line-height:1.5}
+.lk-box .x{position:absolute;top:10px;right:14px;border:0;background:none;font-size:26px;cursor:pointer;color:#888}
+.lk-box table{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:6px}.lk-box th{text-align:left;color:#888;font-weight:600;font-size:11px;border-bottom:1px solid #eee;padding:6px 4px}
+.lk-box td{padding:8px 4px;border-bottom:1px solid #f2f0ea;vertical-align:middle}.lk-box .url{font-family:ui-monospace,Consolas,monospace;font-size:11.5px;word-break:break-all;color:#6b5418}
+.lk-b{font:inherit;font-size:12.5px;font-weight:600;border:0;border-radius:8px;padding:8px 12px;cursor:pointer;background:#D4AF37;color:#111}.lk-b.sec{background:#f1ede2;color:#5c5446}.lk-b.red{background:#f7e3df;color:#b3412f}
+.lk-pill{display:inline-block;font-size:11px;font-weight:700;border-radius:9px;padding:2px 8px}.lk-ok{background:#e3f2e8;color:#2e7d4f}.lk-no{background:#eee;color:#888}
+.lk-fim{position:fixed;inset:0;background:#0b0b0c;color:#EDE7D6;z-index:9500;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:30px;font-family:Montserrat,system-ui,sans-serif}
+.lk-fim img{height:90px;margin-bottom:26px}.lk-fim h2{font-size:24px;margin:0 0 10px;color:#fff}.lk-fim p{font-size:15px;color:#bdb5a2;max-width:520px;line-height:1.6}
 </style>
 
 <div class="deck" id="deck">
@@ -1149,10 +1165,22 @@ tr.gone{opacity:0;transition:opacity .25s}
 <script>
 /* Ponte: a apresentação usa a mesma interface de antes, agora gravando no banco único C&S.
    clientes → com_apresentacoes · fechamentos → com_fechamentos · PDFs anexados → Storage "comercial" */
-window.__csPronto = CSAuth.iniciar({sistema:'a Apresentação Executiva', papeis:['comercial','diretoria']}).then(r=>r.sb);
+const CS_TOKEN = new URLSearchParams(location.search).get('c');
+window.__csCliente = !!CS_TOKEN;
+if (CS_TOKEN) document.body.classList.add('modo-cliente');
+window.__csPronto = CS_TOKEN
+  ? Promise.resolve(window.supabase.createClient(window.CS_CONFIG.url, window.CS_CONFIG.chave, {auth:{persistSession:false, autoRefreshToken:false, storageKey:'cs-link-cliente'}}))
+  : CSAuth.iniciar({sistema:'a Apresentação Executiva', papeis:['comercial','diretoria']}).then(r=>r.sb);
+function linkIndisponivel(){const d=document.createElement('div');d.className='lk-fim';
+  d.innerHTML='<img src="img/logo.png" onerror="this.remove()" alt=""><h2>Este link não está mais disponível</h2><p>O prazo do link terminou ou ele foi desativado. Fale com a C&amp;S para receber um novo: <b>(11) 92524-2324</b> · cservicos.com</p>';
+  document.body.appendChild(d);}
 (function(){
   const doc = d => ({id:d.id, exists:true, data:()=>d.dados});
   function colecao(sb, nome){
+    if(nome==='clientes' && CS_TOKEN) return {
+      get: async()=>{const r=await sb.rpc('apresentacao_publica',{p_token:CS_TOKEN});if(r.error||!r.data){linkIndisponivel();return {docs:[]}}return {docs:[doc(r.data)]}},
+      doc: ()=>({set: async()=>{}, delete: async()=>{}})};
+    if(nome==='fechamentos' && CS_TOKEN){const api={add:async()=>{},orderBy:()=>api,limit:()=>api,get:async()=>({docs:[]})};return api}
     if(nome==='clientes') return {
       get: async()=>{const r=await sb.from('com_apresentacoes').select('id,dados').is('cancelado_em',null);if(r.error)throw r.error;return {docs:r.data.map(doc)}},
       doc: id=>({
@@ -1807,7 +1835,7 @@ $('impJson').addEventListener('change',async e=>{const f=e.target.files&&e.targe
  for(const c of arr){if(!c||!c.nome)continue;const m=merge(DEF,c);if(!m.id)m.id=newId();await saveClient(m);n++}LIST=await listClients();fillCliSel();setSt(n+' clientes importados.','ok')}catch(err){setSt('Arquivo inválido. Use um .json exportado daqui.','err')}e.target.value=''});
 
 /* abrir e fechar */
-function openPrep(){$('prep').hidden=false;fillPanel()}
+function openPrep(){if(window.__csCliente)return;$('prep').hidden=false;fillPanel()}
 function closePrep(){$('prep').hidden=true}
 $('cfgLogo').addEventListener('click',e=>{if(e.detail>=3)openPrep()});
 
@@ -1823,6 +1851,39 @@ stage.addEventListener('click',e=>{if(!placing)return;e.preventDefault();e.stopP
  CFG.mapa.card=CFG.mapa.x>1350?'esq':'dir';
  applyCfg();markDirty();openPrep();document.querySelectorAll('#prep details')[2].open=true;toast('Posição salva. Confira base, cliente próximo e km.')},true);
 addEventListener('keydown',e=>{if(e.key==='Escape'){if(placing){placing=false;stage.classList.remove('placing');openPrep()}}});
+
+/* ---------- link para o cliente (30 dias, sem login, só leitura) ---------- */
+function lkUrl(t){return location.origin+location.pathname+'?c='+t}
+function lkData(d){return d?new Date(d).toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'}):'—'}
+async function abrirLinks(){
+  if(!LIST.some(c=>c.id===CFG.id)||dirty){toast('Salve o cliente antes de gerar o link.');return}
+  const sb=await window.__csPronto;
+  const r=await sb.from('com_apresentacao_links').select('*').eq('apresentacao_id',CFG.id).order('criado_em',{ascending:false});
+  if(r.error){toast('Não foi possível abrir os links: '+r.error.message);return}
+  const ag=new Date();
+  const lin=(r.data||[]).map(l=>{const ok=l.ativo&&new Date(l.expira_em)>ag;
+    return `<tr><td><span class="lk-pill ${ok?'lk-ok':'lk-no'}">${ok?'Ativo':(l.ativo?'Vencido':'Desativado')}</span></td><td class="url">${esc(lkUrl(l.token))}</td>
+    <td>${lkData(l.expira_em)}</td><td>${l.aberturas}× <br><span style="color:#999">${l.ultima_abertura?'última: '+lkData(l.ultima_abertura):'ainda não abriu'}</span></td>
+    <td style="white-space:nowrap">${ok?`<button class="lk-b sec" data-cp="${esc(l.token)}">Copiar</button> <button class="lk-b red" data-off="${esc(l.token)}">Desativar</button>`:''}</td></tr>`}).join('');
+  const box=document.createElement('div');box.className='lk-ovl';box.id='lkOvl';
+  box.innerHTML=`<div class="lk-box"><button class="x" aria-label="Fechar">×</button><h3>Link para o cliente</h3>
+   <div class="s">${esc(CFG.nome||'')} · o cliente abre a apresentação sem login, só para ver. O link vale 30 dias e pode ser desativado a qualquer momento. As alterações que você salvar aparecem no link na hora.</div>
+   <button class="lk-b" id="lkNovo">Gerar novo link (30 dias)</button>
+   ${lin?`<table><thead><tr><th>Situação</th><th>Endereço</th><th>Vale até</th><th>Aberturas</th><th></th></tr></thead><tbody>${lin}</tbody></table>`:'<p class="s" style="margin-top:12px">Nenhum link gerado ainda.</p>'}</div>`;
+  document.body.appendChild(box);
+  box.onclick=async e=>{const t=e.target;
+    if(t===box||t.classList.contains('x')){box.remove();return}
+    if(t.id==='lkNovo'){t.disabled=true;const n=await sb.from('com_apresentacao_links').insert({apresentacao_id:CFG.id}).select('token').single();
+      if(n.error){toast('Erro: '+n.error.message);t.disabled=false;return}
+      try{await navigator.clipboard.writeText(lkUrl(n.data.token))}catch(_){}
+      box.remove();await abrirLinks();toast('Link gerado e copiado. É só colar no WhatsApp ou no e-mail.');return}
+    if(t.dataset.cp){try{await navigator.clipboard.writeText(lkUrl(t.dataset.cp));toast('Link copiado.')}catch(_){prompt('Copie o link:',lkUrl(t.dataset.cp))}return}
+    if(t.dataset.off){if(!confirm('Desativar este link? O cliente não consegue mais abrir.'))return;
+      const u=await sb.from('com_apresentacao_links').update({ativo:false}).eq('token',t.dataset.off);if(u.error){toast('Erro: '+u.error.message);return}
+      box.remove();await abrirLinks();toast('Link desativado.')}};
+}
+if(!window.__csCliente){const f=$('prepPresent');if(f){const b=document.createElement('button');b.className='pb';b.type='button';b.id='prepLink';b.textContent='Link para o cliente';b.onclick=abrirLinks;f.parentNode.insertBefore(b,f);}}
+else{const g=document.querySelector('.gen');if(g){const p=document.createElement('p');p.className='cs-gennota';p.textContent='A proposta em PDF é enviada pela equipe C&S. Dúvidas: (11) 92524-2324.';g.appendChild(p);}}
 
 /* início */
 buildLists();applyCfg();fillPanel();
