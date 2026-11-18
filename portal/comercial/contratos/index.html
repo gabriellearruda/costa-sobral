@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Gerador de Contratos · C&amp;S</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+<style>
+:root{--gold:#D4AF37;--gold-d:#A67C1E;--ink:#0D0D0D;--line:#E3E0D8;--txt:#2C2A26;--muted:#8a8578;--bg:#F5F4F1}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Montserrat,system-ui,sans-serif;color:var(--txt);background:var(--bg)}
+.topbar{height:56px;background:var(--ink);display:flex;align-items:center;gap:10px;padding:0 18px;position:sticky;top:0;z-index:50;border-bottom:2px solid var(--gold)}
+.topbar .brand{display:flex;align-items:center;gap:10px;color:#fff;font-weight:700;font-size:14px}
+.topbar .brand img{height:30px}
+.topbar .sp{flex:1}.topbar .estado{color:#cfc6ae;font-size:12px}.topbar .estado b{color:var(--gold)}.topbar .estado i{color:#e4a59c;font-style:normal}
+.btn{font-family:inherit;font-size:13px;font-weight:600;border:none;border-radius:8px;padding:9px 14px;cursor:pointer}
+.btn-gold{background:var(--gold);color:#111}.btn-ghost{background:transparent;color:#EDE7D6;border:1px solid #4a463c}.btn-mini{padding:5px 10px;font-size:12px;background:var(--gold);color:#111}
+.lnk{color:#e7c77a;font-size:12px;text-decoration:none;margin-left:4px}
+.layout{display:grid;grid-template-columns:470px 1fr;height:calc(100vh - 56px)}
+.editor{overflow-y:auto;background:#fff;border-right:1px solid var(--line);padding:16px 18px 80px}
+.preview{overflow:auto;background:#6b6a66;padding:26px;display:flex;justify-content:center}
+.grp{margin-bottom:20px}.grp>h2{font-size:12px;font-weight:700;letter-spacing:.5px;color:var(--gold-d);text-transform:uppercase;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.fld{margin-bottom:10px}.fld label{display:block;font-size:11px;font-weight:600;color:#6b675e;margin-bottom:4px}
+.fld input,.fld textarea,.fld select{width:100%;font-family:inherit;font-size:13px;color:var(--txt);background:#fff;border:1px solid #d7d3c8;border-radius:7px;padding:7px 9px;outline:none}
+.fld input:focus,.fld textarea:focus,.fld select:focus{border-color:var(--gold)}
+.fld textarea{resize:vertical;min-height:70px;line-height:1.45}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:9px}.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px}
+.hint{font-size:10.5px;color:#9a968c;margin-top:3px;line-height:1.45}
+.numbox{font-size:13px;font-weight:700;color:var(--gold-d);background:#faf5e9;border:1px dashed #d8c48f;border-radius:7px;padding:8px 10px}
+.aviso{background:#fff7e6;border:1px solid #f0d9a5;color:#7a5a12;border-radius:8px;padding:9px 11px;font-size:11.5px;line-height:1.45;margin-bottom:14px}
+.opt{display:flex;align-items:center;gap:8px;font-size:12.5px;margin:6px 0;cursor:pointer}.opt input{width:auto}
+.cl{border:1px solid var(--line);border-radius:9px;margin-bottom:8px;background:#fbfaf7}
+.cl>summary{list-style:none;cursor:pointer;padding:9px 11px;font-size:12.5px;font-weight:600;display:flex;gap:8px;align-items:center}
+.cl>summary::-webkit-details-marker{display:none}.cl>summary .n{color:var(--gold-d);min-width:22px}
+.cl>summary .off{color:#b4ad9d;font-weight:400;font-size:11px}
+.cl .corpo{padding:0 11px 11px}.cl .par{position:relative;margin-bottom:8px}
+.cl .par textarea{width:100%;font-family:inherit;font-size:12.5px;border:1px solid #d7d3c8;border-radius:7px;padding:7px 30px 7px 9px;min-height:64px;line-height:1.45;resize:vertical}
+.cl .par .rm{position:absolute;top:6px;right:6px;border:none;background:#f3ece0;color:#9a7b3a;border-radius:6px;width:22px;height:22px;cursor:pointer;font-weight:700}
+.minis{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.minis button{font:inherit;font-size:11.5px;border:1px solid #e0d6bd;background:#faf5e9;color:var(--gold-d);border-radius:6px;padding:4px 8px;cursor:pointer}
+.addbtn{width:100%;font-family:inherit;font-size:12px;font-weight:600;color:var(--gold-d);background:#faf5e9;border:1px dashed #d8c48f;border-radius:8px;padding:9px;cursor:pointer}
+.chaves{font-size:10.5px;color:#8a8578;line-height:1.6;background:#f7f5ef;border-radius:7px;padding:8px 10px}.chaves code{color:#7a5a12}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:#1a1a1a;color:#fff;border-left:3px solid var(--gold);padding:10px 16px;border-radius:8px;font-size:13px;opacity:0;pointer-events:none;transition:.25s;z-index:200}
+.toast.show{opacity:1;transform:translateX(-50%)}.toast.err{border-left-color:#d9534f}
+.ovl{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:150;display:flex;align-items:flex-start;justify-content:center;padding:40px 16px;overflow:auto}
+.mdl{background:#fff;border-radius:12px;max-width:900px;width:100%;padding:22px 24px;position:relative}
+.mdl h2{font-family:'Playfair Display',serif;font-size:22px;margin-bottom:12px}.mdl .x{position:absolute;top:12px;right:14px;border:none;background:none;font-size:24px;cursor:pointer;color:#777}
+.mdl .busca{width:100%;padding:9px 12px;border:1px solid #d7d3c8;border-radius:8px;font:inherit;margin-bottom:10px}
+table.hist{width:100%;border-collapse:collapse;font-size:12.5px}table.hist th{text-align:left;font-size:11px;color:#8a8578;border-bottom:1px solid #e3e0d8;padding:6px}
+table.hist td{padding:7px 6px;border-bottom:1px solid #f0ede5}table.hist .r{text-align:right}table.hist select{font:inherit;font-size:12px;padding:3px}
+
+/* ---------- folha timbrada ---------- */
+.folha{width:210mm;background:#fff;box-shadow:0 4px 24px rgba(0,0,0,.35);padding:0 20mm;font-family:"Times New Roman","Liberation Serif",Tinos,serif;color:#111;font-size:11.5pt;line-height:1.5}
+.cab{padding:9mm 0 0}.cab img{height:17mm;display:block}.cab .lin{height:1.4px;background:var(--gold);margin:3mm 0 0}
+.rod{border-top:1px solid #c9c2ad;padding:2.5mm 0 6mm;margin-top:10mm;font-family:Montserrat,sans-serif;font-size:6.6pt;color:#8a8578;line-height:1.6}
+.rod b{color:var(--gold-d);letter-spacing:1.6px;font-weight:700}
+.doc h1{font-size:12pt;font-weight:700;text-align:center;text-decoration:underline;text-transform:uppercase;margin:9mm 6mm 2mm;line-height:1.4}
+.doc .num{font-size:11.5pt;font-weight:700;text-align:center;margin-bottom:6mm}
+.doc p{text-align:justify;text-indent:16mm;margin:0 0 3mm}
+.doc p.sem{text-indent:0}
+.doc h3{font-size:11.5pt;font-weight:700;margin:6mm 0 3mm;page-break-after:avoid}
+.doc ul.esc{margin:0 0 3mm 22mm}.doc ul.esc li{margin-bottom:1mm;text-align:justify}
+.doc .posto{margin:2mm 0 1mm 16mm;font-weight:700}
+.doc table.val{width:100%;border-collapse:collapse;margin:2mm 0 4mm;font-size:10.5pt;page-break-inside:avoid}
+.doc table.val th,.doc table.val td{border:1px solid #999;padding:1.5mm 2mm}.doc table.val th{background:#f1ecdd;text-align:left}
+.doc table.val td.r,.doc table.val th.r{text-align:right;white-space:nowrap}.doc table.val td.c,.doc table.val th.c{text-align:center}
+.doc table.val tr.tot td{font-weight:700;background:#f7f3e9}
+.ass{margin-top:12mm;page-break-inside:avoid}.ass .bl{text-align:center;margin:16mm auto 0;width:110mm}
+.ass .bl .ln{border-top:1px solid #444;margin-bottom:2mm}.ass .bl b{display:block}
+.ass .test{display:grid;grid-template-columns:1fr 1fr;gap:12mm;margin-top:14mm}.ass .test .ln{border-top:1px solid #444;margin:10mm 0 2mm}
+.marca{background:#fff3b0}
+@page{size:A4;margin:0}
+@media print{
+  body{background:#fff}.topbar,.editor,#modalRoot,.toast{display:none!important}
+  .layout{display:block;height:auto}.preview{display:block;background:#fff;padding:0;overflow:visible}
+  .folha{box-shadow:none;width:auto;padding:0}
+  table.pag{width:100%;border-collapse:collapse}table.pag>thead>tr>td,table.pag>tfoot>tr>td,table.pag>tbody>tr>td{padding:0 20mm}
+  .cab-print{height:31mm}.rod-print{height:22mm}
+  .cab-fixo{position:fixed;top:0;left:20mm;right:20mm;padding-top:9mm;background:#fff}.cab-fixo img{height:17mm;display:block}.cab-fixo .lin{height:1.4px;background:var(--gold);margin-top:3mm}
+  .rod-fixo{position:fixed;bottom:0;left:20mm;right:20mm;border-top:1px solid #c9c2ad;padding:2.5mm 0 7mm;font-family:Montserrat,sans-serif;font-size:6.6pt;color:#8a8578;line-height:1.6;background:#fff}
+  .rod-fixo b{color:var(--gold-d);letter-spacing:1.6px}
+  .cab,.rod{display:none}.marca{background:none}
+}
+@media screen{.cab-fixo,.rod-fixo{display:none}table.pag>thead,table.pag>tfoot{display:none}table.pag{width:100%}}
+</style>
+</head>
+<body>
+<script src="/app/vendor/supabase.js"></script>
+<script src="/app/config.js"></script>
+<script src="/portal/_comum/cs-auth.js"></script>
+
+<div class="topbar">
+  <div class="brand"><img src="/app/icons/apple-touch-icon.png" alt="C&amp;S"> · Gerador de Contratos</div>
+  <div class="sp"></div>
+  <span class="estado" id="estado" data-sujo="0"></span>
+  <button class="btn btn-ghost" onclick="novo()">Novo</button>
+  <button class="btn btn-ghost" onclick="historico()">Histórico</button>
+  <button class="btn btn-ghost" onclick="abrirModelo()">Modelo padrão</button>
+  <button class="btn btn-ghost" onclick="salvar()">Salvar</button>
+  <button class="btn btn-gold" onclick="exportarPDF()">Exportar PDF</button>
+  <a class="lnk" href="/portal/">Portal</a><a class="lnk" href="#" onclick="CSAuth.sair();return false">Sair</a>
+</div>
+<div id="modalRoot"></div><div class="toast" id="toast"></div>
+<div class="layout">
+  <div class="editor" id="editor"></div>
+  <div class="preview"><div class="folha" id="folha"></div></div>
+</div>
+
+<script>
+/* =====================================================================
+   GERADOR DE CONTRATOS C&S — papel timbrado, dados da proposta, cláusulas
+   editáveis por cláusula e parágrafo, com ou sem multa, histórico e número.
+   O texto padrão é um MODELO BASE para revisão do jurídico antes do uso.
+   ===================================================================== */
+
+/* ---------- Chaves que podem aparecer no texto ---------- */
+const CHAVES = {
+  '{CONTRATANTE}':'nome do contratante','{PROPOSTA}':'nº da proposta','{VALOR_MENSAL}':'valor mensal','{VALOR_EXTENSO}':'valor por extenso',
+  '{VENCIMENTO}':'dia de vencimento','{VIGENCIA}':'prazo em meses','{INICIO}':'data de início','{AVISO}':'dias de aviso prévio',
+  '{MULTA}':'texto da multa (com ou sem)','{FORO}':'comarca do foro','[[ESCOPO]]':'postos e atividades da proposta (parágrafo inteiro)',
+  '[[VALORES]]':'tabela de valores da proposta (parágrafo inteiro)','[[CORTESIAS]]':'lista de itens em comodato/cortesia (parágrafo inteiro)'};
+
+/* ---------- Modelo padrão (editável em "Modelo padrão") ---------- */
+const MODELO0 = {
+  titulo: 'Instrumento particular de prestação de serviços terceirizados',
+  multaCom: 'Caso a rescisão imotivada ocorra antes do término do prazo de vigência, a parte que lhe der causa pagará à outra, a título de multa compensatória, valor equivalente a {MULTA_QTD} vez(es) o valor mensal vigente, sem prejuízo do aviso prévio.',
+  multaSem: 'A rescisão imotivada, desde que observado o aviso prévio previsto nesta cláusula, não gerará multa para nenhuma das partes.',
+  clausulas: [
+    {t:'Objeto', p:[
+      'O presente contrato tem por objeto a prestação, pela CONTRATADA ao CONTRATANTE, dos serviços terceirizados descritos na Proposta Comercial nº {PROPOSTA}, que integra este instrumento, conforme os postos e atividades a seguir:',
+      '[[ESCOPO]]',
+      'O dimensionamento das equipes poderá ser ajustado por acordo escrito entre as partes, com a correspondente revisão do valor mensal.']},
+    {t:'Execução dos serviços e autonomia da CONTRATADA', p:[
+      'Os serviços serão executados com autonomia técnica, operacional e gerencial pela CONTRATADA, a quem cabe selecionar, treinar, uniformizar, supervisionar e, quando necessário, substituir os profissionais alocados, bem como definir as escalas de trabalho.',
+      'Os profissionais alocados mantêm vínculo exclusivo com a CONTRATADA, não havendo qualquer relação de subordinação com o CONTRATANTE, seus representantes ou moradores. Solicitações, ajustes de rotina e eventuais reclamações deverão ser encaminhados por escrito à supervisão indicada pela CONTRATADA.',
+      'A CONTRATADA garantirá a cobertura de faltas, férias e afastamentos, de modo que os postos contratados não fiquem descobertos.']},
+    {t:'Obrigações da CONTRATADA', p:[
+      'Constituem obrigações da CONTRATADA: (i) pagar salários, encargos sociais, trabalhistas, previdenciários e benefícios de seus empregados, conforme a convenção coletiva da categoria; (ii) fornecer uniformes e equipamentos de proteção individual; (iii) manter supervisão periódica dos postos; (iv) apresentar, quando solicitado, comprovantes de regularidade fiscal e trabalhista; (v) zelar pelo sigilo das informações a que tiver acesso em razão deste contrato.']},
+    {t:'Obrigações do CONTRATANTE', p:[
+      'Constituem obrigações do CONTRATANTE: (i) efetuar os pagamentos nas datas acordadas; (ii) garantir aos profissionais da CONTRATADA acesso às áreas necessárias e local adequado para guarda de materiais e uniformes; (iii) comunicar por escrito qualquer ocorrência ou não conformidade na execução dos serviços; (iv) não dirigir ordens diretamente aos empregados da CONTRATADA.']},
+    {t:'Preço e condições de pagamento', p:[
+      'Pela prestação dos serviços, o CONTRATANTE pagará à CONTRATADA o valor mensal de {VALOR_MENSAL} ({VALOR_EXTENSO}), conforme a composição abaixo:',
+      '[[VALORES]]',
+      'O pagamento será feito mediante nota fiscal mensal, com vencimento até o dia {VENCIMENTO} do mês subsequente à prestação dos serviços.',
+      'O atraso no pagamento sujeitará o CONTRATANTE à multa de 2% (dois por cento) sobre o valor em atraso, acrescida de juros de mora de 1% (um por cento) ao mês e correção monetária.']},
+    {t:'Reajuste', p:[
+      'O valor mensal será reajustado anualmente, na data-base da categoria, na mesma proporção do reajuste salarial e dos benefícios fixados pela convenção coletiva de trabalho vigente.']},
+    {t:'Vigência', p:[
+      'O presente contrato vigorará pelo prazo de {VIGENCIA} meses, contados a partir de {INICIO}, renovando-se automaticamente por iguais períodos, salvo manifestação em contrário de qualquer das partes, por escrito, com antecedência mínima de {AVISO} dias.']},
+    {t:'Rescisão', p:[
+      'Qualquer das partes poderá rescindir este contrato mediante aviso prévio, por escrito, com antecedência mínima de {AVISO} dias.',
+      '{MULTA}',
+      'O contrato poderá ser rescindido de imediato em caso de descumprimento de obrigação não sanado no prazo de 10 (dez) dias após notificação, ou de atraso no pagamento superior a 30 (trinta) dias.']},
+    {t:'Bens em comodato e cortesias', p:[
+      'Durante a vigência deste contrato, a CONTRATADA disponibilizará ao CONTRATANTE, sem custo adicional, os seguintes itens:',
+      '[[CORTESIAS]]',
+      'Os bens cedidos em comodato permanecem de propriedade da CONTRATADA e serão devolvidos ao término do contrato, no estado em que foram entregues, ressalvado o desgaste natural.']},
+    {t:'Responsabilidade e seguros', p:[
+      'A CONTRATADA responderá pelos danos comprovadamente causados ao CONTRATANTE ou a terceiros por culpa ou dolo de seus empregados na execução dos serviços, mantendo seguro de responsabilidade civil durante a vigência deste contrato.']},
+    {t:'Proteção de dados pessoais', p:[
+      'As partes tratarão os dados pessoais a que tiverem acesso em razão deste contrato exclusivamente para a sua execução, em conformidade com a Lei nº 13.709/2018 (Lei Geral de Proteção de Dados Pessoais).']},
+    {t:'Disposições gerais e foro', p:[
+      'A tolerância de qualquer das partes quanto ao descumprimento de cláusula deste contrato não importará novação ou renúncia de direitos. As comunicações entre as partes serão feitas por escrito, admitido o correio eletrônico.',
+      'Fica eleito o foro da Comarca de {FORO} para dirimir quaisquer questões oriundas deste contrato, com renúncia a qualquer outro, por mais privilegiado que seja.']}
+  ],
+  fecho: 'E, por estarem justas e contratadas, as partes assinam o presente instrumento em duas vias de igual teor e forma, na presença de duas testemunhas.'
+};
+const EMPRESAS0 = {
+  cs:   {razao:'C&S Soluções em Serviços Terceirizados Ltda.', cnpj:'66.840.249/0001-13', ie:'', sede:'Avenida Rio de Janeiro, nº 100, Bairro Parque Suzano, Município de Suzano, Estado de São Paulo, CEP 08673-070', rep:'neste ato representada na forma de seu contrato social'},
+  costa:{razao:'Costa e Sobral Soluções e Serviços Ltda.', cnpj:'62.729.475/0001-70', ie:'120.661.494.118', sede:'Avenida Rio de Janeiro, nº 100, Bairro Parque Suzano, Município de Suzano, Estado de São Paulo, CEP 08673-070', rep:'neste ato representada na forma de seu contrato social'}};
+const LOCAIS0 = {
+  carrao:{nome:'Vila Carrão (São Paulo)', rod:'Av. Conselheiro Carrão, 258, sala 8 – São Paulo/SP  ·  (11) 92661-2817  ·  (11) 92524-2324  ·  www.cservicos.com', cidade:'São Paulo'},
+  suzano:{nome:'Suzano', rod:'Av. Rio de Janeiro, 100 – Parque Suzano – Suzano/SP  ·  (11) 92661-2817  ·  (11) 95324-2324  ·  www.cservicos.com', cidade:'Suzano'}};
+
+let PAR = {modelo:JSON.parse(JSON.stringify(MODELO0)), empresas:JSON.parse(JSON.stringify(EMPRESAS0)), locais:JSON.parse(JSON.stringify(LOCAIS0))};
+let C, sb=null, PROPS=[];
+
+/* ---------- estado ---------- */
+function vazio(){ const m=PAR.modelo; return {
+  numero:'', empresa:'cs', local:'carrao',
+  contratante:{nome:'', tipo:'condomínio', cnpj:'', endereco:'', numero:'', bairro:'', cidade:'', uf:'SP', cep:'', rep:'neste ato representado por seu síndico, na forma de sua convenção', email:'', telefone:''},
+  proposta_id:null, proposta:{numero:'', atribuicoes:[], investimento:[], cortesias:[]},
+  inicio:'', vigencia:'24', vencimento:'10', aviso:'30', multa:true, multaQtd:'1', foro:'São Paulo', cidadeAss:'', dataAss:'',
+  titulo:m.titulo, multaCom:m.multaCom, multaSem:m.multaSem, fecho:m.fecho,
+  clausulas:m.clausulas.map(c=>({t:c.t, p:c.p.slice(), on:true})),
+  _id:null, _status:'rascunho'}; }
+
+/* ---------- helpers ---------- */
+const $=id=>document.getElementById(id);
+function esc(s){return (s==null?'':String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function parseBRL(v){if(v==null)return 0;v=String(v).trim();if(!v)return 0;v=v.replace(/[^0-9.,]/g,'');if(v.indexOf(',')>=0){v=v.replace(/\./g,'').replace(',','.');}else if((v.match(/\./g)||[]).length>1){v=v.replace(/\./g,'');}const n=parseFloat(v);return isNaN(n)?0:n;}
+function brl(n){return 'R$ '+(+n||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function extenso(n){n=Math.round(n*100)/100;let reais=Math.floor(n),cent=Math.round((n-reais)*100);
+  function a(x){const u=['','um','dois','três','quatro','cinco','seis','sete','oito','nove'],d10=['dez','onze','doze','treze','quatorze','quinze','dezesseis','dezessete','dezoito','dezenove'],d=['','','vinte','trinta','quarenta','cinquenta','sessenta','setenta','oitenta','noventa'],c=['','cento','duzentos','trezentos','quatrocentos','quinhentos','seiscentos','setecentos','oitocentos','novecentos'];
+    if(x===0)return'';if(x===100)return'cem';let p=[];const ce=Math.floor(x/100),r=x%100;if(ce>0)p.push(c[ce]);if(r>0){let s;if(r<10)s=u[r];else if(r<20)s=d10[r-10];else{const dz=Math.floor(r/10),un=r%10;s=d[dz]+(un>0?' e '+u[un]:'');}p.push(s);}return p.join(' e ');}
+  function i(x){if(x===0)return'zero';const mi=Math.floor(x/1e6),mil=Math.floor((x%1e6)/1e3),un=x%1e3;let ps=[];if(mi>0)ps.push(a(mi)+(mi===1?' milhão':' milhões'));if(mil>0)ps.push(mil===1?'mil':a(mil)+' mil');if(un>0)ps.push(a(un));if(ps.length===1)return ps[0];const last=ps.pop();return ps.join(', ')+(((un>0&&un<100)||un===0)?' e ':', ')+last;}
+  let s=i(reais)+' '+(reais===1?'real':'reais');if(cent>0)s+=' e '+i(cent)+' '+(cent===1?'centavo':'centavos');return s;}
+function total(){return (C.proposta.investimento||[]).reduce((t,v)=>t+parseBRL(v.unit)*(parseInt(v.qtd)||0),0);}
+function dataBR(iso){if(!iso)return '____/____/________';const [y,m,d]=iso.split('-');return d+'/'+m+'/'+y;}
+function dataExtenso(iso){const M=['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];const d=iso?new Date(iso+'T12:00:00'):new Date();return d.getDate()+' de '+M[d.getMonth()]+' de '+d.getFullYear();}
+function toast(m,err){const t=$('toast');t.textContent=m;t.className='toast show'+(err?' err':'');clearTimeout(toast.h);toast.h=setTimeout(()=>t.className='toast',3400);}
+function sujo(){$('estado').dataset.sujo='1';estado();}
+function estado(){const st={rascunho:'Rascunho',enviado:'Enviado para assinatura',assinado:'Assinado',encerrado:'Encerrado'}[C._status]||'Rascunho';
+  $('estado').innerHTML=(C.numero?'Contrato Nº <b>'+esc(C.numero)+'</b> · '+st:'<b>Novo contrato</b> · nº sai ao salvar')+($('estado').dataset.sujo==='1'?' · <i>não salvo</i>':'');}
+function setp(path,v){const ks=path.split('.');let o=C;ks.slice(0,-1).forEach(k=>{o=o[/^\d+$/.test(k)?+k:k]});const l=ks[ks.length-1];o[/^\d+$/.test(l)?+l:l]=v;render();sujo();}
+function fld(label,path,val,ph,type){return '<div class="fld"><label>'+label+'</label><input type="'+(type||'text')+'" value="'+esc(val)+'" placeholder="'+esc(ph||'')+'" oninput="setp(\''+path+'\',this.value)"></div>';}
+
+/* ---------- textos montados ---------- */
+function qualContratada(){const e=PAR.empresas[C.empresa]||PAR.empresas.cs;
+  return '<b>CONTRATADA: '+esc(e.razao)+'</b>, pessoa jurídica de direito privado, inscrita no CNPJ sob o nº '+esc(e.cnpj)+(e.ie?', Inscrição Estadual nº '+esc(e.ie):'')+', com sede na '+esc(e.sede)+', '+esc(e.rep)+'.';}
+function qualContratante(){const t=C.contratante;const nome=(t.nome||'_______________').toUpperCase();
+  const end=[t.endereco&&(t.endereco+(t.numero?', nº '+t.numero:'')),t.bairro&&('Bairro '+t.bairro),t.cidade&&('Município de '+t.cidade+(t.uf?'/'+t.uf:'')),t.cep&&('CEP '+t.cep)].filter(Boolean).join(', ');
+  const tipo=t.tipo==='condomínio'?'condomínio edilício':'pessoa jurídica de direito privado';
+  return '<b>CONTRATANTE: '+esc(nome)+'</b>, '+tipo+', inscrito no CNPJ sob o nº '+esc(t.cnpj||'_______________')+', situado na '+esc(end||'_______________')+', '+esc(t.rep)+'.';}
+function multaTexto(){const q=parseInt(C.multaQtd)||1;return esc(C.multa?C.multaCom:C.multaSem).replace(/\{MULTA_QTD\}/g,q+' ('+esc(extNum(q))+')');}
+function trocar(s){const v=total();const m={'{CONTRATANTE}':esc(C.contratante.nome||'CONTRATANTE'),'{PROPOSTA}':esc(C.proposta.numero||'_____'),'{VALOR_MENSAL}':brl(v),'{VALOR_EXTENSO}':esc(extenso(v)),
+  '{VENCIMENTO}':esc(C.vencimento||'10'),'{VIGENCIA}':esc(C.vigencia||'24')+' ('+esc(extNum(+C.vigencia||24))+')','{INICIO}':dataBR(C.inicio),'{AVISO}':esc(C.aviso||'30')+' ('+esc(extNum(+C.aviso||30))+')','{MULTA}':multaTexto(),'{FORO}':esc(C.foro||'')};
+  return esc(s).replace(/\{[A-Z_]+\}/g,k=>m[k]!=null?m[k]:k);}
+function extNum(n){const s=extenso(n);return s.replace(/ reais?$/,'');}
+function blocoEscopo(){const a=(C.proposta.atribuicoes||[]).filter(x=>x.titulo||x.itens);if(!a.length)return '<p class="sem marca">[Escolha a proposta para trazer os postos e atividades.]</p>';
+  return a.map(x=>'<div class="posto">'+esc(x.titulo)+(x.subtitulo?' '+esc(x.subtitulo):'')+'</div><ul class="esc">'+String(x.itens||'').split('\n').map(l=>l.trim()).filter(Boolean).map(l=>'<li>'+esc(l)+'</li>').join('')+'</ul>').join('');}
+function blocoValores(){const l=(C.proposta.investimento||[]).filter(v=>v.servico);if(!l.length)return '<p class="sem marca">[Escolha a proposta para trazer a tabela de valores.]</p>';
+  return '<table class="val"><thead><tr><th>Serviço</th><th>Escala</th><th class="c">Qtd.</th><th class="r">Valor unitário</th><th class="r">Valor mensal</th></tr></thead><tbody>'+
+    l.map(v=>{const q=parseInt(v.qtd)||0;return '<tr><td>'+esc(v.servico)+'</td><td>'+esc(v.escala||'')+'</td><td class="c">'+(q<10?'0'+q:q)+'</td><td class="r">'+brl(parseBRL(v.unit))+'</td><td class="r">'+brl(parseBRL(v.unit)*q)+'</td></tr>'}).join('')+
+    '<tr class="tot"><td colspan="4">Valor total mensal</td><td class="r">'+brl(total())+'</td></tr></tbody></table>';}
+function blocoCortesias(){const l=(C.proposta.cortesias||[]).filter(c=>c.titulo);if(!l.length)return null;
+  return '<ul class="esc">'+l.map(c=>'<li>'+(c.qtd?esc(c.qtd)+' ':'')+esc(c.titulo)+'</li>').join('')+'</ul>';}
+
+/* ---------- folha ---------- */
+function render(){
+  const e=PAR.empresas[C.empresa]||PAR.empresas.cs, L=PAR.locais[C.local]||PAR.locais.carrao;
+  let n=0, corpo='';
+  C.clausulas.forEach(c=>{
+    if(!c.on)return;
+    const temCort=c.p.some(p=>p.trim()==='[[CORTESIAS]]');const bc=blocoCortesias();if(temCort&&!bc)return; // sem cortesias na proposta: cláusula sai
+    n++;corpo+='<h3>'+n+'. Cláusula '+ordinal(n)+': '+esc(c.t)+'</h3>';
+    c.p.forEach(p=>{const t=p.trim();if(!t)return;
+      if(t==='[[ESCOPO]]')corpo+=blocoEscopo();else if(t==='[[VALORES]]')corpo+=blocoValores();else if(t==='[[CORTESIAS]]')corpo+=bc;else corpo+='<p>'+trocar(t)+'</p>';});});
+  const cid=C.cidadeAss||L.cidade;
+  const doc='<div class="doc"><h1>'+esc(C.titulo)+'</h1><div class="num">CONTRATO Nº '+esc(C.numero||'___/____')+'</div>'+
+    '<p>'+qualContratada()+'</p><p>'+qualContratante()+'</p>'+
+    '<p>As partes acima qualificadas têm entre si justo e contratado o presente instrumento particular de prestação de serviços, que se regerá pelas cláusulas e condições a seguir.</p>'+corpo+
+    '<p>'+esc(C.fecho)+'</p><p>'+esc(cid)+', '+dataExtenso(C.dataAss)+'.</p>'+
+    '<div class="ass"><div class="bl"><div class="ln"></div><b>'+esc(e.razao.toUpperCase())+'</b>CNPJ nº '+esc(e.cnpj)+'</div><div class="bl"><div class="ln"></div><b>'+esc((C.contratante.nome||'CONTRATANTE').toUpperCase())+'</b>CNPJ nº '+esc(C.contratante.cnpj||'_______________')+'</div>'+
+    '<p class="sem" style="text-align:center;margin-top:12mm">Testemunhas:</p><div class="test"><div><div class="ln"></div>1. Nome:<br>CPF:</div><div><div class="ln"></div>2. Nome:<br>CPF:</div></div></div></div>';
+  const rodTxt='<b>'+esc(e.razao.replace(/ Ltda\.?$/i,'').toUpperCase())+'</b>  ·  CNPJ '+esc(e.cnpj)+'<br>'+esc(L.rod);
+  $('folha').innerHTML=
+    '<div class="cab-fixo"><img src="timbrado-logo.png" alt="C&amp;S"><div class="lin"></div></div><div class="rod-fixo">'+rodTxt+'</div>'+
+    '<table class="pag"><thead><tr><td><div class="cab-print"></div></td></tr></thead><tfoot><tr><td><div class="rod-print"></div></td></tr></tfoot><tbody><tr><td>'+
+    '<div class="cab"><img src="timbrado-logo.png" alt="C&amp;S"><div class="lin"></div></div>'+doc+'<div class="rod">'+rodTxt+'</div></td></tr></tbody></table>';
+}
+function ordinal(n){return ['','Primeira','Segunda','Terceira','Quarta','Quinta','Sexta','Sétima','Oitava','Nona','Décima','Décima Primeira','Décima Segunda','Décima Terceira','Décima Quarta','Décima Quinta','Décima Sexta','Décima Sétima','Décima Oitava','Décima Nona','Vigésima'][n]||(n+'ª');}
+
+/* ---------- editor ---------- */
+function editor(){
+  const t=C.contratante;let h='<div class="aviso"><b>Antes de enviar:</b> o texto padrão é um modelo base. Revise com o jurídico. A assinatura do contrato é feita fora do assinador interno (Autentique ou gov.br).</div>';
+  h+='<div class="grp"><h2>Contrato</h2><div class="fld"><label>Nº do contrato</label><div class="numbox">'+(C.numero?esc(C.numero):'Gerado ao salvar (sequencial)')+'</div></div>';
+  h+='<div class="row2"><div class="fld"><label>Empresa contratada</label><select onchange="setp(\'empresa\',this.value)">'+Object.keys(PAR.empresas).map(k=>'<option value="'+k+'"'+(C.empresa===k?' selected':'')+'>'+esc(PAR.empresas[k].razao)+'</option>').join('')+'</select></div>';
+  h+='<div class="fld"><label>Local da C&amp;S no timbrado</label><select onchange="setp(\'local\',this.value)">'+Object.keys(PAR.locais).map(k=>'<option value="'+k+'"'+(C.local===k?' selected':'')+'>'+esc(PAR.locais[k].nome)+'</option>').join('')+'</select></div></div>';
+  h+='<div class="fld"><label>Título do contrato</label><input value="'+esc(C.titulo)+'" oninput="setp(\'titulo\',this.value)"></div></div>';
+
+  h+='<div class="grp"><h2>Proposta aceita</h2><div class="fld"><label>Escolha a proposta (traz escopo, valores e cortesias)</label><select onchange="usarProposta(this.value)"><option value="">—</option>'+
+    PROPS.map(p=>'<option value="'+p.id+'"'+(C.proposta_id===p.id?' selected':'')+'>'+esc(p.numero+' · '+p.cliente+' · '+brl(p.valor_total)+(p.status==='aceita'?' · aceita':''))+'</option>').join('')+'</select></div>';
+  h+='<div class="hint">Valor mensal: <b>'+brl(total())+'</b> · '+(C.proposta.atribuicoes||[]).filter(a=>a.titulo).length+' postos · '+(C.proposta.cortesias||[]).length+' cortesias</div></div>';
+
+  h+='<div class="grp"><h2>Contratante</h2>'+fld('Nome / razão social','contratante.nome',t.nome,'Condomínio Flex Suzano');
+  h+='<div class="row2"><div class="fld"><label>Tipo</label><select onchange="setp(\'contratante.tipo\',this.value)"><option'+(t.tipo==='condomínio'?' selected':'')+'>condomínio</option><option'+(t.tipo==='empresa'?' selected':'')+'>empresa</option></select></div>'+fld('CNPJ','contratante.cnpj',t.cnpj,'00.000.000/0001-00')+'</div>';
+  h+='<div class="row3" style="grid-template-columns:2fr 1fr">'+fld('Endereço (rua/avenida)','contratante.endereco',t.endereco,'Av. Armando Salles de Oliveira')+fld('Número','contratante.numero',t.numero,'1600')+'</div>';
+  h+='<div class="row3">'+fld('Bairro','contratante.bairro',t.bairro,'')+fld('Cidade','contratante.cidade',t.cidade,'Suzano')+fld('CEP','contratante.cep',t.cep,'08674-210')+'</div>';
+  h+='<div class="fld"><label>Representação</label><input value="'+esc(t.rep)+'" oninput="setp(\'contratante.rep\',this.value)"></div>';
+  h+='<div class="row2">'+fld('E-mail para avisos','contratante.email',t.email,'')+fld('Telefone','contratante.telefone',t.telefone,'')+'</div></div>';
+
+  h+='<div class="grp"><h2>Condições</h2><div class="row3">'+fld('Início dos serviços','inicio',C.inicio,'','date')+fld('Vigência (meses)','vigencia',C.vigencia,'24','number')+fld('Vencimento (dia)','vencimento',C.vencimento,'10','number')+'</div>';
+  h+='<div class="row3">'+fld('Aviso prévio (dias)','aviso',C.aviso,'30','number')+fld('Foro (comarca)','foro',C.foro,'São Paulo')+fld('Data da assinatura','dataAss',C.dataAss,'','date')+'</div>';
+  h+='<label class="opt"><input type="checkbox" '+(C.multa?'checked':'')+' onchange="setp(\'multa\',this.checked);editor()"> <b>Com multa</b> por rescisão antes do prazo</label>';
+  if(C.multa)h+='<div class="row2">'+fld('Multa = quantas mensalidades','multaQtd',C.multaQtd,'1')+'<div></div></div>';
+  h+='<div class="fld"><label>Texto da multa ('+(C.multa?'com multa':'sem multa')+')</label><textarea oninput="setp(\''+(C.multa?'multaCom':'multaSem')+'\',this.value)">'+esc(C.multa?C.multaCom:C.multaSem)+'</textarea></div></div>';
+
+  h+='<div class="grp"><h2>Cláusulas e parágrafos</h2><div class="hint" style="margin-bottom:8px">Edite o texto de cada parágrafo. Desmarque uma cláusula para tirá-la deste contrato.</div>';
+  C.clausulas.forEach((c,i)=>{h+='<details class="cl"><summary><input type="checkbox" '+(c.on?'checked':'')+' onclick="event.stopPropagation()" onchange="C.clausulas['+i+'].on=this.checked;render();sujo();editor()"><span class="n">'+(i+1)+'.</span>'+esc(c.t)+(c.on?'':' <span class="off">(fora)</span>')+'</summary><div class="corpo">'+
+    '<div class="fld"><label>Título da cláusula</label><input value="'+esc(c.t)+'" oninput="C.clausulas['+i+'].t=this.value;render();sujo()"></div>'+
+    c.p.map((p,j)=>'<div class="par"><textarea oninput="C.clausulas['+i+'].p['+j+']=this.value;render();sujo()">'+esc(p)+'</textarea><button class="rm" title="Remover parágrafo" onclick="C.clausulas['+i+'].p.splice('+j+',1);render();sujo();editor()">×</button></div>').join('')+
+    '<div class="minis"><button onclick="C.clausulas['+i+'].p.push(\'\');editor()">+ parágrafo</button><button onclick="mover('+i+',-1)">↑ subir</button><button onclick="mover('+i+',1)">↓ descer</button><button onclick="restaurarClausula('+i+')">texto do modelo</button><button onclick="if(confirm(\'Excluir esta cláusula deste contrato?\')){C.clausulas.splice('+i+',1);render();sujo();editor()}">excluir</button></div></div></details>';});
+  h+='<button class="addbtn" onclick="C.clausulas.push({t:\'Nova cláusula\',p:[\'\'],on:true});render();sujo();editor()">+ Adicionar cláusula</button>';
+  h+='<div class="fld" style="margin-top:10px"><label>Fecho</label><textarea oninput="setp(\'fecho\',this.value)">'+esc(C.fecho)+'</textarea></div>';
+  h+='<div class="chaves"><b>Pode usar no texto:</b><br>'+Object.keys(CHAVES).map(k=>'<code>'+esc(k)+'</code> '+esc(CHAVES[k])).join('<br>')+'</div></div>';
+  $('editor').innerHTML=h;estado();
+}
+function mover(i,d){const j=i+d;if(j<0||j>=C.clausulas.length)return;const x=C.clausulas.splice(i,1)[0];C.clausulas.splice(j,0,x);render();sujo();editor();}
+function restaurarClausula(i){const m=PAR.modelo.clausulas.find(c=>c.t===C.clausulas[i].t);if(!m)return toast('Essa cláusula não existe no modelo padrão.',1);C.clausulas[i].p=m.p.slice();render();sujo();editor();}
+
+/* ---------- proposta ---------- */
+async function usarProposta(id){
+  if(!id){C.proposta_id=null;C.proposta={numero:'',atribuicoes:[],investimento:[],cortesias:[]};render();sujo();editor();return}
+  const r=await sb.from('com_propostas').select('id,numero,cliente,dados').eq('id',id).single();if(r.error)return toast('Erro: '+r.error.message,1);
+  const d=r.data.dados||{};C.proposta_id=id;C.proposta={numero:r.data.numero,atribuicoes:d.atribuicoes||[],investimento:d.investimento||[],cortesias:d.cortesias||[]};
+  if(!C.contratante.nome)C.contratante.nome=r.data.cliente;if(d.tipoCliente)C.contratante.tipo=d.tipoCliente;if(d.local&&PAR.locais[d.local])C.local=d.local;
+  render();sujo();editor();toast('Proposta Nº '+r.data.numero+' aplicada.');}
+
+/* ---------- banco ---------- */
+function limpo(){const o=JSON.parse(JSON.stringify(C));delete o._id;delete o._status;return o;}
+async function salvar(sil){
+  if(!C.contratante.nome.trim()){toast('Preencha o nome do contratante.',1);return false}
+  if(!C._id){const r=await sb.rpc('com_salvar_contrato_novo',{p_dados:limpo(),p_contratante:C.contratante.nome,p_total:total(),p_proposta:C.proposta_id});
+    if(r.error){toast('Não foi possível salvar: '+r.error.message,1);return false}C._id=r.data.id;C.numero=r.data.numero;C._status=r.data.status;}
+  else{const r=await sb.from('com_contratos').update({dados:limpo(),contratante:C.contratante.nome,valor_total:total(),proposta_id:C.proposta_id,status:C._status}).eq('id',C._id);
+    if(r.error){toast('Não foi possível salvar: '+r.error.message,1);return false}}
+  $('estado').dataset.sujo='0';render();editor();if(!sil)toast('Contrato Nº '+C.numero+' salvo.');return true;}
+async function exportarPDF(){if(!C._id||$('estado').dataset.sujo==='1'){if(!(await salvar(true)))return;}
+  const nome='Contrato_'+C.numero.replace('/','-')+'_'+(C.contratante.nome||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^A-Za-z0-9]+/g,'_').toUpperCase();
+  const t=document.title;document.title=nome;setTimeout(()=>{window.print();document.title=t},150);}
+function novo(){if($('estado').dataset.sujo==='1'&&!confirm('Há alterações não salvas. Começar um contrato novo?'))return;C=vazio();$('estado').dataset.sujo='0';render();editor();}
+let HIST=[];
+async function historico(){const r=await sb.from('com_contratos').select('id,numero,contratante,valor_total,status,atualizado_em').is('cancelado_em',null).order('ano',{ascending:false}).order('seq',{ascending:false}).limit(500);
+  if(r.error)return toast('Erro: '+r.error.message,1);HIST=r.data;
+  modal('<h2>Histórico de contratos</h2><input class="busca" placeholder="Buscar por número ou contratante" oninput="filtra(this.value)"><div id="hl"></div>');filtra('');}
+function filtra(q){q=(q||'').toLowerCase();const st={rascunho:'Rascunho',enviado:'Enviado p/ assinatura',assinado:'Assinado',encerrado:'Encerrado'};const l=HIST.filter(p=>!q||(p.numero+' '+p.contratante).toLowerCase().includes(q));
+  $('hl').innerHTML=l.length?'<table class="hist"><thead><tr><th>Nº</th><th>Contratante</th><th class="r">Valor mensal</th><th>Status</th><th>Atualizado</th><th></th></tr></thead><tbody>'+l.map(p=>'<tr><td><b>'+esc(p.numero)+'</b></td><td>'+esc(p.contratante)+'</td><td class="r">'+brl(p.valor_total)+'</td><td><select onchange="status(\''+p.id+'\',this.value)">'+Object.keys(st).map(k=>'<option value="'+k+'"'+(p.status===k?' selected':'')+'>'+st[k]+'</option>').join('')+'</select></td><td>'+new Date(p.atualizado_em).toLocaleDateString('pt-BR')+'</td><td><button class="btn btn-mini" onclick="abrir(\''+p.id+'\')">Abrir</button></td></tr>').join('')+'</tbody></table>':'<p class="hint">Nenhum contrato salvo ainda.</p>';}
+async function status(id,s){const r=await sb.from('com_contratos').update({status:s}).eq('id',id);if(r.error)return toast('Erro: '+r.error.message,1);const p=HIST.find(x=>x.id===id);if(p)p.status=s;if(C._id===id){C._status=s;estado();}toast('Status atualizado.');}
+async function abrir(id){if($('estado').dataset.sujo==='1'&&!confirm('Há alterações não salvas. Abrir outro contrato?'))return;
+  const r=await sb.from('com_contratos').select('*').eq('id',id).single();if(r.error)return toast('Erro: '+r.error.message,1);
+  C=Object.assign(vazio(),r.data.dados,{_id:r.data.id,numero:r.data.numero,_status:r.data.status});fechar();$('estado').dataset.sujo='0';render();editor();toast('Contrato Nº '+C.numero+' aberto.');}
+
+/* ---------- modelo padrão (parâmetros) ---------- */
+async function carregarPar(){const r=await sb.from('com_parametros').select('valor').eq('chave','contratos').maybeSingle();const v=(r.data&&r.data.valor)||{};
+  if(v.modelo)PAR.modelo=v.modelo;if(v.empresas)PAR.empresas=Object.assign({},EMPRESAS0,v.empresas);if(v.locais)PAR.locais=Object.assign({},LOCAIS0,v.locais);PAR._ano=v.ultimoAno;PAR._num=v.ultimoNumero;
+  const p=await sb.from('com_propostas').select('id,numero,cliente,valor_total,status').is('cancelado_em',null).order('ano',{ascending:false}).order('seq',{ascending:false}).limit(300);PROPS=p.data||[];}
+function abrirModelo(){
+  let h='<h2>Modelo padrão de contrato</h2><p class="hint">Vale para os contratos novos. Os já salvos guardam o próprio texto.</p>';
+  h+='<h3 style="font-size:12px;color:#A67C1E;margin:12px 0 6px">NUMERAÇÃO</h3><div class="row2"><div class="fld"><label>Ano</label><input id="m_ano" value="'+esc(PAR._ano||new Date().getFullYear())+'"></div><div class="fld"><label>Último número usado fora do sistema</label><input id="m_num" type="number" value="'+esc(PAR._num||0)+'"></div></div>';
+  h+='<h3 style="font-size:12px;color:#A67C1E;margin:12px 0 6px">EMPRESAS CONTRATADAS</h3>'+Object.keys(PAR.empresas).map(k=>{const e=PAR.empresas[k];return '<div class="row2"><div class="fld"><label>Razão social</label><input data-e="'+k+'.razao" value="'+esc(e.razao)+'"></div><div class="fld"><label>CNPJ</label><input data-e="'+k+'.cnpj" value="'+esc(e.cnpj)+'"></div></div><div class="row2"><div class="fld"><label>Inscrição Estadual</label><input data-e="'+k+'.ie" value="'+esc(e.ie)+'"></div><div class="fld"><label>Representação</label><input data-e="'+k+'.rep" value="'+esc(e.rep)+'"></div></div><div class="fld"><label>Sede</label><input data-e="'+k+'.sede" value="'+esc(e.sede)+'"></div>'}).join('<hr style="border:none;border-top:1px solid #eee;margin:8px 0">');
+  h+='<h3 style="font-size:12px;color:#A67C1E;margin:12px 0 6px">RODAPÉ POR LOCAL</h3>'+Object.keys(PAR.locais).map(k=>'<div class="fld"><label>'+esc(PAR.locais[k].nome)+'</label><input data-l="'+k+'" value="'+esc(PAR.locais[k].rod)+'"></div>').join('');
+  h+='<h3 style="font-size:12px;color:#A67C1E;margin:12px 0 6px">CLÁUSULAS DO MODELO</h3><p class="hint">Uma cláusula por bloco: primeira linha = título; cada linha seguinte = um parágrafo. Separe as cláusulas com uma linha contendo só ---</p>';
+  h+='<div class="fld"><textarea id="m_cl" rows="18">'+esc(PAR.modelo.clausulas.map(c=>c.t+'\n'+c.p.join('\n')).join('\n---\n'))+'</textarea></div>';
+  h+='<div class="row2"><div class="fld"><label>Texto COM multa</label><textarea id="m_mc">'+esc(PAR.modelo.multaCom)+'</textarea></div><div class="fld"><label>Texto SEM multa</label><textarea id="m_ms">'+esc(PAR.modelo.multaSem)+'</textarea></div></div>';
+  h+='<div class="fld"><label>Título padrão</label><input id="m_ti" value="'+esc(PAR.modelo.titulo)+'"></div><div class="fld"><label>Fecho</label><textarea id="m_fe">'+esc(PAR.modelo.fecho)+'</textarea></div>';
+  h+='<div style="display:flex;gap:10px;justify-content:flex-end"><button class="btn" style="background:#f3efe4;margin-right:auto" onclick="padraoOriginal()">Voltar ao modelo original</button><button class="btn btn-gold" onclick="gravarModelo()">Salvar modelo</button></div>';
+  modal(h);}
+async function gravarModelo(){
+  const cls=$('m_cl').value.split(/\n-{3,}\n/).map(b=>b.split('\n').map(x=>x.trim()).filter(Boolean)).filter(b=>b.length).map(b=>({t:b[0],p:b.slice(1)}));
+  const emp=JSON.parse(JSON.stringify(PAR.empresas));document.querySelectorAll('[data-e]').forEach(i=>{const [k,c]=i.dataset.e.split('.');emp[k][c]=i.value.trim();});
+  const loc=JSON.parse(JSON.stringify(PAR.locais));document.querySelectorAll('[data-l]').forEach(i=>{loc[i.dataset.l].rod=i.value.trim();});
+  const v={modelo:{titulo:$('m_ti').value.trim(),multaCom:$('m_mc').value.trim(),multaSem:$('m_ms').value.trim(),fecho:$('m_fe').value.trim(),clausulas:cls},empresas:emp,locais:loc,ultimoAno:$('m_ano').value.trim(),ultimoNumero:parseInt($('m_num').value)||0};
+  const r=await sb.from('com_parametros').upsert({chave:'contratos',valor:v});if(r.error)return toast('Erro ao salvar: '+r.error.message,1);
+  PAR.modelo=v.modelo;PAR.empresas=emp;PAR.locais=loc;PAR._ano=v.ultimoAno;PAR._num=v.ultimoNumero;fechar();render();editor();toast('Modelo salvo. Vale para os próximos contratos.');}
+function padraoOriginal(){$('m_cl').value=MODELO0.clausulas.map(c=>c.t+'\n'+c.p.join('\n')).join('\n---\n');$('m_mc').value=MODELO0.multaCom;$('m_ms').value=MODELO0.multaSem;$('m_ti').value=MODELO0.titulo;$('m_fe').value=MODELO0.fecho;toast('Textos originais carregados. Clique em Salvar modelo para gravar.');}
+function modal(h){$('modalRoot').innerHTML='<div class="ovl" onclick="if(event.target===this)fechar()"><div class="mdl"><button class="x" onclick="fechar()">×</button>'+h+'</div></div>';}
+function fechar(){$('modalRoot').innerHTML='';}
+
+/* ---------- início: Comercial, Diretoria e Admin ---------- */
+C=vazio();render();
+CSAuth.iniciar({sistema:'o Gerador de Contratos', papeis:['comercial','diretoria']}).then(async r=>{
+  sb=r.sb;try{await carregarPar();}catch(e){toast('Não foi possível carregar o modelo.',1)}
+  C=vazio();render();editor();
+}).catch(()=>{});
+window.addEventListener('beforeunload',e=>{if($('estado').dataset.sujo==='1'){e.preventDefault();e.returnValue='';}});
+</script>
+</body>
+</html>
