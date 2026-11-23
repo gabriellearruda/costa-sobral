@@ -192,6 +192,11 @@ img.av{box-shadow:0 0 0 1.5px rgba(199,154,59,.7)}
 .rail .card{padding:16px}
 .rail h3{font-size:21px;margin-bottom:10px;display:flex;align-items:center;gap:8px}
 .ev{display:flex;gap:12px;align-items:center;padding:8px 0;border-top:1px solid var(--line-2)}
+.pp-list{max-height:210px;overflow:auto;border:1px solid var(--line);border-radius:10px;padding:6px 10px;display:grid;grid-template-columns:1fr 1fr;gap:4px 12px}
+.pp-list label{display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;padding:3px 0}
+.disp{border-radius:10px;padding:9px 12px;font-size:12.5px;line-height:1.55;margin-top:4px}.disp.ok{background:#e9f5ee;color:#2e6b45}.disp.no{background:#fdecea;color:#8f2d1f}
+.ag-sel{height:32px;border:1px solid var(--line);border-radius:99px;padding:0 12px;background:var(--paper);font:inherit;font-size:12px;font-weight:600;color:var(--muted)}
+.mini-av{display:inline-flex;align-items:center;gap:6px;margin:0 10px 6px 0;font-size:13px}
 .ev:first-of-type{border-top:0}
 .ev .dt{width:44px;flex:none;text-align:center;border-radius:10px;background:var(--black);color:#EBD39A;padding:4px 0;line-height:1.1}
 .ev .dt b{display:block;font-family:var(--serif);font-size:20px}
@@ -1057,7 +1062,7 @@ function renderRail(){
       <a href="#/documentos" class="small" style="display:block;margin-top:10px;font-weight:600;color:var(--gold-d);text-decoration:none">Central de documentos →</a></div>`;
   rail.onclick = e => { const d = e.target.closest('[data-doc]'); if (d) openDoc(S.docs.find(x => x.id === d.dataset.doc)); };
 }
-function evHTML(ev){ const d = parseD(ev.data); return `<div class="ev"><div class="dt"><b>${d.getDate()}</b><span>${MESES[d.getMonth()]}</span></div><div style="min-width:0"><div class="small clamp1" style="font-weight:600">${esc(ev.titulo)}</div><div class="tiny muted">${esc(ev.tipo)}${ev.hora ? ' · ' + esc(ev.hora) : ''} · ${fmtDay(ev.data)}</div></div></div>`; }
+function evHTML(ev){ const d = parseD(ev.data); return `<div class="ev"><div class="dt"><b>${d.getDate()}</b><span>${MESES[d.getMonth()]}</span></div><div style="min-width:0"><div class="small clamp1" style="font-weight:600">${esc(ev.titulo)}</div><div class="tiny muted">${esc(ev.tipo)}${ev.hora ? ' · ' + esc(ev.hora) + (ev.hora_fim ? '–' + esc(ev.hora_fim) : '') : ''} · ${fmtDay(ev.data)}${ev.local ? ' · ' + esc(ev.local) : ''}</div></div></div>`; }
 
 /* notificações */
 async function refreshUnread(){
@@ -1295,6 +1300,28 @@ function eventosDo(from, to){
 }
 const proximosEventos = dias => eventosDo(hojeStr(), dStr(new Date(Date.now() + dias*864e5)));
 
+/* reuniões: quem está envolvido, filtro por pessoa e conflito de horário */
+const envolvidos = e => [...new Set([e.responsavel, ...(e.participantes || [])].filter(Boolean))];
+const envolve = (e, id) => e.criado_por === id || envolvidos(e).includes(id);
+const ehPessoal = e => !!(e.responsavel || (e.participantes || []).length);
+const minH = h => /^\d{1,2}:\d{2}/.test(h || '') ? +h.slice(0, h.indexOf(':')) * 60 + +h.slice(h.indexOf(':') + 1, h.indexOf(':') + 3) : null;
+const podeEditarEv = e => !e.nacional && (isGestor() || e.criado_por === S.me.id || e.responsavel === S.me.id);
+function conflitosLocais(data, ini, fim, pessoas, ignorar){
+  const a = minH(ini); if (a == null) return [];
+  const b = minH(fim) ?? a + 60, out = [];
+  S.eventos.forEach(e => { if (e.id === ignorar || !(e.data <= data && (e.data_fim || e.data) >= data)) return;
+    const x = minH(e.hora); if (x == null) return; const y = minH(e.hora_fim) ?? x + 60;
+    if (!(x < b && a < y)) return;
+    pessoas.filter(p => envolvidos(e).includes(p)).forEach(p => out.push({p, e})); });
+  return out;
+}
+function reunioesDe(id, dias = 30){ const hj = hojeStr(), ate = dStr(new Date(Date.now() + dias * 864e5));
+  return S.eventos.filter(e => envolve(e, id) && (e.data_fim || e.data) >= hj && e.data <= ate).sort((a, b) => a.data.localeCompare(b.data) || String(a.hora).localeCompare(String(b.hora))); }
+function filtroAgenda(e){ const q = S.agQuem || 'eu';
+  if (e.nacional || q === 'todos') return true;
+  if (q === 'eu') return !ehPessoal(e) || envolve(e, S.me.id);
+  return envolve(e, q); }
+
 function pageAgenda(){
   if (!S.calMonth){ const d = new Date(); S.calMonth = new Date(d.getFullYear(), d.getMonth(), 1); }
   const g = isGestor(), M = S.calMonth, y = M.getFullYear(), mo = M.getMonth();
@@ -1302,60 +1329,110 @@ function pageAgenda(){
   for (let i = 0; i < 42; i++){ const d = new Date(start); d.setDate(start.getDate() + i); cells.push(d); }
   if (cells[35].getMonth() !== mo) cells.length = 35;
   const evs = eventosDo(dStr(cells[0]), dStr(cells[cells.length - 1])), hoje = hojeStr();
-  const noDia = s => evs.filter(e => e.data <= s && (e.data_fim || e.data) >= s);
+  const noDia = s => evs.filter(e => e.data <= s && (e.data_fim || e.data) >= s && filtroAgenda(e));
+  const quem = S.agQuem || 'eu', pessoas = S.perfis.filter(p => p.ativo).sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
   $('#main').innerHTML = `
-  <div class="page-h"><div><h1>Agenda</h1><p>Reuniões, vencimentos, treinamentos e feriados. Feriados nacionais e de SP entram automaticamente.</p></div><span class="grow"></span>
-    ${g ? `<button class="btn gold" id="ag-new">${ico('plus')} <span>Novo evento</span></button>` : ''}</div>
+  <div class="page-h"><div><h1>Agenda</h1><p>Reuniões, vencimentos, treinamentos e feriados. Qualquer pessoa pode marcar reunião, e o portal não deixa marcar duas no mesmo horário para a mesma pessoa.</p></div><span class="grow"></span>
+    <select class="ag-sel" id="ag-quem" title="De quem é a agenda"><option value="eu" ${quem === 'eu' ? 'selected' : ''}>Minha agenda</option><option value="todos" ${quem === 'todos' ? 'selected' : ''}>Toda a empresa</option>${pessoas.filter(p => p.id !== S.me.id).map(p => `<option value="${esc(p.id)}" ${quem === p.id ? 'selected' : ''}>Agenda de ${esc(p.nome)}</option>`).join('')}</select>
+    <button class="btn gold" id="ag-new">${ico('plus')} <span>${g ? 'Novo evento' : 'Marcar reunião'}</span></button></div>
   <div class="agenda">
     <div class="card" style="overflow:hidden">
       <div class="cal-h"><button class="icbtn" id="ag-prev">${ico('chev-l')}</button><h2>${(s => s[0].toUpperCase() + s.slice(1))(M.toLocaleDateString('pt-BR', {month:'long'}))} ${y}</h2><button class="icbtn" id="ag-next">${ico('chev-r')}</button><span class="grow"></span><button class="btn sm" id="ag-hoje">Hoje</button></div>
       <div class="cal">${['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'].map(w => `<div class="wd">${w}</div>`).join('')}
-        ${cells.map(d => { const s = dStr(d), es = noDia(s); return `<div class="d ${d.getMonth() !== mo ? 'out' : ''} ${s === hoje ? 'today' : ''} ${g ? 'can' : ''}" data-day="${s}"><span class="num">${d.getDate()}</span>${es.slice(0,3).map(e => `<button class="e e-${esc(e.tipo)}" data-ev="${esc(e.id)}" title="${esc(e.titulo)}">${e.hora ? esc(e.hora) + ' ' : ''}${esc(e.titulo)}</button>`).join('')}${es.length > 3 ? `<div class="tiny muted">+${es.length - 3}</div>` : ''}</div>`; }).join('')}
+        ${cells.map(d => { const s = dStr(d), es = noDia(s); return `<div class="d ${d.getMonth() !== mo ? 'out' : ''} ${s === hoje ? 'today' : ''} ${g ? 'can' : ''}" data-day="${s}" style="cursor:pointer"><span class="num">${d.getDate()}</span>${es.slice(0,3).map(e => `<button class="e e-${esc(e.tipo)}" data-ev="${esc(e.id)}" title="${esc(e.titulo)}">${e.hora ? esc(e.hora) + ' ' : ''}${esc(e.titulo)}</button>`).join('')}${es.length > 3 ? `<div class="tiny muted">+${es.length - 3}</div>` : ''}</div>`; }).join('')}
       </div>
     </div>
-    <div class="card pad"><h3 style="font-size:22px;margin-bottom:8px">Próximos 60 dias</h3>${(() => { const l = proximosEventos(60); return l.length ? l.map(e => `<div data-ev="${esc(e.id)}" style="cursor:pointer">${evHTML(e)}</div>`).join('') : '<div class="muted small">Nada agendado.</div>'; })()}</div>
+    <div class="card pad"><h3 style="font-size:22px;margin-bottom:8px">Próximos 60 dias</h3>${(() => { const l = proximosEventos(60).filter(filtroAgenda); return l.length ? l.map(e => `<div data-ev="${esc(e.id)}" style="cursor:pointer">${evHTML(e)}</div>`).join('') : '<div class="muted small">Nada agendado.</div>'; })()}</div>
   </div>`;
   const all = [...S.eventos, ...evs];
   $('#ag-prev').onclick = () => { S.calMonth = new Date(y, mo - 1, 1); pageAgenda(); };
   $('#ag-next').onclick = () => { S.calMonth = new Date(y, mo + 1, 1); pageAgenda(); };
   $('#ag-hoje').onclick = () => { S.calMonth = null; pageAgenda(); };
-  if (g) $('#ag-new').onclick = () => modalEvento(null, hoje);
+  $('#ag-new').onclick = () => modalEvento(null, hoje);
+  $('#ag-quem').onchange = e => { S.agQuem = e.target.value; pageAgenda(); };
   $('#main').querySelector('.agenda').onclick = e => {
     const ev = e.target.closest('[data-ev]'); if (ev){ e.stopPropagation(); const x = all.find(a => a.id === ev.dataset.ev) || proximosEventos(60).find(a => a.id === ev.dataset.ev); return verEvento(x); }
-    const day = e.target.closest('[data-day]'); if (day && g) modalEvento(null, day.dataset.day);
+    const day = e.target.closest('[data-day]'); if (day) modalEvento(null, day.dataset.day);
   };
 }
 function verEvento(e){
   if (!e) return;
-  const g = isGestor() && !e.nacional;
+  const g = podeEditarEv(e);
+  const pv = id => `<span class="mini-av">${avatar(perfil(id), 'sm')}${esc(perfil(id).nome)}</span>`;
   const m = openModal({title:e.titulo, body:`
-    <div class="row wrap" style="margin-bottom:12px"><span class="chip e-${esc(e.tipo)}">${esc(e.tipo)}</span><span class="small">${ico('calendar')} ${fmtDay(e.data)}${e.data_fim && e.data_fim !== e.data ? ' até ' + fmtDay(e.data_fim) : ''}${e.hora ? ' · ' + esc(e.hora) : ''}</span></div>
+    <div class="row wrap" style="margin-bottom:12px"><span class="chip e-${esc(e.tipo)}">${esc(e.tipo)}</span><span class="small">${ico('calendar')} ${fmtDay(e.data)}${e.data_fim && e.data_fim !== e.data ? ' até ' + fmtDay(e.data_fim) : ''}${e.hora ? ' · ' + esc(e.hora) + (e.hora_fim ? ' às ' + esc(e.hora_fim) : '') : ''}</span></div>
+    ${e.local ? `<p class="small" style="margin-bottom:10px">${ico('pin')} ${linkify(e.local)}</p>` : ''}
+    ${e.responsavel ? `<div class="lbl" style="margin-bottom:4px">Responsável</div><div style="margin-bottom:8px">${pv(e.responsavel)}</div>` : ''}
+    ${(e.participantes || []).length ? `<div class="lbl" style="margin-bottom:4px">Participantes</div><div style="margin-bottom:8px">${e.participantes.map(pv).join('')}</div>` : ''}
     ${e.descricao ? `<p style="white-space:pre-wrap">${linkify(e.descricao)}</p>` : '<p class="muted">Sem descrição.</p>'}
     ${!e.nacional && e.criado_por ? `<div class="tiny muted">Criado por ${esc(perfil(e.criado_por).nome)}</div>` : ''}`,
-    foot: g ? `<button class="btn danger" id="ve-del">${ico('trash')} Excluir</button><span class="grow"></span><button class="btn" data-close>Fechar</button><button class="btn gold" id="ve-ed">${ico('edit')} Editar</button>` : `<button class="btn" data-close>Fechar</button>`});
+    foot: g ? `<button class="btn danger" id="ve-del">${ico('trash')} ${e.tipo === 'Reunião' ? 'Cancelar reunião' : 'Excluir'}</button><span class="grow"></span><button class="btn" data-close>Fechar</button><button class="btn gold" id="ve-ed">${ico('edit')} Editar</button>` : `<button class="btn" data-close>Fechar</button>`});
   if (g){
     $('#ve-ed', m.el).onclick = () => { m.close(); modalEvento(e); };
-    $('#ve-del', m.el).onclick = async () => { if (!(await confirmBox('Excluir este evento?', {ok:'Excluir', danger:true}))) return; try { await API.remove('eventos', [['id','eq',e.id]]); S.eventos = S.eventos.filter(x => x.id !== e.id); m.close(); toast('Evento excluído.'); route(); } catch(err){ fail(friendly(err)); } };
+    $('#ve-del', m.el).onclick = async () => { if (!(await confirmBox(e.tipo === 'Reunião' ? 'Cancelar esta reunião? Ela sai da agenda de todos os participantes.' : 'Excluir este evento?', {ok: e.tipo === 'Reunião' ? 'Cancelar reunião' : 'Excluir', danger:true}))) return; try { await API.remove('eventos', [['id','eq',e.id]]); S.eventos = S.eventos.filter(x => x.id !== e.id); m.close(); toast('Evento excluído.'); route(); } catch(err){ fail(friendly(err)); } };
   }
 }
 function modalEvento(e, data){
-  const m = openModal({title: e ? 'Editar evento' : 'Novo evento', body:`
-    <div class="field"><label>Título</label><input class="inp" id="me-t" value="${esc(e?.titulo || '')}" placeholder="Ex.: Reunião com a diretoria"></div>
+  const g = isGestor(), tipos = g ? TIPOS_EVENTO.filter(t => t !== 'Feriado' || true) : ['Reunião'];
+  const pessoas = S.perfis.filter(p => p.ativo).sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+  const sel = new Set(e?.participantes || []);
+  const m = openModal({title: e ? (e.tipo === 'Reunião' ? 'Editar reunião' : 'Editar evento') : (g ? 'Novo evento' : 'Marcar reunião'), wide:true, body:`
+    <div class="field"><label>Título</label><input class="inp" id="me-t" value="${esc(e?.titulo || '')}" placeholder="Ex.: Reunião com o síndico do Flex"></div>
     <div class="grid2">
-      <div class="field"><label>Tipo</label><select class="inp" id="me-tp">${TIPOS_EVENTO.map(t => `<option ${t === (e?.tipo || 'Reunião') ? 'selected' : ''}>${t}</option>`).join('')}</select></div>
-      <div class="field"><label>Horário (opcional)</label><input class="inp" type="time" id="me-h" value="${esc(e?.hora || '')}"></div>
+      <div class="field"><label>Tipo</label><select class="inp" id="me-tp">${tipos.map(t => `<option ${t === (e?.tipo || 'Reunião') ? 'selected' : ''}>${t}</option>`).join('')}</select></div>
       <div class="field"><label>Data</label><input class="inp" type="date" id="me-d" value="${esc(e?.data || data || hojeStr())}"></div>
-      <div class="field"><label>Até (opcional)</label><input class="inp" type="date" id="me-df" value="${esc(e?.data_fim || '')}"></div>
+      <div class="field"><label>Início</label><input class="inp" type="time" id="me-h" value="${esc(e?.hora || '')}"></div>
+      <div class="field"><label>Fim</label><input class="inp" type="time" id="me-hf" value="${esc(e?.hora_fim || '')}"></div>
     </div>
-    <div class="field"><label>Descrição (opcional)</label><textarea class="inp" id="me-ds" rows="3">${esc(e?.descricao || '')}</textarea></div>`,
+    <div id="me-reu">
+      <div class="grid2">
+        <div class="field"><label>Responsável</label><select class="inp" id="me-r"><option value="">—</option>${pessoas.map(p => `<option value="${esc(p.id)}" ${(e ? e.responsavel : S.me.id) === p.id ? 'selected' : ''}>${esc(p.nome)}${p.cargo ? ' · ' + esc(p.cargo) : ''}</option>`).join('')}</select></div>
+        <div class="field"><label>Local ou link</label><input class="inp" id="me-l" value="${esc(e?.local || '')}" placeholder="Sala de reunião, endereço ou link do Meet"></div>
+      </div>
+      <div class="field"><label>Quem deve comparecer <span class="muted tiny">(opcional: deixe vazio se só o responsável vai)</span></label>
+        <input class="inp" id="me-pq" placeholder="Buscar pessoa…" style="margin-bottom:6px">
+        <div class="pp-list" id="me-pl">${pessoas.map(p => `<label data-n="${esc(norm(p.nome + ' ' + (p.cargo || '')))}"><input type="checkbox" value="${esc(p.id)}" ${sel.has(p.id) ? 'checked' : ''}> ${avatar(p, 'sm')} ${esc(p.nome)}</label>`).join('')}</div></div>
+      <div class="field"><label>Disponibilidade</label><div id="me-disp" class="disp ok">Escolha data e horário para conferir.</div></div>
+    </div>
+    <div id="me-ev"><div class="field"><label>Até (opcional)</label><input class="inp" type="date" id="me-df" value="${esc(e?.data_fim || '')}"></div></div>
+    <div class="field"><label>Descrição / pauta (opcional)</label><textarea class="inp" id="me-ds" rows="3">${esc(e?.descricao || '')}</textarea></div>`,
     foot:`<button class="btn" data-close>Cancelar</button><button class="btn gold" id="me-s">Salvar</button>`});
-  $('#me-t', m.el).focus();
-  $('#me-s', m.el).onclick = async () => {
-    const row = {titulo:$('#me-t', m.el).value.trim(), tipo:$('#me-tp', m.el).value, hora:$('#me-h', m.el).value, data:$('#me-d', m.el).value, data_fim:$('#me-df', m.el).value || null, descricao:$('#me-ds', m.el).value.trim()};
+  const $m = q => $(q, m.el), ehReu = () => $m('#me-tp').value === 'Reunião';
+  const pessoasSel = () => [...new Set([$m('#me-r').value, ...[...m.el.querySelectorAll('#me-pl input:checked')].map(i => i.value)].filter(Boolean))];
+  let conflitos = [];
+  const checar = () => {
+    $m('#me-reu').style.display = ehReu() ? '' : 'none'; $m('#me-ev').style.display = ehReu() ? 'none' : '';
+    const box = $m('#me-disp'), d = $m('#me-d').value, h = $m('#me-h').value, hf = $m('#me-hf').value, ps = pessoasSel();
+    conflitos = [];
+    if (!ehReu()) return;
+    if (!d || !h){ box.className = 'disp ok'; box.textContent = 'Escolha data e horário para conferir.'; return; }
+    if (hf && minH(hf) <= minH(h)){ box.className = 'disp no'; box.textContent = 'O fim precisa ser depois do início.'; conflitos = [1]; return; }
+    if (!ps.length){ box.className = 'disp ok'; box.textContent = 'Escolha o responsável ou quem deve comparecer.'; return; }
+    conflitos = conflitosLocais(d, h, hf, ps, e?.id);
+    if (conflitos.length){ box.className = 'disp no';
+      box.innerHTML = '<b>Horário ocupado:</b><br>' + conflitos.map(c => `${esc(perfil(c.p).nome)} já tem “${esc(c.e.titulo)}” das ${esc(c.e.hora)} às ${esc(c.e.hora_fim || '—')}`).join('<br>'); }
+    else { box.className = 'disp ok'; box.innerHTML = '<b>Todos livres</b> neste horário: ' + ps.map(p => esc(perfil(p).nome)).join(', ') + '.'; }
+    const ocup = ps.flatMap(p => S.eventos.filter(x => x.id !== e?.id && x.data <= d && (x.data_fim || x.data) >= d && x.hora && envolvidos(x).includes(p)).map(x => `${esc(perfil(p).nome)}: ${esc(x.hora)}–${esc(x.hora_fim || '?')} ${esc(x.titulo)}`));
+    if (ocup.length) box.innerHTML += '<div class="tiny" style="margin-top:6px;opacity:.85">Compromissos no dia: ' + [...new Set(ocup)].join(' · ') + '</div>';
+  };
+  ['#me-tp','#me-d','#me-h','#me-hf','#me-r'].forEach(q => $m(q).addEventListener('change', checar));
+  $m('#me-pl').addEventListener('change', checar);
+  $m('#me-pq').oninput = ev => { const q = norm(ev.target.value); m.el.querySelectorAll('#me-pl label').forEach(l => l.style.display = !q || l.dataset.n.includes(q) ? '' : 'none'); };
+  checar(); $m('#me-t').focus();
+  $m('#me-s').onclick = async () => {
+    const reu = ehReu();
+    const row = {titulo:$m('#me-t').value.trim(), tipo:$m('#me-tp').value, hora:$m('#me-h').value, hora_fim:$m('#me-hf').value, data:$m('#me-d').value,
+      data_fim: reu ? null : ($m('#me-df').value || null), descricao:$m('#me-ds').value.trim(),
+      local: reu ? $m('#me-l').value.trim() : '', responsavel: reu ? ($m('#me-r').value || null) : null,
+      participantes: reu ? [...m.el.querySelectorAll('#me-pl input:checked')].map(i => i.value).filter(v => v !== $m('#me-r').value) : []};
     if (!row.titulo || !row.data) return toast('Informe título e data.', true);
+    if (reu && !row.hora) return toast('Informe o horário de início da reunião.', true);
+    if (reu && !row.responsavel && !row.participantes.length) return toast('Escolha o responsável ou quem deve comparecer.', true);
     if (row.data_fim && row.data_fim < row.data) return toast('A data final é antes da inicial.', true);
+    checar(); if (reu && conflitos.length) return toast('Há conflito de horário. Escolha outro horário ou outras pessoas.', true);
     try { const r = e ? await API.update('eventos', e.id, row) : await API.insert('eventos', row);
-      S.eventos = e ? S.eventos.map(x => x.id === r.id ? r : x) : [...S.eventos, r]; m.close(); toast('Evento salvo.'); route(); } catch(err){ fail(friendly(err)); }
+      S.eventos = e ? S.eventos.map(x => x.id === r.id ? r : x) : [...S.eventos, r]; m.close(); toast(reu ? 'Reunião marcada.' : 'Evento salvo.'); route(); }
+    catch(err){ fail(/Conflito de horário/.test(err?.message || '') ? err.message : friendly(err)); }
   };
 }
 
@@ -1375,9 +1452,12 @@ function pageEquipe(){
       return `<div class="card person">${avatar(p,'xl')}<div class="nm">${esc(p.nome)}</div><div class="small muted">${esc(p.cargo || '')}</div>
         <div class="row wrap" style="justify-content:center;gap:6px">${a ? `<span class="chip">${esc(a.nome)}</span>` : ''}${p.papel !== 'colaborador' ? `<span class="chip dark">${PAPEIS[p.papel]}</span>` : ''}</div>
         ${p.responsabilidades ? `<div class="rs">${esc(p.responsabilidades)}</div>` : ''}
+        ${(() => { const r = reunioesDe(p.id, 14)[0]; return r ? `<div class="tiny muted" style="margin-top:6px">${ico('calendar')} Próxima reunião: ${fmtDay(r.data)}${r.hora ? ' · ' + esc(r.hora) : ''}</div>` : ''; })()}
+        <button class="btn sm" style="margin-top:8px" data-agenda="${esc(p.id)}">${ico('calendar')} Ver agenda</button>
         <div class="ct">${p.email ? `<a class="btn sm" href="mailto:${esc(p.email)}">${ico('mail')} E-mail</a>` : ''}${wa ? `<a class="btn sm" target="_blank" rel="noopener" href="https://wa.me/${wa.length <= 11 ? '55' + wa : wa}">${ico('chat')} WhatsApp</a>` : ''}</div></div>`; }).join('') || `<div class="card empty">Ninguém encontrado.</div>`;
   };
   $('#eq-q').oninput = draw;
+  $('#eq-list').addEventListener('click', ev => { const b = ev.target.closest('[data-agenda]'); if (!b) return; S.agQuem = b.dataset.agenda === S.me.id ? 'eu' : b.dataset.agenda; S.calMonth = null; location.hash = '#/agenda'; route(); });
   $('#eq-f').onclick = e => { const b = e.target.closest('.fchip'); if (!b) return; S.teamArea = b.dataset.a; $$('#eq-f .fchip').forEach(x => x.classList.toggle('on', x === b)); draw(); };
   draw();
 }
@@ -1392,6 +1472,7 @@ function modalPerfil(){
       <div class="field"><label>Cargo</label><input class="inp" id="mf-c" value="${esc(S.me.cargo || '')}" placeholder="Ex.: Analista de RH"></div>
     </div>
     <div class="field"><label>WhatsApp</label><input class="inp" id="mf-w" value="${esc(S.me.whatsapp || '')}" placeholder="(11) 90000-0000"></div>
+    <div class="field"><label>Minhas reuniões (próximos 30 dias)</label>${(() => { const l = reunioesDe(S.me.id, 30); return l.length ? l.map(evHTML).join('') : '<div class="muted small">Nenhuma reunião marcada com você.</div>'; })()}</div>
     <div class="field"><label>Responsabilidades (aparece em “Equipe”)</label><textarea class="inp" id="mf-r" rows="3" placeholder="Com o que as pessoas podem te procurar?">${esc(S.me.responsabilidades || '')}</textarea></div>
     <details style="margin-bottom:10px"><summary class="lbl" style="cursor:pointer">Trocar senha</summary>
       <div class="grid2" style="margin-top:10px"><div class="field"><label>Nova senha</label><input class="inp" type="password" id="mf-p1" autocomplete="new-password"></div><div class="field"><label>Repita a nova senha</label><input class="inp" type="password" id="mf-p2" autocomplete="new-password"></div></div></details>`,

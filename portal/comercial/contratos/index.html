@@ -71,6 +71,11 @@ table.hist td{padding:7px 6px;border-bottom:1px solid #f0ede5}table.hist .r{text
 .ass .bl .ln{border-top:1px solid #444;margin-bottom:2mm}.ass .bl b{display:block}
 .ass .test{display:grid;grid-template-columns:1fr 1fr;gap:12mm;margin-top:14mm}.ass .test .ln{border-top:1px solid #444;margin:10mm 0 2mm}
 .marca{background:#fff3b0}
+.doc p.cit{text-indent:0;margin:0 0 2.5mm 32mm;font-size:9.5pt;line-height:1.35}
+.doc p.li{text-indent:0;margin:0 0 2mm 22mm}
+.doc h3.secao{font-size:12pt;margin:8mm 0 3mm}
+.pend{background:#fdecea;border:1px solid #f3c2bb;color:#8f2d1f;border-radius:8px;padding:9px 12px;font-size:12px;line-height:1.5;margin-bottom:14px}
+.pend ul{margin:4px 0 0 18px}.pend.ok{background:#e9f5ee;border-color:#bfe0cb;color:#2e6b45}
 @page{size:A4;margin:0}
 @media print{
   body{background:#fff}.topbar,.editor,#modalRoot,.toast{display:none!important}
@@ -90,6 +95,9 @@ table.hist td{padding:7px 6px;border-bottom:1px solid #f0ede5}table.hist .r{text
 <script src="/app/vendor/supabase.js"></script>
 <script src="/app/config.js"></script>
 <script src="/portal/_comum/cs-auth.js"></script>
+<script src="/portal/_comum/vendor/jszip.min.js"></script>
+<script src="modelos-base.js"></script>
+<script src="recursos.js"></script>
 
 <div class="topbar">
   <div class="brand"><img src="/app/icons/apple-touch-icon.png" alt="C&amp;S"> · Gerador de Contratos</div>
@@ -184,7 +192,8 @@ function vazio(){ const m=PAR.modelo; return {
   proposta_id:null, proposta:{numero:'', atribuicoes:[], investimento:[], cortesias:[]},
   inicio:'', vigencia:'24', vencimento:'10', aviso:'30', multa:true, multaQtd:'1', foro:'São Paulo', cidadeAss:'', dataAss:'',
   titulo:m.titulo, multaCom:m.multaCom, multaSem:m.multaSem, fecho:m.fecho,
-  clausulas:m.clausulas.map(c=>({t:c.t, p:c.p.slice(), on:true})),
+  clausulas:m.clausulas.map(c=>({t:c.t, p:c.p.slice(), on:true, h:0})),
+  modeloId:'padrao', numeracao:'auto', qualificacao:'quadro', preambulo:[], base:null, propostaOrig:null,
   _id:null, _status:'rascunho'}; }
 
 /* ---------- helpers ---------- */
@@ -204,7 +213,7 @@ function toast(m,err){const t=$('toast');t.textContent=m;t.className='toast show
 function sujo(){$('estado').dataset.sujo='1';estado();}
 function estado(){const st={rascunho:'Rascunho',enviado:'Enviado para assinatura',assinado:'Assinado',encerrado:'Encerrado'}[C._status]||'Rascunho';
   $('estado').innerHTML=(C.numero?'Contrato Nº <b>'+esc(C.numero)+'</b> · '+st:'<b>Novo contrato</b> · nº sai ao salvar')+($('estado').dataset.sujo==='1'?' · <i>não salvo</i>':'');}
-function setp(path,v){const ks=path.split('.');let o=C;ks.slice(0,-1).forEach(k=>{o=o[/^\d+$/.test(k)?+k:k]});const l=ks[ks.length-1];o[/^\d+$/.test(l)?+l:l]=v;render();sujo();}
+function setp(path,v){const ks=path.split('.');let o=C;ks.slice(0,-1).forEach(k=>{o=o[/^\d+$/.test(k)?+k:k]});const l=ks[ks.length-1];o[/^\d+$/.test(l)?+l:l]=v;render();sujo();atualizaPend();}
 function fld(label,path,val,ph,type){return '<div class="fld"><label>'+label+'</label><input type="'+(type||'text')+'" value="'+esc(val)+'" placeholder="'+esc(ph||'')+'" oninput="setp(\''+path+'\',this.value)"></div>';}
 
 /* ---------- textos montados ---------- */
@@ -217,7 +226,7 @@ function qualContratante(){const t=C.contratante;const nome=(t.nome||'__________
 function multaTexto(){const q=parseInt(C.multaQtd)||1;return esc(C.multa?C.multaCom:C.multaSem).replace(/\{MULTA_QTD\}/g,q+' ('+esc(extNum(q))+')');}
 function trocar(s){const v=total();const m={'{CONTRATANTE}':esc(C.contratante.nome||'CONTRATANTE'),'{PROPOSTA}':esc(C.proposta.numero||'_____'),'{VALOR_MENSAL}':brl(v),'{VALOR_EXTENSO}':esc(extenso(v)),
   '{VENCIMENTO}':esc(C.vencimento||'10'),'{VIGENCIA}':esc(C.vigencia||'24')+' ('+esc(extNum(+C.vigencia||24))+')','{INICIO}':dataBR(C.inicio),'{AVISO}':esc(C.aviso||'30')+' ('+esc(extNum(+C.aviso||30))+')','{MULTA}':multaTexto(),'{FORO}':esc(C.foro||'')};
-  return esc(s).replace(/\{[A-Z_]+\}/g,k=>m[k]!=null?m[k]:k);}
+  return esc(s).replace(/\{[A-Z_]+\}/g,k=>m[k]!=null?m[k]:k).replace(/(^|[^>A-Za-zÀ-ú])(CONTRATADA|CONTRATANTE)(?![A-Za-zÀ-ú])/g,'$1<b>$2</b>');}
 function extNum(n){const s=extenso(n);return s.replace(/ reais?$/,'');}
 function blocoEscopo(){const a=(C.proposta.atribuicoes||[]).filter(x=>x.titulo||x.itens);if(!a.length)return '<p class="sem marca">[Escolha a proposta para trazer os postos e atividades.]</p>';
   return a.map(x=>'<div class="posto">'+esc(x.titulo)+(x.subtitulo?' '+esc(x.subtitulo):'')+'</div><ul class="esc">'+String(x.itens||'').split('\n').map(l=>l.trim()).filter(Boolean).map(l=>'<li>'+esc(l)+'</li>').join('')+'</ul>').join('');}
@@ -235,13 +244,15 @@ function render(){
   C.clausulas.forEach(c=>{
     if(!c.on)return;
     const temCort=c.p.some(p=>p.trim()==='[[CORTESIAS]]');const bc=blocoCortesias();if(temCort&&!bc)return; // sem cortesias na proposta: cláusula sai
-    n++;corpo+='<h3>'+n+'. Cláusula '+ordinal(n)+': '+esc(c.t)+'</h3>';
+    if(C.numeracao==='livre'){corpo+='<h3'+(c.h||!c.p.some(x=>x.trim())?' class="secao"':'')+'>'+esc(c.t)+'</h3>';}
+    else{n++;corpo+='<h3>'+n+'. Cláusula '+ordinal(n)+': '+esc(c.t)+'</h3>';}
     c.p.forEach(p=>{const t=p.trim();if(!t)return;
-      if(t==='[[ESCOPO]]')corpo+=blocoEscopo();else if(t==='[[VALORES]]')corpo+=blocoValores();else if(t==='[[CORTESIAS]]')corpo+=bc;else corpo+='<p>'+trocar(t)+'</p>';});});
+      if(t==='[[ESCOPO]]')corpo+=blocoEscopo();else if(t==='[[VALORES]]')corpo+=blocoValores();else if(t==='[[CORTESIAS]]')corpo+=bc;
+      else if(t.startsWith('> '))corpo+='<p class="cit">'+trocar(t.slice(2))+'</p>';else if(t.startsWith('- '))corpo+='<p class="li">'+trocar(t.slice(2))+'</p>';else corpo+='<p>'+trocar(t)+'</p>';});});
   const cid=C.cidadeAss||L.cidade;
   const doc='<div class="doc"><h1>'+esc(C.titulo)+'</h1><div class="num">CONTRATO Nº '+esc(C.numero||'___/____')+'</div>'+
-    '<p>'+qualContratada()+'</p><p>'+qualContratante()+'</p>'+
-    '<p>As partes acima qualificadas têm entre si justo e contratado o presente instrumento particular de prestação de serviços, que se regerá pelas cláusulas e condições a seguir.</p>'+corpo+
+    (C.qualificacao==='narrativa'?qualNarrativa():'<p>'+qualContratada()+'</p><p>'+qualContratante()+'</p>')+
+    ((C.preambulo||[]).filter(x=>x.trim()).length?(C.preambulo||[]).filter(x=>x.trim()).map(x=>'<p>'+trocar(x)+'</p>').join(''):'<p>As partes acima qualificadas têm entre si justo e contratado o presente instrumento particular de prestação de serviços, que se regerá pelas cláusulas e condições a seguir.</p>')+corpo+
     '<p>'+esc(C.fecho)+'</p><p>'+esc(cid)+', '+dataExtenso(C.dataAss)+'.</p>'+
     '<div class="ass"><div class="bl"><div class="ln"></div><b>'+esc(e.razao.toUpperCase())+'</b>CNPJ nº '+esc(e.cnpj)+'</div><div class="bl"><div class="ln"></div><b>'+esc((C.contratante.nome||'CONTRATANTE').toUpperCase())+'</b>CNPJ nº '+esc(C.contratante.cnpj||'_______________')+'</div>'+
     '<p class="sem" style="text-align:center;margin-top:12mm">Testemunhas:</p><div class="test"><div><div class="ln"></div>1. Nome:<br>CPF:</div><div><div class="ln"></div>2. Nome:<br>CPF:</div></div></div></div>';
@@ -255,15 +266,16 @@ function ordinal(n){return ['','Primeira','Segunda','Terceira','Quarta','Quinta'
 
 /* ---------- editor ---------- */
 function editor(){
-  const t=C.contratante;let h='<div class="aviso"><b>Antes de enviar:</b> o texto padrão é um modelo base. Revise com o jurídico. A assinatura do contrato é feita fora do assinador interno (Autentique ou gov.br).</div>';
+  const t=C.contratante;let h='<div class="aviso"><b>Antes de enviar:</b> o texto padrão é um modelo base. Revise com o jurídico. A assinatura do contrato é feita fora do assinador interno (Autentique ou gov.br).</div>'+uiPend();
   h+='<div class="grp"><h2>Contrato</h2><div class="fld"><label>Nº do contrato</label><div class="numbox">'+(C.numero?esc(C.numero):'Gerado ao salvar (sequencial)')+'</div></div>';
   h+='<div class="row2"><div class="fld"><label>Empresa contratada</label><select onchange="setp(\'empresa\',this.value)">'+Object.keys(PAR.empresas).map(k=>'<option value="'+k+'"'+(C.empresa===k?' selected':'')+'>'+esc(PAR.empresas[k].razao)+'</option>').join('')+'</select></div>';
   h+='<div class="fld"><label>Local da C&amp;S no timbrado</label><select onchange="setp(\'local\',this.value)">'+Object.keys(PAR.locais).map(k=>'<option value="'+k+'"'+(C.local===k?' selected':'')+'>'+esc(PAR.locais[k].nome)+'</option>').join('')+'</select></div></div>';
   h+='<div class="fld"><label>Título do contrato</label><input value="'+esc(C.titulo)+'" oninput="setp(\'titulo\',this.value)"></div></div>';
+  h+=uiModelo();
 
   h+='<div class="grp"><h2>Proposta aceita</h2><div class="fld"><label>Escolha a proposta (traz escopo, valores e cortesias)</label><select onchange="usarProposta(this.value)"><option value="">—</option>'+
     PROPS.map(p=>'<option value="'+p.id+'"'+(C.proposta_id===p.id?' selected':'')+'>'+esc(p.numero+' · '+p.cliente+' · '+brl(p.valor_total)+(p.status==='aceita'?' · aceita':''))+'</option>').join('')+'</select></div>';
-  h+='<div class="hint">Valor mensal: <b>'+brl(total())+'</b> · '+(C.proposta.atribuicoes||[]).filter(a=>a.titulo).length+' postos · '+(C.proposta.cortesias||[]).length+' cortesias</div></div>';
+  h+='<div class="hint">Valor mensal: <b>'+brl(total())+'</b> · '+(C.proposta.atribuicoes||[]).filter(a=>a.titulo).length+' postos · '+(C.proposta.cortesias||[]).length+' cortesias</div>'+(C.proposta_id?'':'<div class="fld" style="margin-top:8px"><label>Nº da proposta (se não estiver no sistema)</label><input value="'+esc(C.proposta.numero||'')+'" oninput="setp(\'proposta.numero\',this.value)"></div>')+'</div>'+uiEscopo();
 
   h+='<div class="grp"><h2>Contratante</h2>'+fld('Nome / razão social','contratante.nome',t.nome,'Condomínio Flex Suzano');
   h+='<div class="row2"><div class="fld"><label>Tipo</label><select onchange="setp(\'contratante.tipo\',this.value)"><option'+(t.tipo==='condomínio'?' selected':'')+'>condomínio</option><option'+(t.tipo==='empresa'?' selected':'')+'>empresa</option></select></div>'+fld('CNPJ','contratante.cnpj',t.cnpj,'00.000.000/0001-00')+'</div>';
@@ -278,24 +290,28 @@ function editor(){
   if(C.multa)h+='<div class="row2">'+fld('Multa = quantas mensalidades','multaQtd',C.multaQtd,'1')+'<div></div></div>';
   h+='<div class="fld"><label>Texto da multa ('+(C.multa?'com multa':'sem multa')+')</label><textarea oninput="setp(\''+(C.multa?'multaCom':'multaSem')+'\',this.value)">'+esc(C.multa?C.multaCom:C.multaSem)+'</textarea></div></div>';
 
-  h+='<div class="grp"><h2>Cláusulas e parágrafos</h2><div class="hint" style="margin-bottom:8px">Edite o texto de cada parágrafo. Desmarque uma cláusula para tirá-la deste contrato.</div>';
-  C.clausulas.forEach((c,i)=>{h+='<details class="cl"><summary><input type="checkbox" '+(c.on?'checked':'')+' onclick="event.stopPropagation()" onchange="C.clausulas['+i+'].on=this.checked;render();sujo();editor()"><span class="n">'+(i+1)+'.</span>'+esc(c.t)+(c.on?'':' <span class="off">(fora)</span>')+'</summary><div class="corpo">'+
+  h+='<div class="grp"><h2>Cláusulas e parágrafos</h2><div class="hint" style="margin-bottom:8px">Edite o texto de cada parágrafo. Desmarque uma cláusula para tirá-la deste contrato. Parágrafo começando com "&gt; " vira citação (ementa) e com "- " vira item recuado.</div>';
+  h+='<div class="row2" style="margin-bottom:8px"><div class="fld"><label>Numeração das cláusulas</label><select onchange="setp(\'numeracao\',this.value);editor()"><option value="auto"'+(C.numeracao!=='livre'?' selected':'')+'>Automática (Cláusula Primeira, Segunda…)</option><option value="livre"'+(C.numeracao==='livre'?' selected':'')+'>Como está no título (1.1, 1.2…)</option></select></div>'+
+    '<div class="fld"><label>Qualificação das partes</label><select onchange="setp(\'qualificacao\',this.value);editor()"><option value="quadro"'+(C.qualificacao!=='narrativa'?' selected':'')+'>CONTRATADA: … / CONTRATANTE: …</option><option value="narrativa"'+(C.qualificacao==='narrativa'?' selected':'')+'>"Pelo presente instrumento, de um lado…"</option></select></div></div>';
+  h+='<div class="fld"><label>Preâmbulo <i>(considerandos; um parágrafo por linha. Vazio = frase padrão)</i></label><textarea rows="4" oninput="C.preambulo=this.value.split(\'\\n\');render();sujo()">'+esc((C.preambulo||[]).join('\n'))+'</textarea></div>';
+  C.clausulas.forEach((c,i)=>{h+='<details class="cl"><summary><input type="checkbox" '+(c.on?'checked':'')+' onclick="event.stopPropagation()" onchange="C.clausulas['+i+'].on=this.checked;render();sujo();editor()"><span class="n">'+(i+1)+'.</span>'+esc(c.t)+(c.on?'':' <span class="off">(fora)</span>')+'</summary><div class="corpo">'+(C.numeracao==='livre'?'<label class="opt" style="font-size:11.5px"><input type="checkbox" '+(c.h?'checked':'')+' onchange="C.clausulas['+i+'].h=this.checked?1:0;render();sujo()"> Título de seção (destaque maior)</label>':'')+
     '<div class="fld"><label>Título da cláusula</label><input value="'+esc(c.t)+'" oninput="C.clausulas['+i+'].t=this.value;render();sujo()"></div>'+
     c.p.map((p,j)=>'<div class="par"><textarea oninput="C.clausulas['+i+'].p['+j+']=this.value;render();sujo()">'+esc(p)+'</textarea><button class="rm" title="Remover parágrafo" onclick="C.clausulas['+i+'].p.splice('+j+',1);render();sujo();editor()">×</button></div>').join('')+
     '<div class="minis"><button onclick="C.clausulas['+i+'].p.push(\'\');editor()">+ parágrafo</button><button onclick="mover('+i+',-1)">↑ subir</button><button onclick="mover('+i+',1)">↓ descer</button><button onclick="restaurarClausula('+i+')">texto do modelo</button><button onclick="if(confirm(\'Excluir esta cláusula deste contrato?\')){C.clausulas.splice('+i+',1);render();sujo();editor()}">excluir</button></div></div></details>';});
   h+='<button class="addbtn" onclick="C.clausulas.push({t:\'Nova cláusula\',p:[\'\'],on:true});render();sujo();editor()">+ Adicionar cláusula</button>';
   h+='<div class="fld" style="margin-top:10px"><label>Fecho</label><textarea oninput="setp(\'fecho\',this.value)">'+esc(C.fecho)+'</textarea></div>';
+  h+='<div class="minis" style="margin-top:8px"><button onclick="salvarComoModelo()">Salvar cláusulas como modelo</button></div>';
   h+='<div class="chaves"><b>Pode usar no texto:</b><br>'+Object.keys(CHAVES).map(k=>'<code>'+esc(k)+'</code> '+esc(CHAVES[k])).join('<br>')+'</div></div>';
   $('editor').innerHTML=h;estado();
 }
 function mover(i,d){const j=i+d;if(j<0||j>=C.clausulas.length)return;const x=C.clausulas.splice(i,1)[0];C.clausulas.splice(j,0,x);render();sujo();editor();}
-function restaurarClausula(i){const m=PAR.modelo.clausulas.find(c=>c.t===C.clausulas[i].t);if(!m)return toast('Essa cláusula não existe no modelo padrão.',1);C.clausulas[i].p=m.p.slice();render();sujo();editor();}
+function restaurarClausula(i){const m=(modeloPorId(C.modeloId).clausulas||[]).find(c=>c.t===C.clausulas[i].t);if(!m)return toast('Essa cláusula não existe no modelo escolhido.',1);C.clausulas[i].p=m.p.slice();render();sujo();editor();}
 
 /* ---------- proposta ---------- */
 async function usarProposta(id){
   if(!id){C.proposta_id=null;C.proposta={numero:'',atribuicoes:[],investimento:[],cortesias:[]};render();sujo();editor();return}
   const r=await sb.from('com_propostas').select('id,numero,cliente,dados').eq('id',id).single();if(r.error)return toast('Erro: '+r.error.message,1);
-  const d=r.data.dados||{};C.proposta_id=id;C.proposta={numero:r.data.numero,atribuicoes:d.atribuicoes||[],investimento:d.investimento||[],cortesias:d.cortesias||[]};
+  const d=r.data.dados||{};C.proposta_id=id;C.proposta={numero:r.data.numero,atribuicoes:d.atribuicoes||[],investimento:d.investimento||[],cortesias:d.cortesias||[]};C.propostaOrig=JSON.parse(JSON.stringify({investimento:C.proposta.investimento,atribuicoes:C.proposta.atribuicoes}));
   if(!C.contratante.nome)C.contratante.nome=r.data.cliente;if(d.tipoCliente)C.contratante.tipo=d.tipoCliente;if(d.local&&PAR.locais[d.local])C.local=d.local;
   render();sujo();editor();toast('Proposta Nº '+r.data.numero+' aplicada.');}
 
@@ -308,7 +324,8 @@ async function salvar(sil){
   else{const r=await sb.from('com_contratos').update({dados:limpo(),contratante:C.contratante.nome,valor_total:total(),proposta_id:C.proposta_id,status:C._status}).eq('id',C._id);
     if(r.error){toast('Não foi possível salvar: '+r.error.message,1);return false}}
   $('estado').dataset.sujo='0';render();editor();if(!sil)toast('Contrato Nº '+C.numero+' salvo.');return true;}
-async function exportarPDF(){if(!C._id||$('estado').dataset.sujo==='1'){if(!(await salvar(true)))return;}
+async function exportarPDF(){const pd=pendencias();if(pd.length&&!confirm('Há '+pd.length+' pendência(s):\n\n• '+pd.join('\n• ')+'\n\nExportar mesmo assim?'))return;
+  if(!C._id||$('estado').dataset.sujo==='1'){if(!(await salvar(true)))return;}
   const nome='Contrato_'+C.numero.replace('/','-')+'_'+(C.contratante.nome||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^A-Za-z0-9]+/g,'_').toUpperCase();
   const t=document.title;document.title=nome;setTimeout(()=>{window.print();document.title=t},150);}
 function novo(){if($('estado').dataset.sujo==='1'&&!confirm('Há alterações não salvas. Começar um contrato novo?'))return;C=vazio();$('estado').dataset.sujo='0';render();editor();}
@@ -325,7 +342,7 @@ async function abrir(id){if($('estado').dataset.sujo==='1'&&!confirm('Há altera
 
 /* ---------- modelo padrão (parâmetros) ---------- */
 async function carregarPar(){const r=await sb.from('com_parametros').select('valor').eq('chave','contratos').maybeSingle();const v=(r.data&&r.data.valor)||{};
-  if(v.modelo)PAR.modelo=v.modelo;if(v.empresas)PAR.empresas=Object.assign({},EMPRESAS0,v.empresas);if(v.locais)PAR.locais=Object.assign({},LOCAIS0,v.locais);PAR._ano=v.ultimoAno;PAR._num=v.ultimoNumero;
+  if(v.modelo)PAR.modelo=v.modelo;if(v.empresas)PAR.empresas=Object.assign({},EMPRESAS0,v.empresas);if(v.locais)PAR.locais=Object.assign({},LOCAIS0,v.locais);PAR._ano=v.ultimoAno;PAR._num=v.ultimoNumero;PAR.modelosSalvos=v.modelos||[];
   const p=await sb.from('com_propostas').select('id,numero,cliente,valor_total,status').is('cancelado_em',null).order('ano',{ascending:false}).order('seq',{ascending:false}).limit(300);PROPS=p.data||[];}
 function abrirModelo(){
   let h='<h2>Modelo padrão de contrato</h2><p class="hint">Vale para os contratos novos. Os já salvos guardam o próprio texto.</p>';
@@ -342,7 +359,7 @@ async function gravarModelo(){
   const cls=$('m_cl').value.split(/\n-{3,}\n/).map(b=>b.split('\n').map(x=>x.trim()).filter(Boolean)).filter(b=>b.length).map(b=>({t:b[0],p:b.slice(1)}));
   const emp=JSON.parse(JSON.stringify(PAR.empresas));document.querySelectorAll('[data-e]').forEach(i=>{const [k,c]=i.dataset.e.split('.');emp[k][c]=i.value.trim();});
   const loc=JSON.parse(JSON.stringify(PAR.locais));document.querySelectorAll('[data-l]').forEach(i=>{loc[i.dataset.l].rod=i.value.trim();});
-  const v={modelo:{titulo:$('m_ti').value.trim(),multaCom:$('m_mc').value.trim(),multaSem:$('m_ms').value.trim(),fecho:$('m_fe').value.trim(),clausulas:cls},empresas:emp,locais:loc,ultimoAno:$('m_ano').value.trim(),ultimoNumero:parseInt($('m_num').value)||0};
+  const v={modelo:{titulo:$('m_ti').value.trim(),multaCom:$('m_mc').value.trim(),multaSem:$('m_ms').value.trim(),fecho:$('m_fe').value.trim(),clausulas:cls},empresas:emp,locais:loc,ultimoAno:$('m_ano').value.trim(),ultimoNumero:parseInt($('m_num').value)||0,modelos:PAR.modelosSalvos||[]};
   const r=await sb.from('com_parametros').upsert({chave:'contratos',valor:v});if(r.error)return toast('Erro ao salvar: '+r.error.message,1);
   PAR.modelo=v.modelo;PAR.empresas=emp;PAR.locais=loc;PAR._ano=v.ultimoAno;PAR._num=v.ultimoNumero;fechar();render();editor();toast('Modelo salvo. Vale para os próximos contratos.');}
 function padraoOriginal(){$('m_cl').value=MODELO0.clausulas.map(c=>c.t+'\n'+c.p.join('\n')).join('\n---\n');$('m_mc').value=MODELO0.multaCom;$('m_ms').value=MODELO0.multaSem;$('m_ti').value=MODELO0.titulo;$('m_fe').value=MODELO0.fecho;toast('Textos originais carregados. Clique em Salvar modelo para gravar.');}

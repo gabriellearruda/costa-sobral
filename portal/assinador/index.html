@@ -65,6 +65,7 @@ body{font-family:Montserrat,system-ui,sans-serif;color:var(--txt);background:var
 <script src="/app/vendor/supabase.js"></script>
 <script src="/app/config.js"></script>
 <script src="/portal/_comum/cs-auth.js"></script>
+<script src="/portal/_comum/vendor/pdf-lib.min.js"></script>
 
 <div class="topbar">
   <div class="brand"><img src="/app/icons/apple-touch-icon.png" alt="C&amp;S"> · Assinador interno</div>
@@ -182,10 +183,10 @@ async function abrir(id){
     '<div style="font-weight:700;font-size:12.5px;margin:14px 0 4px">Assinaturas</div>'+ss.map(s=>'<div class="sig"><b>'+esc(s.nome)+'</b><span class="pill p-'+s.status+'">'+ST[s.status]+'</span> '+(s.assinado_em?dh(s.assinado_em):'')+(s.motivo?'<br>Motivo: '+esc(s.motivo):'')+'</div>').join('')+
     '<div style="display:flex;flex-direction:column;gap:8px;margin-top:14px">'+
     (eu&&eu.status==='pendente'&&d.status==='pendente'?'<button class="btn btn-gold" id="b_ass" disabled onclick="assinar()">Assinar documento</button><button class="btn btn-err" onclick="recusar()">Recusar</button>':'')+
-    '<button class="btn btn-sec" onclick="folha()">Folha de assinaturas (PDF)</button><a class="btn btn-sec" id="b_baixar" style="text-align:center;text-decoration:none" download="'+esc(d.arquivo_nome)+'">Baixar documento original</a>'+
+    '<button class="btn btn-gold" onclick="baixarUnico()">Baixar documento + assinaturas (PDF único)</button><button class="btn btn-sec" onclick="escolherPaginas()">Escolher páginas…</button><button class="btn btn-sec" onclick="folha()">Imprimir só a folha de assinaturas</button><a class="btn btn-sec" id="b_baixar" style="text-align:center;text-decoration:none" download="'+esc(d.arquivo_nome)+'">Baixar documento original</a>'+
     (d.criado_por===EU.id&&d.status==='pendente'?'<button class="btn btn-err" onclick="cancelarDoc()">Cancelar envio</button>':'')+'</div></div></div>',true);
   try{const s=await sb.storage.from('assinador').createSignedUrl(d.arquivo_path,600);if(s.error)throw s.error;
-    const buf=await (await fetch(s.data.signedUrl)).arrayBuffer(),h=await sha256(buf);ATUAL.hash=h;
+    const buf=await (await fetch(s.data.signedUrl)).arrayBuffer(),h=await sha256(buf);ATUAL.hash=h;ATUAL.buf=buf;
     const ok=h===d.hash_sha256;window._blob=URL.createObjectURL(new Blob([buf],{type:'application/pdf'}));$('vis').src=window._blob;$('b_baixar').href=window._blob;
     $('conf').className='conf '+(ok?'ok':'no');$('conf').innerHTML=ok?'<b>Arquivo conferido.</b> É exatamente o documento enviado.':'<b>Atenção:</b> o arquivo não confere com o original. Não assine e avise quem enviou.';
     if(ok&&$('b_ass'))$('b_ass').disabled=false;
@@ -199,6 +200,76 @@ async function recusar(){const m=prompt('Motivo da recusa (quem enviou vai ver):
   const r=await sb.rpc('ass_recusar',{p_doc:ATUAL.d.id,p_motivo:m});if(r.error)return toast(r.error.message,1);toast('Recusa registrada.');fechar();carregar();}
 async function cancelarDoc(){if(!confirm('Cancelar este envio? Ninguém mais poderá assinar.'))return;
   const r=await sb.from('ass_documentos').update({status:'cancelado'}).eq('id',ATUAL.d.id);if(r.error)return toast(r.error.message,1);toast('Envio cancelado.');fechar();carregar();}
+
+
+/* ---------- PDF único: documento + folha de assinaturas ---------- */
+function intervalo(txt,n){const set=new Set();String(txt||'').split(',').map(x=>x.trim()).filter(Boolean).forEach(p=>{const m=p.match(/^(\d+)\s*-\s*(\d+)$/);
+  if(m){let a=+m[1],b=+m[2];if(a>b)[a,b]=[b,a];for(let i=a;i<=b;i++)if(i>=1&&i<=n)set.add(i);}else if(/^\d+$/.test(p)&&+p>=1&&+p<=n)set.add(+p);});return [...set].sort((a,b)=>a-b);}
+async function escolherPaginas(){
+  if(!ATUAL||!ATUAL.buf)return toast('Aguarde o documento abrir.',1);
+  const n=(await PDFLib.PDFDocument.load(ATUAL.buf,{ignoreEncryption:true})).getPageCount();
+  const div=document.createElement('div');div.className='ovl';div.style.zIndex=260;
+  div.innerHTML='<div class="mdl" style="max-width:480px"><button class="x">×</button><h2>Escolher páginas</h2><p style="font-size:13px;color:#6b675e;margin-bottom:12px">O documento tem <b>'+n+' página'+(n>1?'s':'')+'</b>. Use vírgulas e intervalos, por exemplo: 1-2, 4.</p>'+
+   '<div class="fld"><label>Páginas do documento</label><input type="text" id="pg_sel" value="1-'+n+'"></div>'+
+   '<label class="decl" style="margin-bottom:8px"><input type="checkbox" id="pg_folha" checked> <span>Incluir a folha de assinaturas no final</span></label>'+
+   '<label class="decl"><input type="checkbox" id="pg_selo" checked> <span>Marcar o rodapé das páginas com "assinado eletronicamente"</span></label>'+
+   '<div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px"><button class="btn btn-sec" data-c>Cancelar</button><button class="btn btn-gold" data-ok>Baixar PDF</button></div></div>';
+  document.body.appendChild(div);
+  div.onclick=async e=>{const t=e.target;if(t===div||t.classList.contains('x')||t.hasAttribute('data-c')){div.remove();return}
+    if(t.hasAttribute('data-ok')){const sel=intervalo(div.querySelector('#pg_sel').value,n);if(!sel.length)return toast('Informe ao menos uma página válida.',1);
+      t.disabled=true;await montarPdf(sel,div.querySelector('#pg_folha').checked,div.querySelector('#pg_selo').checked);div.remove();}};
+}
+async function baixarUnico(){if(!ATUAL||!ATUAL.buf)return toast('Aguarde o documento abrir.',1);await montarPdf(null,true,true);}
+function quebra(txt,font,size,larg){const out=[];String(txt||'').split('\n').forEach(par=>{let l='';par.split(' ').forEach(w=>{const t=l?l+' '+w:w;if(font.widthOfTextAtSize(t,size)>larg&&l){out.push(l);l=w;}else l=t;});out.push(l);});return out;}
+async function montarPdf(paginas,comFolha,comSelo){
+  try{
+    const {PDFDocument,StandardFonts,rgb}=PDFLib,d=ATUAL.d;
+    const orig=await PDFDocument.load(ATUAL.buf,{ignoreEncryption:true}),out=await PDFDocument.create();
+    const idx=(paginas||orig.getPageIndices().map(i=>i+1)).map(i=>i-1);
+    const pags=await out.copyPages(orig,idx);pags.forEach(p=>out.addPage(p));
+    const F=await out.embedFont(StandardFonts.Helvetica),FB=await out.embedFont(StandardFonts.HelveticaBold),FM=await out.embedFont(StandardFonts.Courier);
+    const ouro=rgb(.65,.49,.12),cinza=rgb(.42,.40,.36),preto=rgb(.1,.1,.1);
+    let folhaIni=out.getPageCount()+1;
+    if(comFolha){
+      const r=await sb.from('ass_signatarios').select('nome,email,status,assinado_em,aal,motivo,hash_conferido,assinatura_png').eq('documento_id',d.id);
+      if(r.error)throw r.error;
+      let logo=null;try{logo=await out.embedPng(await (await fetch('/portal/comercial/contratos/timbrado-logo.png')).arrayBuffer());}catch(_){}
+      let pg=out.addPage([595.28,841.89]),y=800;const M=48,W=595.28-2*M;
+      const novaPag=()=>{pg=out.addPage([595.28,841.89]);y=800;};
+      const txt=(t,x,yy,f,sz,c)=>pg.drawText(String(t),{x,y:yy,font:f,size:sz,color:c||preto});
+      if(logo){const s=logo.scale(70/logo.height*0.6);pg.drawImage(logo,{x:M,y:y-42,width:s.width,height:s.height});}
+      txt('Assinador interno C&S',595.28-M-F.widthOfTextAtSize('Assinador interno C&S',8),y-14,F,8,cinza);
+      txt('Emitida em '+dh(new Date()),595.28-M-F.widthOfTextAtSize('Emitida em '+dh(new Date()),8),y-26,F,8,cinza);
+      y-=52;pg.drawLine({start:{x:M,y},end:{x:595.28-M,y},thickness:1,color:rgb(.83,.69,.22)});y-=30;
+      txt('Folha de assinaturas',M,y,FB,18,preto);y-=24;
+      const linha=(rot,val,mono)=>{txt(rot,M,y,F,8.5,cinza);quebra(val,mono?FM:FB,mono?8:9.5,W-150).forEach((l,i)=>{txt(l,M+150,y-i*12,mono?FM:FB,mono?8:9.5);});y-=Math.max(1,quebra(val,mono?FM:FB,mono?8:9.5,W-150).length)*12+5;};
+      linha('Documento',d.titulo);linha('Tipo',TIPOS[d.tipo]||d.tipo);linha('Arquivo',d.arquivo_nome);linha('Código do arquivo (SHA-256)',d.hash_sha256,true);
+      linha('Enviado por',nomeDe(d.criado_por)+' em '+dh(d.criado_em));linha('Situação',ST[d.status]+(d.concluido_em?' em '+dh(d.concluido_em):''));
+      if(paginas)linha('Páginas incluídas','Páginas '+paginas.join(', ')+' do documento original');
+      y-=10;
+      for(const s of (r.data||[])){
+        if(y<150)novaPag();
+        pg.drawRectangle({x:M,y:y-92,width:W,height:92,borderColor:rgb(.89,.86,.78),borderWidth:1});
+        if(s.assinatura_png){try{const im=await out.embedPng(s.assinatura_png);const k=Math.min(150/im.width,58/im.height);pg.drawImage(im,{x:M+12,y:y-74,width:im.width*k,height:im.height*k});}catch(_){}}
+        pg.drawLine({start:{x:M+12,y:y-78},end:{x:M+172,y:y-78},thickness:.6,color:cinza});
+        let yy=y-18;const tx=(t,f,sz,c)=>{txt(t,M+190,yy,f,sz,c);yy-=13;};
+        tx(s.nome,FB,10.5);tx(s.email,F,8.5,cinza);
+        if(s.status==='assinado'){tx('Assinou em '+dh(s.assinado_em),F,8.5);tx('Acesso: '+(s.aal==='aal2'?'senha + código do autenticador':(s.aal||'—')),F,8.5);tx('Arquivo conferido: '+(s.hash_conferido===d.hash_sha256?'sim':'não'),F,8.5);}
+        else if(s.status==='recusado'){tx('Recusou em '+dh(s.assinado_em),F,8.5);if(s.motivo)tx('Motivo: '+s.motivo.slice(0,80),F,8.5);}
+        else tx('Aguardando assinatura',F,8.5,cinza);
+        y-=104;}
+      if(y<120)novaPag();
+      y-=6;quebra('Assinaturas eletrônicas internas, feitas por pessoas com acesso ao Portal C&S (senha e código do autenticador), aceitas entre as partes para documentos internos (MP 2.200-2/2001, art. 10, § 2º). A data e a hora vêm do servidor. Para conferir, calcule o SHA-256 do arquivo original: ele deve ser igual ao código acima. Esta folha não serve para contratos ou documentos trabalhistas.',F,7.5,W).forEach(l=>{txt(l,M,y,F,7.5,cinza);y-=10;});
+    }
+    if(comSelo){const tot=out.getPageCount(),nDoc=idx.length;
+      for(let i=0;i<nDoc;i++){const p=out.getPage(i),{width}=p.getSize();
+        const t='Documento assinado eletronicamente no Portal C&S'+(comFolha?' · folha de assinaturas na página '+folhaIni+' de '+tot:'')+' · '+d.hash_sha256.slice(0,16)+'…';
+        p.drawText(t,{x:Math.max(10,(width-F.widthOfTextAtSize(t,6.5))/2),y:8,size:6.5,font:F,color:cinza});}}
+    const bytes=await out.save();const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([bytes],{type:'application/pdf'}));
+    a.download=d.titulo.normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^A-Za-z0-9]+/g,'_').slice(0,60)+'_assinado.pdf';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},2000);
+    toast('PDF gerado: documento'+(comFolha?' + folha de assinaturas':'')+'.');
+  }catch(e){toast('Não foi possível montar o PDF: '+(e.message||e),1);}
+}
 
 /* ---------- folha de assinaturas ---------- */
 async function folha(){
