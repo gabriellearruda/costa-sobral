@@ -531,6 +531,10 @@ tr.gone{opacity:0;transition:opacity .25s}
 .compass{position:absolute;right:120px;bottom:128px;z-index:3;width:58px;height:58px}
 .mapslide:not(.on) .pc{opacity:0}
 .pc.hide{opacity:0;transform:translateY(8px)}
+.stage.arrastando .pc{cursor:grab;outline:1.5px dashed rgba(240,215,138,.75);outline-offset:3px;opacity:1!important;transform:none!important;touch-action:none;user-select:none}
+.stage.arrastando .pc.pegando{cursor:grabbing;outline-style:solid;z-index:9}
+.dragbar{position:fixed;left:50%;top:14px;transform:translateX(-50%);z-index:9999;display:flex;gap:10px;align-items:center;background:#111;border:1px solid #D4AF37;padding:10px 14px;font:14px/1.3 Inter,system-ui,sans-serif;color:#F5F5F0;box-shadow:0 10px 40px rgba(0,0,0,.6)}
+.dragbar[hidden]{display:none}.dragbar button{all:unset;cursor:pointer;padding:8px 14px;border:1px solid #D4AF37;color:#D4AF37;font-weight:600}.dragbar button.pri{background:#D4AF37;color:#111}
 @media (prefers-reduced-motion:reduce){.pc{transition:none}}
 
 /* serviços complementares */
@@ -1157,6 +1161,7 @@ body.modo-cliente #tscroll input,body.modo-cliente #tscroll select,body.modo-cli
   <details><summary>Mapa</summary>
    <p class="hintp">Clique em "Posicionar no mapa" e depois no ponto do condomínio. A base e o cliente C&amp;S mais próximos são sugeridos sozinhos. Copie km e minutos do Google Maps.</p>
    <div class="row" style="margin-bottom:12px"><button class="pb pri" type="button" id="mapPlace">Posicionar no mapa</button><span class="st" id="mapXY"></span></div>
+   <div class="row" style="margin-bottom:12px"><button class="pb" type="button" id="mapDrag">Arrastar cards no mapa</button><button class="pb" type="button" id="mapAuto">Organizar automaticamente</button></div>
    <div class="grid">
     <label>Base de origem<select id="f_base" data-f="mapa.base"><option value="carrao">Vila Carrão</option><option value="suzano">Suzano</option></select></label>
     <label>Cartão do cliente<select id="f_card" data-f="mapa.card"><option value="dir">À direita do pino</option><option value="esq">À esquerda</option><option value="acima">Acima</option><option value="abaixo">Abaixo</option></select></label>
@@ -1208,6 +1213,7 @@ body.modo-cliente #tscroll input,body.modo-cliente #tscroll select,body.modo-cli
  <footer><div class="row"><button class="pb pri" type="button" id="cliSave" style="flex:1">Salvar cliente</button><button class="pb" type="button" id="prepPresent">Apresentar</button></div><span class="st" id="prepSt"></span></footer>
 </aside>
 <div class="toast" id="toast" hidden role="status"></div>
+<div class="dragbar" id="dragBar" hidden><span>Arraste os cards do mapa para onde quiser.</span><button type="button" id="dragAuto">Organizar automaticamente</button><button type="button" class="pri" id="dragOk">Concluir</button></div>
 
 <script src="/app/vendor/supabase.js"></script>
 <script src="/app/config.js"></script>
@@ -1447,6 +1453,7 @@ function buildMap(cfg){
    ${SUP?`<div class="sup">Suporte C&amp;S já presente na região:<br>${E(SUP.n)}${String(cfg.mapa.supKm||'').trim()?` a <em>≈ ${E(cfg.mapa.supKm)} km</em>`:''}</div>`:''}
    ${FLEX.km?`<span class="drv">${car}<span>Base ${OB===BASE2?'Suzano':'Vila Carrão'} <i data-v="${FLEX.km}">${FLEX.km}</i> km · <i data-v="${FLEX.min}">${FLEX.min}</i> min</span></span>`:''}</div>`;
  const cards=PTS.map((p,i)=>document.getElementById('pc'+i)),cB=document.getElementById('pcB'),cB2=document.getElementById('pcB2'),cF=document.getElementById('pcF');
+ cards.forEach((c,i)=>c.dataset.key='p'+i);cB.dataset.key='B';cB2.dataset.key='B2';cF.dataset.key='F';
  // o cliente apresentado já é posto (ex.: Flex, Vida): mostra só o destaque dele, sem repetir o pino
  PTS.forEach((p,i)=>{if(Math.hypot(p.x-FLEX.x,p.y-FLEX.y)<40){[routes[i],routes[i].previousSibling,pinG[i].parentNode,cards[i],parts[i]].forEach(e=>{if(e)e.style.display='none'});}});
 
@@ -1463,7 +1470,7 @@ function buildMap(cfg){
   pinG.forEach(g=>g.setAttribute('transform','scale(0)'));[...cards,cB,cB2,cF].forEach(c=>c.classList.add('hide'));
   local.concat(locLbl).forEach(e=>e.setAttribute('opacity',0));fPin.setAttribute('transform','scale(0)');flexPath.setAttribute('opacity',0);
   parts.forEach(p=>p.setAttribute('opacity',0))}
- function play(){stop();if(reduce){finalState();flexPath.setAttribute('opacity',1);return}
+ function play(){try{arrumar()}catch(e){}stop();if(reduce){finalState();flexPath.setAttribute('opacity',1);return}
   reset();t0=performance.now();
   timers.push(setTimeout(()=>cB.classList.remove('hide'),200));timers.push(setTimeout(()=>cB2.classList.remove('hide'),500+5*260));
   const D=650,GAP=260,START=500;
@@ -1491,8 +1498,46 @@ function buildMap(cfg){
    raf=requestAnimationFrame(loop)};
   raf=requestAnimationFrame(loop)}
  function stop(){cancelAnimationFrame(raf);raf=null;timers.forEach(clearTimeout);timers=[]}
+ /* organiza os cartões: posições arrastadas valem; os demais desviam uns dos outros */
+ function arrumar(){
+  const slide=cardsEl.closest('.slide');if(!slide||!cF.offsetWidth)return;
+  const R=e=>({x:e.offsetLeft,y:e.offsetTop,w:e.offsetWidth,h:e.offsetHeight});
+  const ov=(a,b,m=4)=>Math.max(0,Math.min(a.x+a.w+m,b.x+b.w+m)-Math.max(a.x-m,b.x-m))*Math.max(0,Math.min(a.y+a.h+m,b.y+b.h+m)-Math.max(a.y-m,b.y-m));
+  const fora=r=>{const L=24,T=100,Rr=1896,B=950;const ix=Math.max(0,Math.min(r.x+r.w,Rr)-Math.max(r.x,L)),iy=Math.max(0,Math.min(r.y+r.h,B)-Math.max(r.y,T));return r.w*r.h-ix*iy};
+  const put=(e,x,y)=>{e.style.left=Math.round(x)+'px';e.style.top=Math.round(y)+'px';e.style.right='auto';e.style.bottom='auto'};
+  const fixos=[...slide.querySelectorAll('.mtitle,.mpanel,.mlegend,.mnote')].map(R);
+  const vis=PTS.map((p,i)=>({e:cards[i],k:'p'+i,px:p.x,py:p.y,F:false})).filter(o=>o.e.style.display!=='none');
+  const todos=[{e:cF,k:'F',px:FLEX.x,py:FLEX.y,F:true},...vis,{e:cB,k:'B',fixo:true},{e:cB2,k:'B2',fixo:true}];
+  const pins=vis.map(o=>({k:o.k,r:{x:o.px-16,y:o.py-42,w:32,h:44}})).concat([{k:'F',r:{x:FLEX.x-22,y:FLEX.y-52,w:44,h:56}},{k:'b1',r:{x:BASE.x-38,y:BASE.y-38,w:76,h:76}},{k:'b2',r:{x:BASE2.x-34,y:BASE2.y-34,w:68,h:68}}]);
+  const pos=(cfg.mapa&&cfg.mapa.pos)||{};const feitos=[];
+  todos.forEach(o=>{const q=pos[o.k];if(q&&isFinite(q.x)&&isFinite(q.y)){put(o.e,q.x,q.y);o.ok=true;feitos.push(R(o.e))}else if(o.fixo){o.ok=true;feitos.push(R(o.e))}});
+  todos.filter(o=>!o.ok).forEach(o=>{
+   const cur=R(o.e),w=cur.w,h=cur.h,x=o.px,y=o.py;
+   const c=o.F?[[x+34,y-20],[x-34-w,y-20],[x-180,y-56-h],[x-180,y+26],[x-w/2,y-60-h],[x-w/2,y+26],[x+34,y-h-34],[x-34-w,y-h-34],[x+34,y+12],[x-34-w,y+12]]
+              :[[x+30,y-34],[x-30-w,y-34],[x-w/2,y-50-h],[x-w/2,y+14],[x+30,y+6],[x-30-w,y+6],[x+30,y-h-24],[x-30-w,y-h-24]];
+   const outros=todos.filter(t=>t!==o&&!t.ok).map(t=>R(t.e));
+   const custo=r=>fixos.reduce((a,b)=>a+ov(r,b),0)+feitos.reduce((a,b)=>a+ov(r,b),0)+outros.reduce((a,b)=>a+.35*ov(r,b),0)+fora(r)*2+pins.filter(p=>p.k!==o.k).reduce((a,p)=>a+2*ov(r,p.r,2),0);
+   let best={x:cur.x,y:cur.y},bc=custo(cur);
+   if(bc>0)c.forEach(([cx,cy])=>{const r={x:cx,y:cy,w,h},k=custo(r);if(k<bc-1){bc=k;best={x:cx,y:cy}}});
+   if(best.x!==cur.x||best.y!==cur.y)put(o.e,best.x,best.y);
+   o.ok=true;feitos.push(R(o.e));});
+  /* refino: quem ainda encosta em alguém tenta mais posições ao redor do próprio pino */
+  const auto=todos.filter(o=>!o.fixo&&!pos[o.k]);
+  for(let pass=0;pass<5;pass++){let mexeu=false;
+   auto.forEach(o=>{const cur=R(o.e),w=cur.w,h=cur.h,x=o.px,y=o.py;
+    const resto=todos.filter(t=>t!==o).map(t=>R(t.e));
+    const custo=r=>fixos.reduce((a,b)=>a+ov(r,b),0)+resto.reduce((a,b)=>a+ov(r,b),0)+fora(r)*2+pins.filter(p=>p.k!==o.k).reduce((a,p)=>a+2*ov(r,p.r,2),0);
+    let bc=custo(cur);if(bc<=0)return;let best=null;
+    const xs=[],ys=[];for(let cx=x-w-260;cx<=x+260;cx+=30)xs.push(cx);for(let cy=y-h-300;cy<=y+260;cy+=30)ys.push(cy);
+    xs.forEach(cx=>ys.forEach(cy=>{const r={x:cx,y:cy,w,h};
+      if(r.x<o.px+16&&r.x+w>o.px-16&&r.y<o.py+14&&r.y+h>o.py-48)return; // não cobre o próprio pino
+      const k=custo(r)+Math.hypot(r.x+w/2-x,r.y+h/2-y)*1.5;if(k<bc-1&&(!best||k<best.k))best={x:r.x,y:r.y,k}}));
+    if(best){put(o.e,best.x,best.y);mexeu=true}});
+   if(!mexeu)break;}
+ }
+ arrumar();if(document.fonts&&document.fonts.ready)document.fonts.ready.then(arrumar);
  finalState();flexPath.setAttribute('opacity',1);
- return {play,stop,PTS,BASE,BASE2};
+ return {play,stop,PTS,BASE,BASE2,arrumar};
 }
 let MAP=buildMap(CFG);
 
@@ -1920,10 +1965,24 @@ $('cfgLogo').addEventListener('click',e=>{if(e.detail>=3)openPrep()});
 
 /* posicionar o cliente no mapa */
 let placing=false;
+/* arrastar cartões do mapa */
+let arrastando=false,pega=null;
+function modoArrastar(on){arrastando=on;stage.classList.toggle('arrastando',on);$('dragBar').hidden=!on;if(on){try{MAP.stop()}catch(e){}}}
+$('mapDrag').onclick=()=>{if(CFG.slides.mapa===false){toast('Ative o slide do mapa em "Slides" primeiro.');return}closePrep();goT('Onde atuamos');setTimeout(()=>modoArrastar(true),300)};
+const mapAutoFn=()=>{if(CFG.mapa)delete CFG.mapa.pos;markDirty();applyCfg({map:true});if(arrastando)setTimeout(()=>{try{MAP.stop()}catch(e){}},50);toast('Cards organizados automaticamente.')};
+$('mapAuto').onclick=mapAutoFn;$('dragAuto').onclick=mapAutoFn;
+$('dragOk').onclick=()=>{modoArrastar(false);toast(dirty?'Posições guardadas. Clique em "Salvar cliente" para gravar.':'Pronto.');openPrep()};
+document.getElementById('mapcards').addEventListener('pointerdown',e=>{if(!arrastando)return;const c=e.target.closest('.pc');if(!c)return;e.preventDefault();e.stopPropagation();
+ const k=stage.getBoundingClientRect().width/1920;pega={c,k,sx:e.clientX,sy:e.clientY,x:c.offsetLeft,y:c.offsetTop};c.classList.add('pegando');c.setPointerCapture(e.pointerId)});
+document.getElementById('mapcards').addEventListener('pointermove',e=>{if(!pega)return;const {c,k}=pega;
+ c.style.left=Math.round(pega.x+(e.clientX-pega.sx)/k)+'px';c.style.top=Math.round(pega.y+(e.clientY-pega.sy)/k)+'px';c.style.right='auto';c.style.bottom='auto'});
+document.getElementById('mapcards').addEventListener('pointerup',e=>{if(!pega)return;const c=pega.c;c.classList.remove('pegando');
+ if(Math.abs(e.clientX-pega.sx)+Math.abs(e.clientY-pega.sy)>2){CFG.mapa.pos=CFG.mapa.pos||{};CFG.mapa.pos[c.dataset.key]={x:c.offsetLeft,y:c.offsetTop};markDirty()}pega=null});
+addEventListener('keydown',e=>{if(arrastando&&e.key==='Escape'){e.stopPropagation();$('dragOk').click()}},true);
 $('mapPlace').onclick=()=>{if(CFG.slides.mapa===false){toast('Ative o slide do mapa em "Slides" primeiro.');return}closePrep();goT('Onde atuamos');placing=true;stage.classList.add('placing');toast('Clique no ponto do condomínio no mapa. Esc cancela.',6000)};
 stage.addEventListener('click',e=>{if(!placing)return;e.preventDefault();e.stopPropagation();const r=stage.getBoundingClientRect(),k=r.width/1920;
  const x=Math.round((e.clientX-r.left)/k),y=Math.round((e.clientY-r.top)/k);placing=false;stage.classList.remove('placing');
- CFG.mapa.x=Math.max(40,Math.min(1880,x));CFG.mapa.y=Math.max(120,Math.min(960,y));
+ CFG.mapa.x=Math.max(40,Math.min(1880,x));CFG.mapa.y=Math.max(120,Math.min(960,y));delete CFG.mapa.pos;
  const d=(a)=>Math.hypot(a.x-CFG.mapa.x,a.y-CFG.mapa.y);
  CFG.mapa.base=d(MAP.BASE2)<d(MAP.BASE)?'suzano':'carrao';
  let bi=-1,bd=1e9;MAP.PTS.forEach((p,i)=>{const dd=d(p);if(dd<bd){bd=dd;bi=i}});CFG.mapa.sup=bi;
