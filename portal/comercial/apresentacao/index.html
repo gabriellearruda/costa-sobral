@@ -250,6 +250,21 @@ h2 em{font-style:italic;font-weight:500;color:var(--gold)}
 .kgrid .card b{font-size:21px;font-weight:600;align-self:end}
 .kgrid .card span{font-size:16px;color:var(--mute);line-height:1.45}
 .kgrid .wide{grid-column:span 2}
+/* serviços adicionais */
+.adic{display:grid;gap:24px;margin-top:34px}
+.adic .card{background:var(--panel);border:1px solid rgba(245,245,240,.07);display:grid;grid-template-rows:auto 1fr;overflow:hidden}
+.adic .card figure{margin:0;height:300px;background:#0b0b0c;cursor:zoom-in;border-bottom:1px solid rgba(212,175,55,.25)}
+.adic .card figure img{width:100%;height:100%;object-fit:contain;display:block}
+.adic .card .tx{padding:22px 26px 24px}
+.adic .card b{display:block;font-size:23px;font-weight:600;line-height:1.25}
+.adic .card p{font-size:16px;color:var(--mute);line-height:1.5;margin:8px 0 12px}
+.adic .card ul{list-style:none;margin:0;padding:0;display:grid;gap:7px}
+.adic .card li{font-size:16px;line-height:1.4;padding-left:26px;position:relative;color:#D9D6CC}
+.adic .card li::before{content:"";position:absolute;left:2px;top:5px;width:11px;height:6px;border-left:2px solid var(--gold);border-bottom:2px solid var(--gold);transform:rotate(-45deg)}
+.adic.n1 .card{grid-template-rows:none;grid-template-columns:1.25fr 1fr}
+.adic.n1 .card figure{height:520px;border-bottom:0;border-right:1px solid rgba(212,175,55,.25)}
+.adic.n1 .card .tx{padding:44px 44px;align-self:center}.adic.n1 .card b{font-size:30px}.adic.n1 .card p,.adic.n1 .card li{font-size:19px}
+.adic.n2 .card figure{height:380px}
 .free{margin-top:22px;font-family:var(--mono);font-size:15px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);display:flex;gap:14px;align-items:center}
 
 /* 13 implantação */
@@ -961,6 +976,14 @@ body.modo-cliente #tscroll input,body.modo-cliente #tscroll select,body.modo-cli
    </div>
   </section>
 
+  <!-- SERVIÇOS ADICIONAIS (opcional: aparece quando algum serviço é escolhido no painel) -->
+  <section class="slide" data-t="Serviços adicionais" data-k="adic">
+   <div class="eyebrow rv">Serviços adicionais</div>
+   <h2 class="rv">Tecnologia para o <em>seu condomínio.</em></h2>
+   <div class="adic rv" id="adicGrid"></div>
+   <p class="fnote rv">Imagens ilustrativas. Instalação e configuração conforme a estrutura do condomínio, definidas em visita técnica.</p>
+  </section>
+
   <!-- 13 IMPLANTAÇÃO -->
   <section class="slide" data-t="Implantação">
    <div class="eyebrow rv">Implantação</div>
@@ -1129,6 +1152,7 @@ body.modo-cliente #tscroll input,body.modo-cliente #tscroll select,body.modo-cli
   <details><summary>Slides</summary><div class="grid" id="slideToggles"></div></details>
   <details><summary>Referências</summary><p class="hintp">Marque até 6, de preferência os clientes mais próximos.</p><div id="refList" style="display:grid;gap:8px;padding-bottom:14px"></div></details>
   <details><summary>Cortesias e comodato</summary><p class="hintp">Quantidade é opcional. Em branco, o card mostra só o ícone.</p><div id="cortList" style="padding-bottom:14px"></div></details>
+  <details><summary>Serviços adicionais</summary><p class="hintp">Marque os serviços que entram na apresentação. O slide "Serviços adicionais" aparece depois de "Cortesias e comodato" quando houver pelo menos um marcado.</p><div id="adicList" style="display:grid;gap:8px;padding-bottom:14px"></div></details>
   <details><summary>Contato no fechamento</summary><div class="grid">
    <label class="full">Modelo<select id="f_cpre"><option value="">Escolha para preencher…</option><option value="suzano">Base Suzano</option><option value="carrao">Sede Vila Carrão</option></select></label>
    <label class="full">Telefones<input type="text" id="f_tel" data-f="contato.tel"></label>
@@ -1251,6 +1275,7 @@ const DEF={id:'',nome:'Condomínio Exemplo',curto:'Condomínio Exemplo',art:'o',
  mapa:{x:1110,y:430,base:'carrao',km:10,min:25,sup:3,supKm:'',card:'dir'},
  slides:{gestao:true,sistema:true,servicos:true,mapa:true,refs:true,seg:true,supmov:true},
  refs:[0,1,2,3,4,5],
+ adic:{rfid:false,totem:false,armario:false},
  cort:{hig:{on:true,q:''},cel:{on:true,q:''},ht:{on:true,q:''},car:{on:true,q:''},tri:{on:false,q:''},ponto:{on:true,q:''}},
  contato:{tel:'(11) 92661-2817 · (11) 95324-2324',webL:'Site',web:'www.cservicos.com',end:'Av. Rio de Janeiro, 100 — Suzano/SP'},
  servicos:[{name:'Portaria 24 horas (4 colaboradores)',esc:'12x36',qty:1,unit:null},{name:'Auxiliar de Limpeza (sem acúmulo de função)',esc:'6x1',qty:1,unit:null},{name:'Zelador',esc:'2x na Semana',qty:1,unit:null}],
@@ -1721,6 +1746,10 @@ const CORT=[
  {k:'car',t:'Carrinho de limpeza multifuncional',d:'Equipamento profissional completo para a rotina de conservação.',i:ic('<path d="M4 6h12l-1.5 9h-9z"/><path d="M16 6l2-3h2M7 19a1.5 1.5 0 1 0 0 .1M14 19a1.5 1.5 0 1 0 0 .1"/>')},
  {k:'tri',t:'Triciclo de coleta de lixo',d:'Veículo preparado para coleta e transporte de lixo no condomínio.',i:ic('<circle cx="6" cy="18" r="2"/><circle cx="18" cy="18" r="2"/><path d="M8 18h8M3 14h11V7H3zM14 10h4l3 4v4"/>')},
  {k:'ponto',t:'Relógio de ponto digital',d:'Registro digital da jornada, com controle de frequência e transparência na gestão.',i:ic('<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M10 2h4M12 2v3"/>')}];
+const ADIC=[
+ {k:'rfid',t:'Identificação veicular por RFID (TAG UHF)',d:'TAG instalada no para-brisa e lida automaticamente na chegada do veículo, com liberação de portão ou cancela sem parar.',i:['Acesso rápido para veículos cadastrados','Registro automático de entradas e saídas','Integração com portaria, cancelas e CFTV','Operação contínua 24 horas'],img:'img/tec-rfid.jpg'},
+ {k:'totem',t:'Totem de monitoramento 24h',d:'Totem na entrada do condomínio com câmeras de alta definição e cobertura 360°, interfone com a portaria e sinalização de área monitorada.',i:['Monitoramento contínuo da entrada e áreas estratégicas','Controle de acesso veicular integrado','Interfone direto com a portaria','Integração com os programas Smart Sampa e Smart Suzano (mediante adesão)'],img:'img/tec-totem.jpg'},
+ {k:'armario',t:'Armário inteligente para encomendas',d:'Compartimentos individuais para receber encomendas 24 horas, com retirada pelo morador por código, QR Code ou aplicativo.',i:['Recebimento de encomendas 24 horas','Aviso automático ao morador no recebimento e na retirada','Retirada no horário ideal, sem depender da portaria','Menos fluxo e mais organização na portaria'],img:'img/tec-armario.jpg'}];
 const SLT=[['gestao','Gestão por indicadores'],['sistema','Sistema C&S'],['servicos','Serviços complementares'],['mapa','Mapa de postos'],['refs','Referências'],['seg','Segurança jurídica'],['supmov','Supervisão móvel (Implantação)']];
 const CONT={suzano:{tel:'(11) 92661-2817 · (11) 95324-2324',webL:'Site',web:'www.cservicos.com',end:'Av. Rio de Janeiro, 100 — Suzano/SP'},
  carrao:{tel:'(11) 92524-2324',webL:'E-mail',web:'costaesobral@gmail.com',end:'Av. Conselheiro Carrão, 258 · Sala 8 — Vila Carrão, São Paulo/SP'}};
@@ -1735,11 +1764,14 @@ function applyCfg(o={}){
   genTxt:CFG.pdf.modo==='B'?`Atualiza o escopo e o investimento na proposta anexada (Nº ${CFG.num}) com o que foi definido nesta apresentação.`:`Gera a proposta comercial Nº ${CFG.num} completa, com o escopo e a tabela de investimento definidos nesta apresentação.`};
  document.querySelectorAll('[data-b]').forEach(e=>{const v=B[e.dataset.b];if(v!=null)e.textContent=v});
  const dores=(CFG.dores||[]).filter(d=>d&&String(d.dor||'').trim());
- ALL.forEach(sl=>{const k=sl.dataset.k;if(!k)return;const on=k==='diag'?dores.length>0:CFG.slides[k]!==false;on?sl.removeAttribute('data-off'):sl.setAttribute('data-off','')});
+ ALL.forEach(sl=>{const k=sl.dataset.k;if(!k)return;const adSel=ADIC.filter(a=>CFG.adic&&CFG.adic[a.k]);const on=k==='diag'?dores.length>0:k==='adic'?adSel.length>0:CFG.slides[k]!==false;on?sl.removeAttribute('data-off'):sl.setAttribute('data-off','')});
  refreshNav();
  const dg=$('diagGrid');dg.style.gridTemplateColumns=`repeat(${Math.max(1,dores.length)},1fr)`;
  dg.innerHTML=dores.map((d,i)=>`<div class="card"><span class="n">${pad2(i+1)}</span><div class="dor">${esc(d.dor)}</div><div class="res"><b>Como a C&amp;S resolve</b><span>${esc(d.res||'—')}</span></div></div>`).join('');
  $('refsGrid').innerHTML=(CFG.refs||[]).slice(0,6).map(i=>REFS[i]).filter(Boolean).map(r=>`<div class="ref"><span class="chip">${r.seg}</span><h3>${r.n}</h3><div class="who"><span>${r.k}</span>${r.w}<span>Telefone</span><b class="tel">${r.t}</b></div></div>`).join('');
+ {const ad=ADIC.filter(a=>CFG.adic&&CFG.adic[a.k]),g=$('adicGrid');g.className='adic rv n'+ad.length;g.style.gridTemplateColumns=ad.length===1?'1fr':`repeat(${ad.length},1fr)`;
+  g.innerHTML=ad.map(a=>`<div class="card"><figure data-zoom="${a.img}"><img src="${a.img}" alt="${esc(a.t)}"></figure><div class="tx"><b>${esc(a.t)}</b><p>${esc(a.d)}</p><ul>${a.i.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div></div>`).join('');
+  g.querySelectorAll('figure').forEach(f=>f.onclick=()=>{if(typeof openLB==='function')openLB(f.dataset.zoom)});}
  const cs=CORT.filter(c=>CFG.cort[c.k]&&CFG.cort[c.k].on);
  $('kgrid').innerHTML=cs.map((c,i)=>{const q=String(CFG.cort[c.k].q??'').trim();const wide=cs.length%2===1&&i===cs.length-1?' wide':'';return `<div class="card${wide}">${q?`<strong>${esc(q)}</strong>`:c.i}<b>${c.t}</b><span>${c.d}</span></div>`}).join('');
  const kp=$('kPhoto'),tri=CFG.cort.tri&&CFG.cort.tri.on;kp.src=tri?'img/triciclo.jpg':'img/limpeza-vida.jpg';kp.style.objectPosition=tri?'center 40%':'center 9%';
@@ -1766,6 +1798,7 @@ function buildLists(){
  $('dorList').innerHTML=[0,1,2].map(i=>`<div class="dorbox"><label>Ponto ${i+1}<textarea data-f="dores.${i}.dor" placeholder="Ex.: muitas faltas sem reposição na portaria"></textarea></label><label>Como a C&amp;S resolve<textarea data-f="dores.${i}.res" placeholder="Ex.: cobertura garantida e confirmação de presença em 15 minutos"></textarea></label></div>`).join('');
  $('slideToggles').innerHTML=SLT.map(([k,t])=>`<label class="chk full"><input type="checkbox" data-f="slides.${k}">${t}</label>`).join('');
  $('refList').innerHTML=REFS.map((r,i)=>`<label class="chk"><input type="checkbox" data-ref="${i}">${r.n}</label>`).join('');
+ $('adicList').innerHTML=ADIC.map(a=>`<label class="chk"><input type="checkbox" data-f="adic.${a.k}">${a.t}</label>`).join('');
  $('cortList').innerHTML=CORT.map(c=>`<div class="cortrow"><label class="chk"><input type="checkbox" data-f="cort.${c.k}.on">${c.t}</label><input type="text" data-f="cort.${c.k}.q" placeholder="Qtd." aria-label="Quantidade de ${c.t}"></div>`).join('');
  $('f_sup').innerHTML='<option value="-1">Nenhum</option>'+MAP.PTS.map((p,i)=>`<option value="${i}">${p.n}</option>`).join('')}
 function fillPanel(){document.querySelectorAll('#prep [data-f]').forEach(i=>{const v=getp(CFG,i.dataset.f);if(i.type==='checkbox')i.checked=!!v;else i.value=v==null?'':v});
