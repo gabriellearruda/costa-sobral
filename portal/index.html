@@ -1067,10 +1067,12 @@ function evHTML(ev){ const d = parseD(ev.data); return `<div class="ev"><div cla
 /* notificações */
 async function refreshUnread(){
   try {
-    S.unread = await API.count('posts', [['publicar_em','gt',S.leitura], ['publicar_em','lte',nowISO()], ['autor_id','neq',S.me.id]]);
+    S.unreadPosts = await API.count('posts', [['publicar_em','gt',S.leitura], ['publicar_em','lte',nowISO()], ['autor_id','neq',S.me.id]]);
+    S.unreadPm = 0; try { if (!API.demo) S.unreadPm = await API.count('pm_notificacoes', [['usuario_id','eq',S.me.id], ['lida','eq',false]]); } catch(e){}
+    S.unread = S.unreadPosts + S.unreadPm;
     const dot = $('#bell-dot'), nav = $('#nav-unread');
     if (dot){ dot.hidden = !S.unread; dot.textContent = S.unread > 9 ? '9+' : S.unread; }
-    if (nav){ nav.hidden = !S.unread; nav.textContent = S.unread > 9 ? '9+' : S.unread; }
+    if (nav){ nav.hidden = !S.unreadPosts; nav.textContent = S.unreadPosts > 9 ? '9+' : S.unreadPosts; }
     document.title = (S.unread ? `(${S.unread}) ` : '') + portalName();
   } catch(e){}
 }
@@ -1090,14 +1092,25 @@ async function bellPop(anchor){
   const lastSeen = S.leitura;
   try {
     const posts = await API.list('posts', {f:[['publicar_em','lte',nowISO()], ['autor_id','neq',S.me.id]], order:[['publicar_em', false]], limit:12});
-    pop.querySelector('.lst').innerHTML = posts.length ? posts.map(p => { const a = perfil(p.autor_id); return `<div class="it ${p.publicar_em > lastSeen ? 'un' : ''}" data-p="${p.id}">${avatar(a,'sm')}<div style="min-width:0"><div class="small"><b>${esc(a.nome)}</b> publicou ${p.oficial ? '<b>comunicado oficial</b>' : 'em <b>' + esc(p.tipo) + '</b>'}</div><div class="small muted clamp1">${esc(p.texto || '📷 Imagem')}</div><div class="tiny muted">${rel(p.publicar_em)}</div></div></div>`; }).join('') : `<div class="empty small">Nenhuma notificação.</div>`;
-    pop.querySelector('.lst').onclick = e => { const it = e.target.closest('[data-p]'); if (it){ closePop(); const h = '#/inicio/' + it.dataset.p; if (location.hash === h) pageInicio(it.dataset.p); else location.hash = h; } };
+    /* Gestão de Projetos: avisos de prazo, SLA, reprogramação e atribuição (tabela pm_notificacoes) */
+    let pms = []; try { if (!API.demo) pms = await API.list('pm_notificacoes', {f:[['usuario_id','eq',S.me.id]], order:[['lida', true], ['criado_em', false]], limit:8}); } catch(e){}
+    const icPm = {critico:'🔴', alerta:'🟡', info:'🔵'};
+    const pmHTML = pms.length ? `<div class="tiny muted" style="padding:8px 14px 4px;font-weight:700;letter-spacing:.06em">PROJETOS</div>` + pms.map(n => `<div class="it ${n.lida ? '' : 'un'}" data-pm="${n.id}" data-proj="${n.projeto_id || ''}" data-tar="${n.tarefa_id || ''}"><span style="font-size:16px;line-height:1">${icPm[n.nivel] || '•'}</span><div style="min-width:0"><div class="small">${esc(n.mensagem)}</div><div class="tiny muted">${fmtDay(n.criado_em.slice(0,10))}</div></div></div>`).join('')
+      + (posts.length ? `<div class="tiny muted" style="padding:8px 14px 4px;font-weight:700;letter-spacing:.06em">MURAL</div>` : '') : '';
+    pop.querySelector('.lst').innerHTML = pmHTML + (posts.length ? posts.map(p => { const a = perfil(p.autor_id); return `<div class="it ${p.publicar_em > lastSeen ? 'un' : ''}" data-p="${p.id}">${avatar(a,'sm')}<div style="min-width:0"><div class="small"><b>${esc(a.nome)}</b> publicou ${p.oficial ? '<b>comunicado oficial</b>' : 'em <b>' + esc(p.tipo) + '</b>'}</div><div class="small muted clamp1">${esc(p.texto || '📷 Imagem')}</div><div class="tiny muted">${rel(p.publicar_em)}</div></div></div>`; }).join('') : `<div class="empty small">Nenhuma notificação.</div>`);
+    if (!posts.length && pmHTML) pop.querySelector('.lst').innerHTML = pmHTML;
+    pop.querySelector('.lst').onclick = e => {
+      const pm = e.target.closest('[data-pm]');
+      if (pm){ closePop(); try { CSAuth.sb.from('pm_notificacoes').update({lida:true}).eq('id', pm.dataset.pm).then(() => refreshUnread()); } catch(x){}
+        window.open('/portal/projetos/' + (pm.dataset.proj ? `#/p/${pm.dataset.proj}/tabela${pm.dataset.tar ? '/t/' + pm.dataset.tar : ''}` : ''), '_blank'); return; }
+      const it = e.target.closest('[data-p]'); if (it){ closePop(); const h = '#/inicio/' + it.dataset.p; if (location.hash === h) pageInicio(it.dataset.p); else location.hash = h; } };
   } catch(e){ fail(e); }
   $('#bp-read', pop).onclick = markRead;
   markRead(true);
 }
 async function markRead(silent){
   S.leitura = nowISO();
+  if (silent !== true){ try { if (!API.demo) await CSAuth.sb.from('pm_notificacoes').update({lida:true}).eq('usuario_id', S.me.id).eq('lida', false); } catch(e){} }
   try { await API.upsert('leituras', {usuario_id:S.me.id, ultimo_visto:S.leitura}); } catch(e){}
   S.unread = 0; refreshUnread();
   if (silent !== true){ closePop(); $$('.post.unread').forEach(p => p.classList.remove('unread')); }
