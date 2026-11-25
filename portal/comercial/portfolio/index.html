@@ -31,6 +31,7 @@ body{font-family:Mont,system-ui,sans-serif;background:#ECEAE4;color:var(--txt)}
 .fld textarea{resize:vertical;min-height:60px;line-height:1.45}.fld input:focus,.fld textarea:focus{border-color:#D4AF37}
 .hint{font-size:10.5px;color:#9a968c;line-height:1.45;margin-bottom:8px}
 .opts{display:flex;flex-direction:column;gap:5px;margin-bottom:8px}.opts label{display:flex;gap:8px;align-items:center;font-size:12.5px;cursor:pointer}
+.legrow{display:flex;gap:8px;align-items:center;margin-bottom:6px}.legrow img{width:34px;height:34px;object-fit:cover;border-radius:5px;flex:none}.legrow input{flex:1;min-width:0}
 .fotos-pick{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.fp{position:relative;border:2px solid transparent;border-radius:7px;padding:0;background:none;cursor:pointer;overflow:hidden}
 .fp img{width:100%;height:62px;object-fit:cover;display:block;opacity:.45}.fp.on{border-color:#D4AF37}.fp.on img{opacity:1}
 .fp span{position:absolute;top:3px;right:3px;background:#D4AF37;color:#111;font-size:10px;font-weight:700;border-radius:9px;min-width:16px;height:16px;display:flex;align-items:center;justify-content:center}
@@ -134,7 +135,7 @@ ul.ck li::before{content:"\2713";position:absolute;left:0;color:var(--gold-d);fo
 const AP='/portal/comercial/apresentacao/img/', PR='/portal/comercial/propostas/';
 const FOTOS=[{k:'portaria',n:'Portaria e controle de acesso',src:'img/m-portaria.jpg'},{k:'limpeza',n:'Limpeza e conservação',src:'img/m-limpeza.jpg'},
   {k:'zeladoria',n:'Zeladoria',src:'img/m-zeladoria.jpg'},{k:'jardinagem',n:'Jardinagem e áreas verdes',src:'img/m-jardinagem.jpg'},
-  {k:'garagem',n:'Lavagem e higienização de garagens',src:'img/m-garagem.jpg'},{k:'quem',n:'Portaria (terno)',src:'img/quem.jpg'},
+  {k:'garagem',n:'Lavagem e higienização de garagens',src:'img/m-garagem.jpg'},{k:'quem',n:'Portaria/Controle de acesso',src:'img/quem.jpg'},
   {k:'controle-acesso',n:'Controle de acesso',src:AP+'controle-acesso.jpg'},{k:'triciclo',n:'Triciclo de lixo',src:AP+'triciclo.jpg'},{k:'viaturas',n:'Supervisão móvel',src:AP+'viaturas.jpg'}];
 const CONDOS=[{k:'condo-1',src:AP+'condo-1.jpg'},{k:'condo-2',src:AP+'condo-2.jpg'},{k:'condo-3',src:AP+'condo-3.jpg'},{k:'condo-4',src:AP+'condo-4.jpg'}];
 
@@ -176,6 +177,7 @@ const C0={
   metodoIntro:"Do primeiro contato ao posto em operação, seguimos um método padronizado que garante previsibilidade e qualidade em qualquer frente de serviço.",
   passos:"Entendimento | Visita técnica e análise da necessidade e do perfil do ambiente.\nPlano personalizado | Escopo, escalas e rotinas sob medida para o seu condomínio ou empresa.\nExecução e gestão | Equipe treinada, supervisão constante e processos padronizados.\nResultados | Acompanhamento, relatórios, indicadores e melhoria contínua.",
   fotos:['portaria','limpeza','zeladoria','jardinagem','garagem'],
+  legendas:{},
   investKicker:"Proposta · Modelo transparente",
   investTexto:"Trabalhamos com um **valor mensal por posto**, definido após a visita técnica e o dimensionamento da sua operação. É um valor único e previsível: todos os encargos, benefícios e a gestão já estão inclusos — **sem custos ocultos** e **sem passivo trabalhista** para o contratante.",
   destaques:"1 | Valor mensal | Um único valor por posto contratado, sem surpresas.\n0 | Passivo trabalhista | Encargos e obrigações da equipe por nossa conta.\n100% | Documentado | Documentação mensal disponível ao contratante para conferência.",
@@ -206,6 +208,8 @@ function toast(m,err){const t=$('toast');t.textContent=m;t.className='toast show
 function sujo(){$('estado').dataset.sujo='1';estado();}
 function estado(){$('estado').innerHTML='Portfólio institucional'+($('estado').dataset.sujo==='1'?' · <i>não salvo</i>':'');}
 function setv(k,v){C[k]=v;render();sujo();}
+function leg(f){const v=(C.legendas||{})[f.k];return v&&String(v).trim()?v:f.n;}
+function setLeg(k,v){if(!C.legendas||typeof C.legendas!=='object')C.legendas={};C.legendas[k]=v;render();sujo();}
 const IC={key:'<circle cx="8" cy="15" r="4"/><path d="M10.8 12.2 20 3M17 6l3 3M15 8l2 2"/>',broom:'<path d="M19 4 9.5 13.5"/><path d="M6 20c-1-2-1-4 1-6l3 3c-2 2-4 2-6 1z"/><path d="M8 14l2 2"/>',
  tool:'<path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/>',leaf:'<path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.5 19 2c1 2 2 4.2 2 8 0 5.5-4.8 10-10 10z"/><path d="M2 21c0-3 1.9-5.4 5-6"/>',
  car:'<path d="M5 17h14v-5l-2-5H7l-2 5z"/><circle cx="8" cy="17" r="2"/><circle cx="16" cy="17" r="2"/>',users:'<circle cx="9" cy="8" r="4"/><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><path d="M16 4a4 4 0 0 1 0 8M23 21v-2a4 4 0 0 0-3-3.9"/>',
@@ -234,7 +238,7 @@ function render(){
   if(P.metodo){const fs=C.fotos.map(k=>FOTOS.find(f=>f.k===k)).filter(Boolean);
     H+='<section class="page"><div class="kk">Metodologia</div><h1 class="t">Como <em>trabalhamos</em></h1><div class="rl"></div><p class="ld">'+rich(C.metodoIntro)+'</p><div class="st">'+
     pares(C.passos).map((s,i)=>'<div><div class="n">'+String(i+1).padStart(2,'0')+'</div><div class="r"></div><h4>'+esc(s[0])+'</h4><p>'+esc(s[1]||'')+'</p></div>').join('')+'</div>'+
-    (fs.length?'<div class="ph">'+fs.map(f=>'<figure><img src="'+f.src+'" alt=""><figcaption>'+esc(f.n)+'</figcaption></figure>').join('')+'</div>':'')+ft()+'</section>';}
+    (fs.length?'<div class="ph">'+fs.map(f=>'<figure><img src="'+f.src+'" alt=""><figcaption>'+esc(leg(f))+'</figcaption></figure>').join('')+'</div>':'')+ft()+'</section>';}
   if(P.invest){const h=Math.ceil(B.contempla.length/2);
     H+='<section class="page"><div class="kk">'+esc(C.investKicker)+'</div><h1 class="t">Investimento</h1><div class="rl"></div><p class="ld">'+rich(C.investTexto)+'</p>'+
     '<div class="cardx ct"><h4>O valor mensal já contempla</h4><div class="g2"><ul class="ck">'+B.contempla.slice(0,h).map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul><ul class="ck">'+B.contempla.slice(h).map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul></div></div>'+
@@ -279,7 +283,9 @@ function editor(){
     f('Missão','missao',3)+f('Visão','visao',3)+f('Valores','valores',3)+f('Palavras da marca','palavras'));
   h+=g('servicos',f('Abertura','servIntro',3)+f('Serviços','servicos',8,'Serviço | descrição, um por linha')+f('Quadro de destaque','cobertura',3,'Título | texto'));
   h+=g('metodo',f('Abertura','metodoIntro',3)+f('Etapas','passos',5,'Etapa | descrição')+'<div class="fld"><label>Fotos <i>(clique na ordem em que vão aparecer)</i></label><div class="fotos-pick">'+
-    FOTOS.map(x=>{const i=C.fotos.indexOf(x.k);return '<button type="button" class="fp'+(i>=0?' on':'')+'" title="'+esc(x.n)+'" onclick="ordem(\'fotos\',\''+x.k+'\')"><img src="'+x.src+'" alt="">'+(i>=0?'<span>'+(i+1)+'</span>':'')+'</button>';}).join('')+'</div></div>');
+    FOTOS.map(x=>{const i=C.fotos.indexOf(x.k);return '<button type="button" class="fp'+(i>=0?' on':'')+'" title="'+esc(leg(x))+'" onclick="ordem(\'fotos\',\''+x.k+'\')"><img src="'+x.src+'" alt="">'+(i>=0?'<span>'+(i+1)+'</span>':'')+'</button>';}).join('')+'</div></div>'+
+    '<div class="fld"><label>Legendas das fotos <i>(em branco: legenda padrão)</i></label>'+C.fotos.map(k=>{const x=FOTOS.find(q=>q.k===k);if(!x)return '';
+      return '<div class="legrow"><img src="'+x.src+'" alt=""><input value="'+esc((C.legendas||{})[k]||'')+'" placeholder="'+esc(x.n)+'" oninput="setLeg(\''+k+'\',this.value)"></div>';}).join('')+'</div>');
   h+=g('invest',f('Chamada','investKicker')+f('Texto','investTexto',5)+f('Destaques','destaques',4,'Número | título | texto')+f('Nota final','investNota',3)+'<div class="hint">A lista "O valor mensal já contempla" vem dos Parâmetros das propostas.</div>');
   h+=g('condicoes',f('Condições','condicoes',8,'Título | texto')+f('Segurança jurídica','juridico',6,'um por linha')+
     '<label class="opts"><span><input type="checkbox" '+(C.mostrarSeguros?'checked':'')+' onchange="setv(\'mostrarSeguros\',this.checked)"> Mostrar "Seguros e garantias"</span></label>');
